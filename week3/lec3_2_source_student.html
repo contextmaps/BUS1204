@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building a Business Visual Over Several Turns</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 3 · Lecture 2</div>
+  <div class="plib-meta-title">Building a Business Visual Over Several Turns</div>
+  <div class="plib-meta-details"><span><strong>Duration:</strong> 75 minutes</span>&ensp;·&ensp;<span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> Thread exported as a .txt and uploaded to Canvas before leaving class</span>&ensp;·&ensp;<span><strong>Lecture Mode:</strong> consolidating</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this lecture, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Name what a request leaves for an AI to decide, and say which of those decisions only they can make.</li>
+    <li>Ask an AI what it needs to know before it produces anything, push it for more than its first question, and answer in their own words.</li>
+    <li>Supply real figures to a request that did not ask for them, and say what the picture gained.</li>
+    <li>Run the read-back check on a generated chart and report what it found, whichever way it lands.</li>
+    <li>Ask what further information would improve a picture, supply it, and say what changed.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 5</div><div class="plib-section-t">INTRODUCTION</div></div>
+
+<figure class="plib-slide">
+  <img class="plib-slide-img" src="lec3_2_slide1.png" alt="A first-year male VT student at a laptop. The screen is turned towards the viewer and Hokie AI has asked him for his monthly figures. He holds a small printed table of numbers, ready to hand over. A faint, generic first attempt at a chart sits on the desk beside him." loading="lazy">
+  <figcaption class="plib-slide-caption">It asked for the one thing it could not invent.</figcaption>
+</figure>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>On Tuesday you counted the things a picture claimed that nobody had supplied. The count was never zero, and the reason was always the same. You had not told it, so it decided.</p>
+    <p>Today you tell it. You will build one picture three times in one conversation, and each time you will have given it something it did not have before. The last version will be about your decision, for your audience, using figures you provided. Nothing about the tool changes across those three versions. What changes is what it knows, and you are the only source of that.</p>
+  </div>
+</div>
+
+<div class="plib-narration">
+  <p>One conversation today, not three. You will stop three times inside it, and at each stop you will have a picture. What separates the three pictures is what you told it between them.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-9">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Stop 0, a thin request. Stop 1, after it interviews you and you supply the figures. Stop 2, one more thing you choose to add."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Three stops on one journey</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">0</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 0</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a thin request, and whatever comes back</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 1</text><text x="372" y="122" font-size="14" fill="#6b6b6b">after it interviews you and you hand over</text><text x="372" y="141" font-size="14" fill="#6b6b6b">the figures</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 2</text><text x="708" y="122" font-size="14" fill="#6b6b6b">one more thing, and you choose it</text></svg></div>
+    <figcaption class="plib-tile-caption">Three stops on one journey. You decide where to pull over and when to get back on.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-10">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Pick a value printed on the picture, find the mark it belongs to, and check that the mark sits where that number says it should."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 193" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="193" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The read-back check, from Tuesday</text><rect x="21" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Pick a value</text><text x="37" y="122" font-size="14" fill="#6b6b6b">any figure printed on the picture</text><text x="332" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Find its mark</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the point or the line it belongs to</text><text x="668" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Check the mark sits where</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">the number says</text><text x="708" y="134" font-size="14" fill="#6b6b6b">and say what you found, whichever way</text><text x="708" y="153" font-size="14" fill="#6b6b6b">it lands</text></svg></div>
+    <figcaption class="plib-tile-caption">You already own this from Tuesday. Today you use it in the middle of the journey, and finding nothing is a result.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 5</div><div class="plib-section-t">DEMONSTRATION</div></div>
+
+<div class="plib-narration">
+  <p>Three runs on screen, in one thread, and you paste none of them. All three are on this page. The first is a thin request in a new setting. The second asks Hokie AI what it needs to know, and your instructor answers it in front of you.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S3.2.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S3.2.1</span>
+    <span class="plib-prompt-type-label">Reference prompt</span>
+  </div>
+  <div class="plib-prompt-display">Our company sells in four regions, North, South, East and West, and we track revenue by quarter across the last year. Some regions grew over the year and some declined. Create a line chart with necessary figures for a board presentation that shows how the regions moved across the four quarters. Add a clear takeaway headline.</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Watch what it does with the word figures. It was asked for them and given none, so it will supply them, the same way it did on Tuesday with the retail categories. The domain changed and the behaviour did not.</p>
+  </div>
+</div>
+
+<div class="plib-narration">
+  <p>Second run, same thread. Your instructor sends the block below, which asks Hokie AI what it needs to know and caps it at three questions. Watch which questions arrive, and watch what happens when it asks for figures and somebody actually has them.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S3.2.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S3.2.2</span>
+    <span class="plib-prompt-type-label">Reference prompt</span>
+  </div>
+  <div class="plib-prompt-display">Before you make anything else, ask me what you need to know to make this genuinely useful. Ask one question at a time, at most three, then make the chart.</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-material" id="plib-material-17">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The figures, for the demonstration</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-17-prompt" data-copy="Revenue by region and quarter, in thousands of dollars.&#10;&#10;Region, Q1, Q2, Q3, Q4&#10;North, 412, 438, 455, 470&#10;South, 388, 372, 341, 315&#10;East,  205, 244, 289, 352&#10;West,  520, 512, 508, 497" aria-label="Specification text, scrollable">Revenue by region and quarter, in thousands of dollars.
+
+Region, Q1, Q2, Q3, Q4
+North, 412, 438, 455, 470
+South, 388, 372, 341, 315
+East,  205, 244, 289, 352
+West,  520, 512, 508, 497</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-17-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The real quarterly numbers for the four regions. Your instructor hands these over during the demonstration, at the moment Hokie AI asks for them. Your own run is a different organisation with different numbers, and its table is in the next section.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Third run, same thread. The picture so far is aimed at the people whose regions are growing. Your instructor now asks for a version aimed at the two regional managers whose regions are not, which is a different job for the same figures.</p>
+  <p>Watch what your instructor does before accepting it.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S3.2.4">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S3.2.4</span>
+    <span class="plib-prompt-type-label">Reference prompt</span>
+  </div>
+  <div class="plib-prompt-display">Now make a version aimed at the regional managers for South and West, so they can see what needs attention in their own regions.</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-20">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="If the picture disagrees with its own labels, name the value that is in the wrong place and ask for it again to scale."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 172" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="172" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">If the picture disagrees with itself</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Name the value that is drawn in the wrong place and ask for the chart again to scale. You are not starting over and you are not</text><text x="46" y="108" font-size="16" fill="#2b2b2b">writing a new request.</text><text x="46" y="134" font-size="14" fill="#6b6b6b">One sentence, one correction. It is the fastest exchange in the hour.</text></svg></div>
+    <figcaption class="plib-tile-caption">You are not starting over. You are correcting one thing, and it is the fastest exchange in the hour.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-21">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND. What the first picture invented about West, and what the real figures say about West and East."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The same four regions, twice</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What it invented</text><text x="37" y="122" font-size="14" fill="#6b6b6b">West up 71 percent, and the headline says West leads growth</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What the figures say</text><text x="540" y="122" font-size="14" fill="#6b6b6b">West down 4 percent, and East is the one that climbed 72</text></svg></div>
+    <figcaption class="plib-tile-caption">One of these would have sent next quarter's money to the wrong region, and it is the polished one.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Two questions before you run your own:</p>
+  <ul class="plib-discussion-list">
+    <li>The invented chart is the better looking of the two and it names the wrong region. What would it have cost to act on it?</li>
+    <li>It asked for the figures and it did not ask what the picture was for. Why would it ask for one and not the other?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 5</div><div class="plib-section-t">INTERACTION</div></div>
+
+<figure class="plib-slide">
+  <img class="plib-slide-img" src="lec3_2_slide2.png" alt="A road running left to right with three stops on it. Above each stop a chart. The first is faint and shapeless, the second carries two measured lines and an axis, and the third is that same picture with a bold bar added underneath it. A male VT student drives, and Hokie AI rides alongside holding a map and pointing at the next junction." loading="lazy">
+  <figcaption class="plib-slide-caption">Three stops. You chose every one of them.</figcaption>
+</figure>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">T</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204, Week 3 Lecture 1. You are an AI assistant for this session. The student will ask you to make and revise visuals for business scenarios. Respond to what they ask. When they ask about your reasoning, answer honestly, including what you assumed and what you cannot settle from what you were told. Acknowledge this session is open.
+
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_25" data-copy="### T&#10;----------&#10;BUS 1204, Week 3 Lecture 1. You are an AI assistant for this session. The student will ask you to make and revise visuals for business scenarios. Respond to what they ask. When they ask about your reasoning, answer honestly, including what you assumed and what you cannot settle from what you were told. Acknowledge this session is open.&#10;&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_25', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Stop 0. Different organisation, different services, different months. Paste the block below and send it, unedited. It will very likely refuse and ask for your appointment counts, so paste the same words a second time. If it refuses again, type Create the chart and nothing else. Do not reword the block and do not hand over your figures yet. Whatever comes back is your starting picture and you keep it, because the rest of the hour is measured against it.</p>
+</div>
+
+<div class="plib-prompt-s" role="region" aria-label="Standard Prompt S3.2.3">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S3.2.3</span>
+    <span class="plib-prompt-type-label">Standard Prompt</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-prompt-text" id="text_prompt_28" data-copy="### S3.2.3&#10;----------&#10;Our university career centre runs four services, resume reviews, mock interviews, drop-in advising and employer information sessions, and we track appointments by month from September to February. Some services grew over that period and some declined. Create a line chart for the centre's annual review that shows how the four services moved across the six months. Add a clear takeaway headline.&#10;----------&#10;###"></div>
+  <div class="plib-prompt-display">Our university career centre runs four services, resume reviews, mock interviews, drop-in advising and employer information sessions, and we track appointments by month from September to February. Some services grew over that period and some declined. Create a line chart for the centre's annual review that shows how the four services moved across the six months. Add a clear takeaway headline.</div>
+  <button class="plib-copy-btn" onclick="copyPrompt('text_prompt_28', this)"
+          aria-label="Copy prompt S3.2.3 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy prompt
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now open the M block and stay in the same thread for the rest of the hour. Three stops, and you have already reached the first one.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-30">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Stop 0 is the picture you already have. Stop 1 is after it interviews you and you hand over the figures. Stop 2 is one thing you choose to add."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your turn, and you are driving</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">0</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 0</text><text x="37" y="122" font-size="14" fill="#6b6b6b">send it once, unedited, and keep what</text><text x="37" y="141" font-size="14" fill="#6b6b6b">comes back</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 1</text><text x="372" y="122" font-size="14" fill="#6b6b6b">ask it to interview you, hand over the</text><text x="372" y="141" font-size="14" fill="#6b6b6b">figures, then check the picture</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stop 2</text><text x="708" y="122" font-size="14" fill="#6b6b6b">ask what one more thing would help, and</text><text x="708" y="141" font-size="14" fill="#6b6b6b">nobody is helping you here</text></svg></div>
+    <figcaption class="plib-tile-caption">What this block asks of you. The third box is the one nobody is helping you with.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-31">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your figures, when it asks for them</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-31-prompt" data-copy="Appointments by service and month, university career centre.&#10;&#10;Service, Sep, Oct, Nov, Dec, Jan, Feb&#10;Resume Reviews,         486, 452, 401, 368, 341, 312&#10;Mock Interviews,        128, 167, 214, 268, 319, 377&#10;Drop-in Advising,       295, 318, 341, 362, 388, 410&#10;Employer Info Sessions, 540, 521, 498, 470, 449, 431" aria-label="Specification text, scrollable">Appointments by service and month, university career centre.
+
+Service, Sep, Oct, Nov, Dec, Jan, Feb
+Resume Reviews,         486, 452, 401, 368, 341, 312
+Mock Interviews,        128, 167, 214, 268, 319, 377
+Drop-in Advising,       295, 318, 341, 362, 388, 410
+Employer Info Sessions, 540, 521, 498, 470, 449, 431</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-31-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Six months of appointments for the four services. These are not the numbers your instructor used, and this is not the company from the demonstration. Do not paste them into your first message. Hold them until Hokie AI asks, because what it asks for is part of what you are here to see.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-32">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Ask it to interview you to improve the chart and say one question at a time, answer in your own words, and hand the figures over when it asks. A fourth box continues below."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 193" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="193" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The leg from Stop 0 to Stop 1</text><rect x="21" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask it to interview you to</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">improve the chart</text><text x="37" y="134" font-size="14" fill="#6b6b6b">and say one question at a time, or seven</text><text x="37" y="153" font-size="14" fill="#6b6b6b">arrive together</text><text x="332" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Answer in your own words</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the decision, the room, and what they do</text><text x="372" y="141" font-size="14" fill="#6b6b6b">next</text><text x="668" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Hand the figures over when</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">it asks</text><text x="708" y="134" font-size="14" fill="#6b6b6b">and if it never asks, hand them over and</text><text x="708" y="153" font-size="14" fill="#6b6b6b">note that</text></svg></div>
+    <figcaption class="plib-tile-caption">The leg from Stop 0 to Stop 1, boxes 1 to 3. The fourth box is the card directly below.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-33">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Box four of the same leg. Ask for the version aimed at the leads for resume reviews and employer information sessions, then read two named months off the new picture and compare them against your own table."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 228" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="228" rx="10" fill="#faf7f8"/><text x="500" y="24" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="21" y="54" width="958" height="154" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="86" r="13" fill="#630031" opacity="0.3"/><text x="59" y="92" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="80" y="92" font-size="18" font-weight="600" fill="#630031">Ask for the version aimed at the two services that are falling</text><text x="46" y="120" font-size="16" fill="#2b2b2b">Resume reviews and employer information sessions both fall across the six months, so ask for a version aimed at the leads for</text><text x="46" y="142" font-size="16" fill="#2b2b2b">those two. Then pick two months you can name from your own table and read those two values off the new picture. That</text><text x="46" y="164" font-size="16" fill="#2b2b2b">checked picture is Stop 1.</text><text x="46" y="190" font-size="14" fill="#6b6b6b">A clean check is an answer. Say what you checked and what you found, whichever way it went.</text></svg></div>
+    <figcaption class="plib-tile-caption">Box 4 of the leg to Stop 1. It is drawn large because it is the only move in the hour that checks a picture against figures you hold.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-34">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Ask what one more thing would make it more useful, answer what it asks and expect several questions, then put the new picture beside Stop 1 and name what moved."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 193" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="193" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The leg from Stop 1 to Stop 2</text><rect x="21" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask what one more thing</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">would make it more useful</text><text x="37" y="134" font-size="14" fill="#6b6b6b">a what question, since a yes or no</text><text x="37" y="153" font-size="14" fill="#6b6b6b">question gets a no</text><text x="332" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Answer what it asks, and</text><text x="401" y="103" font-size="17" font-weight="600" fill="#2b2b2b">expect several</text><text x="372" y="134" font-size="14" fill="#6b6b6b">you are at Stop 2 when it makes the</text><text x="372" y="153" font-size="14" fill="#6b6b6b">picture again</text><text x="668" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Put the new picture beside</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">Stop 1</text><text x="708" y="134" font-size="14" fill="#6b6b6b">and name everything that moved that</text><text x="708" y="153" font-size="14" fill="#6b6b6b">you never asked for</text></svg></div>
+    <figcaption class="plib-tile-caption">The leg from Stop 1 to Stop 2. Nothing on this page tells you what to ask for, and that is on purpose.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Stay in one thread and reach all three stops. The three cards above carry the moves and not the words, because a sentence you copied is not a decision you made.</p>
+  <p>On the way to Stop 1 you will ask it to interview you to improve the chart. Point the interview at something, because an interview with no destination gets you polling questions. Say one question at a time in the same message, or you will get a block of seven at once and answer none of them properly. Then answer what it asks in your own words, and hand over your figures at the moment it asks for them.</p>
+  <p>The fourth box is the large card, and it is part of the same leg. Ask for a version aimed at the leads for resume reviews and employer information sessions, which are the two services that fall across the six months. Run the read-back check on that version before you accept it. Resume reviews and mock interviews cross over between January and February, so there is somewhere real for a drawing fault to hide. Say what your check found either way, because a clean check is an answer and roughly half of you will get one.</p>
+  <p>Your checked picture is Stop 1.</p>
+  <p>The leg to Stop 2 is yours and the page stops helping. Ask what one more piece of information from you would make the chart more useful, because a question it can answer with a yes or a no gets a no. Then answer what it names, and expect more than one. On a sampled run it asked four things in a row, a benchmark, an audience, an action and a contact line, and two of those were things nobody had thought to supply. Keep answering until it makes the picture again, and that picture is Stop 2. If it names nothing at all, write that down and choose something yourself.</p>
+  <p>Then put the new picture beside Stop 1 and go looking. On a sampled run the only thing asked for was brand colours, and the chart came back with a truncated axis, a headline demoted to a subtitle and two percentage callouts gone. None of that was requested and none of it was announced. Naming what moved that you never asked for is the last thing this hour asks of you. All three pictures stay in this one thread, because your export is what gets read later.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-36">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If it asks for your data instead of drawing a picture, paste the same words a second time. If it still refuses, type Create the chart and keep what comes back."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF IT ASKS FOR DATA INSTEAD OF DRAWING</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Send it twice, then say so</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Paste the same words a second time. If it still</text><text x="34" y="199" font-size="15" fill="#6b6b6b">asks, type Create the chart and keep what comes</text><text x="34" y="220" font-size="15" fill="#6b6b6b">back. Do not paste your figures yet.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If it made a picture without asking you anything, that is your finding. Say so in the thread, then ask again and keep going until you have answered at least three of its questions."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF IT NEVER ASKED YOU ANYTHING</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">That is your finding</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Write it down in the thread, then ask again and</text><text x="34" y="199" font-size="15" fill="#6b6b6b">keep going until you have answered at least three</text><text x="34" y="220" font-size="15" fill="#6b6b6b">of its questions.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If your read-back check found nothing wrong, write that down. A clean check is an answer and it took the same work."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF YOUR CHECK FOUND NOTHING WRONG</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Say so in the thread</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">A clean check is an answer. It took the same work</text><text x="34" y="199" font-size="15" fill="#6b6b6b">as finding a fault and it counts the same.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-36");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block M3.2.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">M3.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Formative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_37" data-copy="### M3.2.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_37', this)"
+          aria-label="Copy opening marker for block M3.2.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block M3.2.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">M3.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_38" data-copy="&#10;----------&#10;### M3.2.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_38', this)"
+          aria-label="Copy closing marker for block M3.2.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">DISCUSSION</div></div>
+
+<div class="plib-narration">
+  <p>Everyone in this room started from the same request and the same figures. Answer all three items from what is actually in your own thread, not from what you think should have happened. The survey carries no credit.</p>
+</div>
+
+<div class="plib-prompt-q" role="region" aria-label="Structured Response Q3.2.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-q-id">Q3.2.1</span>
+    <span class="plib-prompt-type-label plib-q-label">Structured Response</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-q-instruction">
+    Make your selections below, then click Copy and paste into Hokie AI.
+  </p>
+  <div class="plib-q-items" id="qitems_prompt_42">
+<div class="plib-q-item" data-item-n="1" data-render="dropdown" data-max-select="1">
+  <label class="plib-q-question">
+    <span class="plib-q-item-num">ITEM 1.</span>
+    Put your Stop 2 picture beside your Stop 1 picture. What did it change that you never asked for?
+  </label>
+  <select class="plib-q-select" data-item-n="1">
+    <option value="">Select</option>
+    <option value="Nothing I could find">Nothing I could find</option>
+    <option value="Colours or styling only">Colours or styling only</option>
+    <option value="The headline, or what it draws your eye to">The headline, or what it draws your eye to</option>
+    <option value="The scale or the axis">The scale or the axis</option>
+    <option value="Something else">Something else</option>
+  </select>
+</div>
+<div class="plib-q-item" data-item-n="2" data-render="dropdown" data-max-select="1">
+  <label class="plib-q-question">
+    <span class="plib-q-item-num">ITEM 2.</span>
+    Look at your Stop 1 picture. Is there anything printed on it that you never supplied?
+  </label>
+  <select class="plib-q-select" data-item-n="2">
+    <option value="">Select</option>
+    <option value="No, everything on it came from me">No, everything on it came from me</option>
+    <option value="Yes, a logo or a tagline for the centre">Yes, a logo or a tagline for the centre</option>
+    <option value="Yes, a year or a date range">Yes, a year or a date range</option>
+    <option value="Yes, a source line or a footer">Yes, a source line or a footer</option>
+    <option value="Yes, something else">Yes, something else</option>
+  </select>
+</div>
+<div class="plib-q-item" data-item-n="3" data-render="dropdown" data-max-select="1">
+  <label class="plib-q-question">
+    <span class="plib-q-item-num">ITEM 3.</span>
+    When you ran the read-back check on the service leads version, did the picture agree with its own printed values?
+  </label>
+  <select class="plib-q-select" data-item-n="3">
+    <option value="">Select</option>
+    <option value="Yes, every value I checked sat where it should">Yes, every value I checked sat where it should</option>
+    <option value="No, at least one point was drawn in the wrong place">No, at least one point was drawn in the wrong place</option>
+    <option value="I could not tell from what it gave me">I could not tell from what it gave me</option>
+  </select>
+</div>
+  </div>
+  <div class="plib-warn" id="warn_prompt_42"
+       role="alert" aria-live="polite"></div>
+  <button class="plib-copy-btn plib-copy-btn-q"
+          onclick="copyStructured('prompt_42', 'Q3.2.1', this)"
+          aria-label="Copy structured response Q3.2.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy structured response
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-44">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND. Everyone started from the same request, and the pictures at Stop 2 are different because the people typing were different."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Two counts, and both came from this room</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">It asked different people different things</text><text x="37" y="122" font-size="14" fill="#6b6b6b">nobody chose that and nobody was warned</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Same request, same figures, different pictures</text><text x="540" y="122" font-size="14" fill="#6b6b6b">because the people typing were different</text></svg></div>
+    <figcaption class="plib-tile-caption">Both counts come from this room. Neither was promised to you in advance.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Look at the third result first. Some of you found a point drawn where its own label says it should not be, and some of you checked just as carefully and found nothing. Both of those are the same piece of work and the room needs to hear that said out loud.</p>
+  <p>Now the second. On both sampled runs the picture arrived carrying a logo, a tagline and a date range that nobody had supplied, sitting inside a chart whose every number was correct. A picture can be right about its figures and still put words on the page that came from nowhere, and the read-back check does not catch that.</p>
+  <p>Now the first. You each supplied one thing at Stop 2 and the pictures came back with more than one thing changed, and nobody asked for the rest of it.</p>
+  <p>Then the part that is not on the survey. What did you ask for at Stop 2, and why that.</p>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Take these into the reflection:</p>
+  <ul class="plib-discussion-list">
+    <li>Everybody in this room started from one request and one table of figures, and the pictures at Stop 2 are not the same. What made them different?</li>
+    <li>On Tuesday a different picture every run was a problem. Today it is not. What changed?</li>
+</ul>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-47">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. What it asked you, what you added at Stop 2, and which of your three pictures you would send."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">One minute each way</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What it asked you</text><text x="37" y="122" font-size="14" fill="#6b6b6b">and whether the figures were among the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">questions</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What you added at Stop 2</text><text x="372" y="122" font-size="14" fill="#6b6b6b">and why that rather than something else</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Which of your three you</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">would send</text><text x="708" y="134" font-size="14" fill="#6b6b6b">and what you would check first</text></svg></div>
+    <figcaption class="plib-tile-caption">One minute each way. Give your partner all three.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Compare with the person next to you. Say what it asked you AND say what you added at Stop 2 and why you chose it AND settle which of your three pictures you would put your name on, and what you would check first.</p>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">REFLECTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-50">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. One thing you supplied that it could not have known, what the read-back check found, what you chose at Stop 2 and why, and which picture you would send."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Respond to all four in your reflection</text><rect x="21" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One thing you</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">supplied</text><text x="37" y="134" font-size="14" fill="#6b6b6b">that it could not have</text><text x="37" y="153" font-size="14" fill="#6b6b6b">known, and what the</text><text x="37" y="172" font-size="14" fill="#6b6b6b">picture did with it</text><text x="248" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What your check</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">found</text><text x="288" y="134" font-size="14" fill="#6b6b6b">including a clear statement</text><text x="288" y="153" font-size="14" fill="#6b6b6b">if it found nothing</text><text x="500" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What Stop 2</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">changed</text><text x="540" y="134" font-size="14" fill="#6b6b6b">what you asked for, and</text><text x="540" y="153" font-size="14" fill="#6b6b6b">anything else that moved</text><text x="540" y="172" font-size="14" fill="#6b6b6b">with it</text><text x="752" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Which picture you</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">would send</text><text x="792" y="134" font-size="14" fill="#6b6b6b">and what has to be true</text><text x="792" y="153" font-size="14" fill="#6b6b6b">before you would</text></svg></div>
+    <figcaption class="plib-tile-caption">Respond to all four dimensions above in your reflection.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection, in your own words and without help from the AI.</p>
+  <p>Your reflection needs all four of these. Name one thing you supplied that Hokie AI could not have known, and say what the picture did with it AND say what your read-back check found, including a clear statement if it found nothing wrong AND say what you chose to add at Stop 2 and why you chose that one out of everything you could have asked for AND say which of your three pictures you would put your name on and send to somebody who cannot see the figures behind it. Respond to all four.</p>
+  <p>The fourth is the one that separates a good reflection from an adequate one. Saying that the last picture is the best one is not enough. Say what has to be true about a picture before you would send it, and say whether your last one is actually there yet.</p>
+  <p>Write 80 to 160 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution R3.2.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">R3.2.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Your reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 80 to 160 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_52" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for R3.2.1"
+            data-maxwords="160" data-maxchars="1280"
+            oninput="updateCounter('prompt_52', 'textarea_52')"></textarea>
+  <div class="plib-counter" id="counter_prompt_52" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_52">0</span> / 160 words&nbsp;·&nbsp;
+    <span id="cc_prompt_52">0</span> / 1280 characters
+    <span class="plib-counter-min">minimum: 80 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_52" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_52"
+       data-prefix="### R3.2.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_52"
+       data-maxwords="160"
+       data-maxchars="1280"
+       data-minwords="80"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_52', this)"
+          aria-label="Copy contribution R3.2.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Before you leave</div>
+  <p class="plib-submit-p">Export this thread as a .txt file, then upload it to the Canvas assignment. Your work is not submitted until Canvas shows your file.</p>
+  <a class="plib-submit-btn" href="https://canvas.vt.edu/courses/233694/assignments/2843177" target="_blank" rel="noopener noreferrer">Open the Canvas assignment</a>
+  <div class="plib-submit-note">Opens in a new tab, so this page stays where it is.</div>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>
