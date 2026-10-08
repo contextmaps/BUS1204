@@ -1,0 +1,18 @@
+MATH 1225 EXAM 2, FALL 2025, WITH ANSWER KEY
+Given to Nadia by a former student who took the course. The professor's name is removed here.
+This exam was written by the course professor and handed out in class.
+
+Q1. Find the derivative of x^3 cos x.
+Q2. Find the derivative of sqrt(1 + x^2).
+Q3. Find the equation of the tangent line to y = x^2 - 4x at x = 1.
+Q4. Find dy/dx if x^2 + y^2 = 25.
+Q5. A balloon's radius grows at 2 cm per second. How fast is its volume growing when the radius is 5 cm?
+
+ANSWER KEY
+Q1. 3x^2 cos x - x^3 sin x
+Q2. x / sqrt(1 + x^2)
+Q3. y = -2x - 1
+Q4. dy/dx = -x / y
+Q5. 200 pi cubic cm per second
+
+End of file code: ASPEN-23

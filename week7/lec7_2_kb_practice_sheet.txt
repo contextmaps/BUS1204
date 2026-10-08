@@ -1,0 +1,33 @@
+STEADY PACE STUDY HELP
+Derivatives Practice Sheet, MATH 1225
+Written by Nadia Okafor for Steady Pace students. Free to share with any student.
+
+THE RULES YOU NEED
+Power rule: the derivative of x^n is n x^(n-1).
+Product rule: the derivative of f(x) g(x) is f'(x) g(x) + f(x) g'(x).
+Quotient rule: the derivative of f(x) / g(x) is [f'(x) g(x) - f(x) g'(x)] / g(x)^2.
+Chain rule: the derivative of f(g(x)) is f'(g(x)) g'(x). Work from the outside in.
+Common derivatives: sin x gives cos x, cos x gives -sin x, e^x gives e^x, ln x gives 1/x.
+
+HOW TO START A PROBLEM
+1. Ask what the outermost operation is: a product, a quotient, or a function inside a function.
+2. Pick the rule for that operation.
+3. Write the pieces f and g before you differentiate anything.
+
+PRACTICE PROBLEMS
+P1. Find the derivative of x^4 - 3x^2 + 7.
+P2. Find the derivative of x^2 e^x.
+P3. Find the derivative of (3x + 1)^5.
+P4. Find the derivative of sin(x^2).
+P5. Find the derivative of (x^2 + 1) / (x - 1).
+P6. Find the derivative of ln(4x^3 + x).
+
+ANSWERS
+P1. 4x^3 - 6x
+P2. 2x e^x + x^2 e^x
+P3. 15 (3x + 1)^4
+P4. 2x cos(x^2)
+P5. [2x (x - 1) - (x^2 + 1)] / (x - 1)^2, which simplifies to (x^2 - 2x - 1) / (x - 1)^2
+P6. (12x^2 + 1) / (4x^3 + x)
+
+End of file code: MAPLE-17

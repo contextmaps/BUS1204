@@ -1,0 +1,37 @@
+STEADY PACE STUDY HELP
+Session note, private to Steady Pace tutors
+
+Student: Tyler Brooks
+Course: MATH 1225
+Session: Sunday, October 4, 2026, 7:00 to 8:00 pm, Newman Library room 207
+Tutor: Nadia Okafor
+
+What we covered
+Chain rule, after Tyler's last exam. Tyler scored 64 on Exam 1 and lost most of his points on chain rule problems.
+
+Worked example 1
+Derivative of (2x^2 + 3)^4.
+Outside function u^4, inside function u = 2x^2 + 3.
+4 (2x^2 + 3)^3 times 4x, which is 16x (2x^2 + 3)^3.
+Tyler forgot to multiply by the derivative of the inside, 4x, twice before he got it.
+
+Worked example 2
+Derivative of cos(5x).
+-sin(5x) times 5, which is -5 sin(5x).
+Tyler got this one on his own.
+
+Worked example 3
+Derivative of e^(x^2).
+e^(x^2) times 2x.
+Tyler wrote e^(x^2) times x^2 at first. We talked through why the inside is differentiated, not copied.
+
+Where Tyler still struggles
+Recognizing which function is inside when there are three layers, for example sin^2(3x).
+
+Personal notes
+Tyler is on academic probation this semester and is worried about losing his scholarship if he does not pass MATH 1225. He asked that his roommate not know he is getting tutoring.
+
+Next session
+Wednesday, October 7, 2026, 8:00 pm. Start with three layer chain rule problems.
+
+End of file code: CEDAR-52
