@@ -518,14 +518,14 @@
     <a class="macro-card" data-phase="2" href="#phase-2" style="text-decoration:none;">
       <p class="macro-eyebrow">Phase II</p>
       <p class="macro-title">Protocol Governance</p>
-      <p class="macro-desc">From prompts to governing rules for repeated business use; first custom agents.</p>
-      <p class="macro-weeks">Weeks 6–10 · 13 lectures</p>
+      <p class="macro-desc">Agents built for clients, agents that act, and the rules that govern what an agent may do.</p>
+      <p class="macro-weeks">Weeks 6–10 · 10 lectures</p>
     </a>
     <a class="macro-card" data-phase="3" href="#phase-3" style="text-decoration:none;">
       <p class="macro-eyebrow">Phase III</p>
       <p class="macro-title">Agents &amp; Capstones</p>
-      <p class="macro-desc">Memory, autonomy, grounding, stress testing, and team-built agentic systems.</p>
-      <p class="macro-weeks">Weeks 11–15 · 12 lectures</p>
+      <p class="macro-desc">Real tools, planning, hand offs and grounding, carried into team-built capstone agents.</p>
+      <p class="macro-weeks">Weeks 11–15 · 9 lectures</p>
     </a>
   </nav>
 
@@ -571,14 +571,14 @@ const PHASES = [
     n: 2,
     kicker: "Phase II · Weeks 6–10",
     title: "Protocol Governance",
-    sub: "Authoring governing rules for repeated business use. Customer service, course advising, drafting agents. Protocol v1 through v2; first custom agent deployment; rules packaged as skills that the platform loads on its own.",
+    sub: "Each week builds a new agent for a new case. A first agent from SCORE, an agent built for a client with knowledge files, an agent that acts through tools, rules packaged as skills the platform applies on its own, and governance: what an agent may do, what needs a person's approval, who answers for it, and what record it leaves.",
     weeks: [6, 7, 8, 9, 10],
   },
   {
     n: 3,
     kicker: "Phase III · Weeks 11–15",
     title: "Agents & Capstones",
-    sub: "Memory, autonomy, planning sophistication, and grounding, carried into ten team-built agentic systems for authentic Pamplin freshman use cases. Stress testing moves into the team's own project work.",
+    sub: "An agent with a real tool that reads and writes data, agents that plan several steps and hand work to one another, and grounding in a page the team publishes, carried into team-built capstone agents for authentic Pamplin freshman use cases and tested by other teams.",
     weeks: [11, 12, 13, 14, 15],
   },
 ];
@@ -621,46 +621,36 @@ const LECTURES = [
   { id: "lec7_2",   week: 7,  phase: 2, mode: "consolidation",      title: "Knowledge Files and Information Access for an Agent",
     business: "The tutoring agent handed four files, two of them private, probed for what it gives away, and patched with an access policy in the student's own words." },
   // Week 8
-  { id: "lec8_1",   week: 8,  phase: 2, mode: "exploratory",        title: "What Does It Mean to Design an Agent?",
-    business: "Translating Protocol v1 into deployable agent instructions inside HokieAI." },
-  { id: "lec8_1a",  week: 8,  phase: 2, mode: "exploratory",        agentic: true, title: "Build Your First Custom Agent",
-    business: "First deployment of a student-configured custom agent; in-scope and edge-case tests." },
-  { id: "lec8_2",   week: 8,  phase: 2, mode: "consolidation",      title: "Protocol v1 Lab: Running the Protocol End-to-End",
-    business: "Briefing the Osei article on the synchrony premium in hybrid teams (RTO policy implications)." },
-  { id: "lec8_2a",  week: 8,  phase: 2, mode: "consolidation",      agentic: true, title: "Run the Protocol v1 Lab in Your Custom Agent",
-    business: "Two-phase lab execution; attribution and structured-output drift under revision pressure." },
+  { id: "lec8_1",   week: 8,  phase: 2, mode: "exploratory",        title: "An Agent That Acts, Tools and Governance",
+    business: "" },
+  { id: "lec8_2",   week: 8,  phase: 2, mode: "consolidation",      title: "Writing the Governance Section for an Agent That Acts",
+    business: "" },
   // Week 9
-  { id: "lec9_1",   week: 9,  phase: 2, mode: "exploratory",        title: "From Rules to Skills: Instructions That Load Themselves",
-    business: "Turning a firm's house style for client email into a stored skill; why the description, not the body, decides when it applies." },
-  { id: "lec9_2",   week: 9,  phase: 2, mode: "consolidation",      title: "When Rules Act Without You: Composition, Visibility, and Who Answers For It",
-    business: "Two overlapping skills on one client email; who answers when an employer's skill quietly shapes every message." },
+  { id: "lec9_1",   week: 9,  phase: 2, mode: "exploratory",        title: "Skills, Instructions That Load Themselves",
+    business: "" },
+  { id: "lec9_2",   week: 9,  phase: 2, mode: "consolidation",      title: "Where a Rule Belongs, in a Skill, an Agent or a Knowledge File",
+    business: "" },
   // Week 10
-  { id: "lec10_1",  week: 10, phase: 2, mode: "exploratory",        title: "When Protocols Fail: Drift, Underspecification, and the Unexpected User",
-    business: "One deployed agent, three kinds of user; every failure traced back to language the protocol never wrote." },
-  { id: "lec10_2",  week: 10, phase: 2, mode: "consolidation",      title: "Protocol v2: Synthesizing Phase 2 Into a Working Document",
-    business: "Integrating ethics, operational language, user variance, and failure diagnosis into v2; placing one component in the agent or in a skill." },
-  { id: "lec10_2a", week: 10, phase: 2, mode: "consolidation",      agentic: true, title: "Protocol v2 Deployment Lab",
-    business: "Updating the custom agent from v1 to v2; parallel scenario; midterm deployment artifact." },
+  { id: "lec10_1",  week: 10, phase: 2, mode: "exploratory",        title: "Governance Over Time, Change Requests and Versions",
+    business: "" },
+  { id: "lec10_2",  week: 10, phase: 2, mode: "consolidation",      title: "Regression Tests, Change Logs and Release Notes",
+    business: "" },
 
   // Week 11
-  { id: "lec11_1",  week: 11, phase: 3, mode: "exploratory",        title: "From LLMs to Agents: What Is the Difference?",
-    business: "Naming the LLM-vs-agent distinction students have been living since Week 8." },
-  { id: "lec11_2",  week: 11, phase: 3, mode: "consolidation",      title: "Memory and Autonomy: How Much Does an Agent Decide?",
-    business: "Customer service agents (cross-session memory); scheduling assistants (autonomy spectrum)." },
+  { id: "lec11_1",  week: 11, phase: 3, mode: "exploratory",        title: "An Agent with a Real Tool",
+    business: "" },
+  { id: "lec11_2",  week: 11, phase: 3, mode: "consolidation",      title: "Reading and Writing Real Data Through an Agent",
+    business: "" },
   // Week 12
-  { id: "lec12_1",  week: 12, phase: 3, mode: "exploratory",        title: "Planning Sophistication: From Protocol v2 to v3",
-    business: "Diagnosing anticipation, decomposition, and trade-off articulation in each student's v2." },
-  { id: "lec12_2",  week: 12, phase: 3, mode: "consolidation",      title: "Protocol v3 Lab: Designing Your Protocol v3",
-    business: "Authoring v3 ahead of a board-facing brand-vs-revenue trade-off communication task." },
-  { id: "lec12_2a", week: 12, phase: 3, mode: "consolidation",      agentic: true, title: "Protocol v3 Deployment: Run the Lab in Your Custom Agent",
-    business: "Three-paragraph board recommendation via v3-deployed agent; closing individual-agent record." },
+  { id: "lec12_1",  week: 12, phase: 3, mode: "exploratory",        title: "Agents That Plan Several Steps",
+    business: "" },
+  { id: "lec12_2",  week: 12, phase: 3, mode: "consolidation",      title: "Hand Offs Between Agents and Limits on Autonomy",
+    business: "" },
   // Week 13
-  { id: "lec13_1",  week: 13, phase: 3, mode: "exploratory",        title: "Grounding Mechanics: Where Does Your Agent's Knowledge Come From?",
-    business: "Three-source grounding inventory of each team's capstone agent." },
-  { id: "lec13_2",  week: 13, phase: 3, mode: "consolidation",      title: "Simulated Agent Lab II: Domain Execution with Grounding",
-    business: "Agent constrained to a domain document as sole source; grounded-deployment trust behavior." },
-  { id: "lec13_2a", week: 13, phase: 3, mode: "consolidation",      agentic: true, title: "Team Agent Build with Grounding: Deploy and Observe",
-    business: "First team-artifact lab; deliberately changing one grounding source mid-session." },
+  { id: "lec13_1",  week: 13, phase: 3, mode: "exploratory",        title: "Grounding a Capstone Agent in a Page You Publish",
+    business: "" },
+  { id: "lec13_2",  week: 13, phase: 3, mode: "consolidation",      title: "Test Suites and Peer Review for Capstone Agents",
+    business: "" },
   // Week 14
   { id: "lec14_1",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Capstone Demonstrations: Session 1",
     business: "Five teams: course selection, financial literacy, first-gen wellness, internship pipeline, campus navigation." },
@@ -687,12 +677,12 @@ const WEEKS = {
   5:  { title: "The Anchors of a Decision",               dates: "09/22, 09/24", due: "HW 4" },
   6:  { title: "Building and Strengthening Agents",       dates: "09/29, 10/01", due: "HW 5" },
   7:  { title: "Designing Agents for Clients with Knowledge Files", dates: "10/06, 10/08", due: "HW 6" },
-  8:  { title: "Designing and Running an Agent",          dates: "10/13, 10/15", due: "HW 7" },
-  9:  { title: "From Rules to Skills",                    dates: "10/20, 10/22", due: "HW 8" },
-  10: { title: "When Protocols Fail, and Protocol v2",    dates: "10/27, 10/29", due: "HW 9, teams form" },
-  11: { title: "From LLMs to Agents",                     dates: "11/03, 11/05", due: "Teams finalized" },
-  12: { title: "Planning Sophistication and Protocol v3", dates: "11/10, 11/12", due: "Deliverable 1" },
-  13: { title: "Grounding",                               dates: "11/17, 11/19", due: "Deliverable 2" },
+  8:  { title: "Agents That Act, Tools and Governance",          dates: "10/13, 10/15", due: "HW 7" },
+  9:  { title: "Skills, Rules Across Every Conversation",                    dates: "10/20, 10/22", due: "HW 8" },
+  10: { title: "Governance Over Time",    dates: "10/27, 10/29", due: "HW 9, teams form" },
+  11: { title: "An Agent with a Real Tool",                     dates: "11/03, 11/05", due: "Teams finalized" },
+  12: { title: "Planning and Hand Offs", dates: "11/10, 11/12", due: "Deliverable 1" },
+  13: { title: "Grounding and Testing a Capstone Agent",                               dates: "11/17, 11/19", due: "Deliverable 2" },
   14: { title: "Team Capstone Demonstrations",            dates: "12/01, 12/03", due: "Presentations" },
   15: { title: "Course Wrap-Up",                          dates: "12/08",        due: "Not graded" },
 };
