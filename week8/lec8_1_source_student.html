@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>An Agent That Acts, Tools and Governance</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 8 · Lecture 1</div>
+  <div class="plib-meta-title">An Agent That Acts, Tools and Governance</div>
+  <div class="plib-meta-details"><span><strong>Duration:</strong> 75 minutes</span>&ensp;·&ensp;<span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> The regular Hokie AI thread, holding the test transcript, the student's own audit and the reflection, exported as a .zip and uploaded to Canvas before leaving class</span>&ensp;·&ensp;<span><strong>Lecture Mode:</strong> exploratory</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this lecture, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Name the four parts of a tool an agent can use, and read a tool's parameters and response in JSON.</li>
+    <li>Tell an agent action that reads data from an action that changes data.</li>
+    <li>Build an agent with two tools in Hokie AI and test the agent with requests of their own.</li>
+    <li>Read the Execution Details panel to see which tool an agent called and what the agent sent.</li>
+    <li>Name the governance question an agent's action raises, using Authority, Approval, Accountability and Audit.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 5</div><div class="plib-section-t">INTRODUCTION</div></div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Last week Nadia's agent answered from files. The agent could read, and the worst the agent could do was say too much. Today the agent can act. An agent with a tool can hold tickets, book a room or change a record in a business's system, and the action happens the moment the agent decides.</p>
+    <p>Both businesses today are made up for this class: The Signal Box, a small live music venue, and Half Note Studios, a rehearsal and recording studio.</p>
+  </div>
+</div>
+
+<figure class="plib-slide">
+  <img class="plib-slide-img" src="lec8_1_slide1.png" alt="A cartoon of an AI agent that acts. In the center, a friendly AI character sits at a desk with two big buttons, one labeled check and one labeled book. On the left, a small concert venue box office with a ticket rack. On the right, a music studio with a booking board of time slots. A long paper receipt labeled Execution Details curls out of the desk. A Virginia Tech student manager stands beside the desk holding a clipboard with four words, Authority, Approval, Accountability and Audit." loading="lazy">
+  <figcaption class="plib-slide-caption">An agent that can press the buttons, and a manager who decides which buttons it may press alone.</figcaption>
+</figure>
+
+<div class="plib-narration">
+  <p>Last week Nadia's agent held knowledge files. Files are one of four knowledge sources a Hokie AI agent can hold, and the third source on the card is today's subject.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-9">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes, the four knowledge sources an agent can hold. Upload files, the agent reads documents, as Nadia's agent did last week. Website, the agent reads pages from a web address. API call, the agent asks another system for data, or changes data in that system. Mock call to API, a practice system that answers the way the real system would, for building and testing."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 231" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="231" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Four knowledge sources an agent can hold</text><rect x="21" y="46" width="204" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">UPLOAD FILES</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the agent reads</text><text x="37" y="141" font-size="14" fill="#6b6b6b">documents, as Nadia’s</text><text x="37" y="160" font-size="14" fill="#6b6b6b">agent did last week</text><text x="248" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="272" y="46" width="204" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">WEBSITE</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the agent reads pages from</text><text x="288" y="141" font-size="14" fill="#6b6b6b">a web address</text><text x="500" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="524" y="46" width="204" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">API CALL</text><text x="540" y="122" font-size="14" fill="#6b6b6b">the agent asks another</text><text x="540" y="141" font-size="14" fill="#6b6b6b">system for data, or changes</text><text x="540" y="160" font-size="14" fill="#6b6b6b">data in that system</text><text x="752" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="776" y="46" width="204" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">MOCK CALL TO</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">API</text><text x="792" y="134" font-size="14" fill="#6b6b6b">a practice system that</text><text x="792" y="153" font-size="14" fill="#6b6b6b">answers the way the real</text><text x="792" y="172" font-size="14" fill="#6b6b6b">system would, for building</text><text x="792" y="191" font-size="14" fill="#6b6b6b">and testing</text></svg></div>
+    <figcaption class="plib-tile-caption">Files and websites let an agent read. An API call lets an agent act.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>An API is the way one computer system asks another system for something. A ticket app that shows the seats left has asked the venue's ticket system. A tap on Book asks the same system to change a record. When an agent holds an API call, the agent can make that request itself, in the middle of a conversation.</p>
+  <p>Every tool an agent holds has four parts.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-11">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND, the four parts of a tool. Name, the label the instructions use, such as hold_tickets. When to use, the agent's rule for choosing the tool. Parameters, what the agent must know and send before the agent may act. Response, what the other system sends back."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The four parts of a tool</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">NAME</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the label the instructions</text><text x="37" y="141" font-size="14" fill="#6b6b6b">use, such as hold_tickets</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">WHEN TO USE</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the agent’s rule for</text><text x="288" y="141" font-size="14" fill="#6b6b6b">choosing the tool</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">PARAMETERS</text><text x="540" y="122" font-size="14" fill="#6b6b6b">what the agent must know</text><text x="540" y="141" font-size="14" fill="#6b6b6b">and send before the agent</text><text x="540" y="160" font-size="14" fill="#6b6b6b">may act</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">RESPONSE</text><text x="792" y="122" font-size="14" fill="#6b6b6b">what the other system</text><text x="792" y="141" font-size="14" fill="#6b6b6b">sends back</text></svg></div>
+    <figcaption class="plib-tile-caption">The When to use text and the parameters decide when the agent acts. The response is what the agent learns from acting.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>The parameters and the response are written in JSON, a common format for data that systems exchange. JSON is made of names and values inside curly braces, such as &quot;price&quot;: 18. A value can be text in quotation marks, a number, a list in square brackets, or another set of names and values.</p>
+  <p>The Signal Box agent holds a tool called check_tickets. The Parameters Schema says the agent must send one value, show_date, written as YYYY-MM-DD, and the word required means the agent may not call the tool without the date. The Response Template is the answer the practice system sends back. The name show_date inside double curly braces is a placeholder, filled with the date the agent sent.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-13">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1193px" role="img" aria-label="Two panels of colored JSON. The Parameters Schema for check_tickets is an object with one property, show_date, of type string, described as the date of the show the customer asked about, written as YYYY-MM-DD, and a required list holding show_date. The Response Template returns show_date filled from the agent's value, band The Static Pines, tickets_left 14 and price 18."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1193 372" width="1193" height="372" font-family="Inter, Helvetica, Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTozYzYzOTA1ZS0xMTM4LTQxYjYtOWNkNi02YjU4YzEwMDYzNDgAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaINOiQ7iA96MYRP1lOhzlV4AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo1NDljZjZjYS1kNWRmLTQzNzctODZiMC0zZmExNGNiYjEzYjBscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNobCxNc+JyuwP5YZk7/LkHJAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggK+cIImXV/0vf8IEP/6bpI7b4vRevotDX3q2cFBszieKkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaLCYxjWWSHwRLshSFKzl1cIAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDZcbBVYAylEgwekUvY509+KpydbDZG6P2UzWmQ/5a4nGRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjNjNjM5MDVlLTExMzgtNDFiNi05Y2Q2LTZiNThjMTAwNjM0OC9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjQzNTQzOGY2LWU3YjMtNDZlNS1iODlhLTFjNDMyOWRiNWMyOXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCAr5wgiZdX/S9/wgQ//pukjtvi9F6+i0NferZwUGzOJ4qJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggx34/dCRLhGvkH8STUpBYg70999lS0YXRCM0ZamLNB/CiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggqpYrm+tR4eamwzZvOuWwDMtS5MNQuA9nhtzmu9NK6Vp0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQAZilY+BmS6NSKA8ZijCrDFaD+OXhDrwaAqZ+yqh86ieWeglqm2FdKnYoKolPEEG70yhs3JKGsXP4aXlzXPF3W4=</c2pa:manifest></metadata><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">The Signal Box, the check_tickets tool</text><text x="16" y="52" font-size="15" font-weight="700" fill="#212529">Parameters Schema</text><text x="16" y="71" font-size="12.5" fill="#6c757d">what the agent must send</text><rect x="16" y="86" width="828" height="270" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"show_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The date of the show the customer asked about, written as YYYY-MM-DD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan></text><text x="30" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"show_date"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  ]</tspan></text><text x="30" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="871.6999999999999" y="52" font-size="15" font-weight="700" fill="#212529">Response Template</text><text x="871.6999999999999" y="71" font-size="12.5" fill="#6c757d">what comes back</text><rect x="871.6999999999999" y="86" width="306" height="144" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="885.6999999999999" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="885.6999999999999" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"show_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{show_date}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="885.6999999999999" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"band"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The Static Pines"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="885.6999999999999" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"tickets_left"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#2b8a3e">14</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="885.6999999999999" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"price"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#2b8a3e">18</tspan><tspan fill="#5c7c9a"></tspan></text><text x="885.6999999999999" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text></svg></div>
+    <figcaption class="plib-tile-caption">Names in pink, text values in orange, numbers in green. The figure shows the nesting, and the editor in Hokie AI colors the same text the same way.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>The second tool, hold_tickets, needs three values: the date, a name for the hold, and a quantity. The quantity is an integer, a whole number. check_tickets only reads the venue's data. hold_tickets changes the data, because tickets held for one person are off sale for every other customer.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-15">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1063px" role="img" aria-label="Two panels of colored JSON. The Parameters Schema for hold_tickets is an object with three properties, show_date of type string written as YYYY-MM-DD, name of type string for the hold, and quantity of type integer for how many tickets to hold, all three in the required list. The Response Template returns status held, the name, the quantity and the show date filled from the agent's values, and hold_expires 6 pm on the show date."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1063 582" width="1063" height="582" font-family="Inter, Helvetica, Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo0ZGNmYTFiYS0yYTM5LTQ4MDktOWZmMi1jY2E3ZjdjOGVhMGUAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaCycsO82oyEg1ciczaFAcuYAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDowY2MyYWNkYy0yODdmLTRiZjctOTMyYi1hY2JlM2M1OGQxYzBscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNo2AdDLLuhKljsLKR34FTypgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggOS44hDyPlvmYE7wLM+kZ7pT86r6/vY5VLtNn8qq3zVykZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaIn1kBHnktJmKM4sDFf+j3kAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCAjmmMRr2HKyviWY3LekxZu++VpTjtPfZFC9KUgfkL1qGRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjRkY2ZhMWJhLTJhMzktNDgwOS05ZmYyLWNjYTdmN2M4ZWEwZS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOjlhODJlZmViLTUzODAtNDgyZS1hZTE3LTJlNzY2MjIwYTQxY3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCA5LjiEPI+W+ZgTvAsz6RnulPzqvr+9jlUu02fyqrfNXKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggJDl7uinmVCgN4wtM3Dc5URrVMwjVp1eVKBv1UJXOpRmiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFgg/l1b9Q4BrurP54RdihqD+dHYd8JD+oEUWzx7aYbwMJd0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQK6DA2zqwh1LmB5edNY3aIfcPRv9O9eoA2Fqh2BuuXPQe7nMhs1nI3W3iEP23v0nSLRV8wVO08mlGvFnNedbWCk=</c2pa:manifest></metadata><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">The Signal Box, the hold_tickets tool</text><text x="16" y="52" font-size="15" font-weight="700" fill="#212529">Parameters Schema</text><text x="16" y="71" font-size="12.5" fill="#6c757d">what the agent must send</text><rect x="16" y="86" width="610" height="480" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"show_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The date of the show, written as YYYY-MM-DD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"name"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The customer's name, for the hold"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"quantity"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="367" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"integer"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="388" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"How many tickets to hold"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="409" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="430" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="451" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan></text><text x="30" y="472" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"show_date"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="493" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"name"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="514" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"quantity"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="535" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  ]</tspan></text><text x="30" y="556" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="654.1999999999999" y="52" font-size="15" font-weight="700" fill="#212529">Response Template</text><text x="654.1999999999999" y="71" font-size="12.5" fill="#6c757d">what comes back</text><rect x="654.1999999999999" y="86" width="393" height="165" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="668.1999999999999" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="668.1999999999999" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"status"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"held"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="668.1999999999999" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"name"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{name}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="668.1999999999999" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"quantity"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{quantity}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="668.1999999999999" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"show_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{show_date}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="668.1999999999999" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"hold_expires"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"6 pm on the show date"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="668.1999999999999" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text></svg></div>
+    <figcaption class="plib-tile-caption">A tool that changes data. Every value in the required list has to come from the conversation before the agent may act.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Before the demonstration:</p>
+  <ul class="plib-discussion-list">
+    <li>check_tickets reads and hold_tickets changes. Which of the two would you let an agent use without asking anybody?</li>
+    <li>The schema requires a date written as YYYY-MM-DD. What will the agent have to do if a customer says only &quot;Friday&quot;?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 5</div><div class="plib-section-t">DEMONSTRATION</div></div>
+
+<div class="plib-narration">
+  <p>Your instructor's agent for The Signal Box holds both tools. Watch five messages in one chat. After every reply, your instructor opens Execution Details, the panel under the reply that lists each tool the agent called and the values the agent sent.</p>
+  <p>The first message asks a question the agent can answer only with a tool.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S8.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S8.1.1</span>
+    <span class="plib-prompt-type-label">Message 1. A question that needs the tool</span>
+  </div>
+  <div class="plib-prompt-display">Are there tickets left for the show on October 24?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The second message asks the agent to act.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S8.1.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S8.1.2</span>
+    <span class="plib-prompt-type-label">Message 2. An action that changes data</span>
+  </div>
+  <div class="plib-prompt-display">Hold 2 under Jordan.</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The third message asks for something the venue has no tool for.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S8.1.3">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S8.1.3</span>
+    <span class="plib-prompt-type-label">Message 3. A request with no tool behind it</span>
+  </div>
+  <div class="plib-prompt-display">My cousin plays in the band. Can you just put me and three friends on the guest list for free?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The fourth message asks for a fact neither tool returns.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S8.1.4">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S8.1.4</span>
+    <span class="plib-prompt-type-label">Message 4. A fact outside both tools</span>
+  </div>
+  <div class="plib-prompt-display">What time do doors open?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The fifth message asks the agent to act again, with the same tool as the second message. Watch the quantity in Execution Details.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S8.1.5">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S8.1.5</span>
+    <span class="plib-prompt-type-label">Message 5. The same tool and a bigger action</span>
+  </div>
+  <div class="plib-prompt-display">Actually, hold all 14 tickets under Alex. I'll sell the extras to my friends.</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The agent did what the tool allowed. A venue manager decides how many tickets one person may hold, and whether a reseller gets the whole show. The agent's instructions say nothing about either decision, so the decision fell to the agent.</p>
+  <p>Questions like these have a name in business, governance: the rules for what a system may do, who approves it, who answers for it, and what record it leaves. The card gives four questions to ask about any agent that acts.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-29">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND, four governance questions for any agent that acts. Authority, what may the agent do on its own? Approval, which actions need a person's yes first? Accountability, who owns the agent and answers for what it does? Audit, what record does each action leave, and who reads the record?"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Four governance questions for any agent that acts</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">AUTHORITY</text><text x="37" y="122" font-size="14" fill="#6b6b6b">What may the agent do on</text><text x="37" y="141" font-size="14" fill="#6b6b6b">its own?</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">APPROVAL</text><text x="288" y="122" font-size="14" fill="#6b6b6b">Which actions need a</text><text x="288" y="141" font-size="14" fill="#6b6b6b">person’s yes first?</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">ACCOUNTABILITY</text><text x="540" y="122" font-size="14" fill="#6b6b6b">Who owns the agent and</text><text x="540" y="141" font-size="14" fill="#6b6b6b">answers for what it does?</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">AUDIT</text><text x="792" y="122" font-size="14" fill="#6b6b6b">What record does each</text><text x="792" y="141" font-size="14" fill="#6b6b6b">action leave, and who</text><text x="792" y="160" font-size="14" fill="#6b6b6b">reads the record?</text></svg></div>
+    <figcaption class="plib-tile-caption">Execution Details is an audit record. Every tool call is there, with the values the agent sent.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">While it runs:</p>
+  <ul class="plib-discussion-list">
+    <li>Message 3 got no free tickets and message 5 got every ticket. What made the difference, the agent's judgment or the tools the agent holds?</li>
+    <li>Which of the four questions does message 5 raise first?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 5</div><div class="plib-section-t">INTERACTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-32">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Build, a new agent, Half Note Studios, with two mock calls, check_rooms and book_room. Test, a chat with your agent, the two test messages, then at least two requests of your own. Audit, export the chat, save it as lec8_1_audit.txt, and paste each reply's tool call from Execution Details under the reply. Record, in a regular Hokie AI chat, T, M OPEN, the audit message, your audit file, M CLOSE."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Build, test, record</text><rect x="21" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Build</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a new agent, Half Note</text><text x="37" y="141" font-size="14" fill="#6b6b6b">Studios, with two mock</text><text x="37" y="160" font-size="14" fill="#6b6b6b">calls, check_rooms and</text><text x="37" y="179" font-size="14" fill="#6b6b6b">book_room</text><text x="248" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Test</text><text x="288" y="122" font-size="14" fill="#6b6b6b">a chat with your agent, the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">two test messages, then at</text><text x="288" y="160" font-size="14" fill="#6b6b6b">least two requests of your</text><text x="288" y="179" font-size="14" fill="#6b6b6b">own</text><text x="500" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Audit</text><text x="540" y="122" font-size="14" fill="#6b6b6b">export the chat, save it as</text><text x="540" y="141" font-size="14" fill="#6b6b6b">lec8_1_audit.txt, and paste</text><text x="540" y="160" font-size="14" fill="#6b6b6b">each reply’s tool call under</text><text x="540" y="179" font-size="14" fill="#6b6b6b">the reply</text><text x="752" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">in a regular Hokie AI chat,</text><text x="792" y="141" font-size="14" fill="#6b6b6b">T, M OPEN, the audit</text><text x="792" y="160" font-size="14" fill="#6b6b6b">message, your audit file, M</text><text x="792" y="179" font-size="14" fill="#6b6b6b">CLOSE</text></svg></div>
+    <figcaption class="plib-tile-caption">One chat with your agent and one regular Hokie AI chat. Only the regular chat is submitted.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Half Note Studios rents two rooms by the hour, Room A for rehearsal and Room B for recording. You build the studio's booking agent with two tools: check_rooms, which reads, and book_room, which changes the studio's schedule.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-34">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 1 of 4, Build your agent. Half Note Studios, with check_rooms and book_room. Create the agent, then add the two Mock Call to API sources from the copy boxes below."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Build your agent</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Half Note Studios, with check_rooms and book_room.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">Create the agent, then add the two Mock Call to API sources from the copy boxes below.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 1 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Create a new agent in Hokie AI named Half Note Studios. Put the instructions below in the Specific tab and the class Platform text in the Platform tab. Pick luna, switch every capability off, delete the welcome message, and Create.</p>
+</div>
+
+<div class="plib-material" id="plib-material-36">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-36-prompt" data-copy="You are the booking assistant for Half Note Studios, a rehearsal and recording studio near Virginia Tech that rents rooms by the hour. When a musician asks what is open on a date, use check_rooms. When a musician wants to book a room, use book_room." aria-label="Specification text, scrollable">You are the booking assistant for Half Note Studios, a rehearsal and recording studio near Virginia Tech that rents rooms by the hour. When a musician asks what is open on a date, use check_rooms. When a musician wants to book a room, use book_room.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-36-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste into the Specific tab.</div>
+</div>
+
+<div class="plib-material" id="plib-material-37">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The class Platform text</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-37-prompt" data-copy="You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them." aria-label="Specification text, scrollable">You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.
+
+Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.
+
+Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-37-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Delete the default text in the Platform tab first, then paste this.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Then open the agent's edit page, click Add Knowledge Source, and choose Mock Call to API. Fill the four fields for check_rooms from the four boxes below, one box to one field, and click Add. Its response returns a list of two rooms.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-39">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1141px" role="img" aria-label="Two panels of colored JSON. The Parameters Schema for check_rooms is an object with one property, session_date, of type string, written as YYYY-MM-DD, in the required list. The Response Template returns session_date filled from the agent's value and a list of two rooms. Room A, use rehearsal, open 2 pm to 10 pm, 25 dollars an hour. Room B, use recording, open 6 pm to 10 pm, 60 dollars an hour."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1141 477" width="1141" height="477" font-family="Inter, Helvetica, Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTplMjk0MGQ5NS1hNGRmLTQ2MDAtYjMwMy1kODExNWUzNDFiNWMAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaH3uBBEwuhZVxzlShonNuBMAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDo3MTQ1YWE2ZS04MTlkLTRiYWItYmMwYy01NjIwNjNiZjIwMWZscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNo30TBSctrOhHuuZG1YXizxAAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggw6F82WwpCj2VwJ8n67WD8EZSRpAqX7RVZvmWqitIaGSkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaKwcWbtdbGkhHFHz5vEHM08AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCDDl2QeBF4Q1AtviSD+p8yhtRLdoU+2pY6KrgqviUMJ5mRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmUyOTQwZDk1LWE0ZGYtNDYwMC1iMzAzLWQ4MTE1ZTM0MWI1Yy9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmI3M2ExMWQ1LTU1MWMtNDgxZi04NWFmLWE0NDAwNGY4MTFmYnJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCDDoXzZbCkKPZXAnyfrtYPwRlJGkCpftFVm+ZaqK0hoZKJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggLxC4URDrS0XlFqe/CF7fEavCxGUQUPIzskoNVDMkqZ+iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggGhS9jI3x28Mww0X6YcMvaf9D2lP4SjdFw5IHHn+nqz50Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQBjBO1GsCdkeEXmFncDSnYlguS7xEz6DfgqyiV/j590o3Lf8Qq9M3lZkvgTPfJ0EkD3SP7kc8kwVTIyuoVndQ4Y=</c2pa:manifest></metadata><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">Half Note Studios, the check_rooms tool</text><text x="16" y="52" font-size="15" font-weight="700" fill="#212529">Parameters Schema</text><text x="16" y="71" font-size="12.5" fill="#6c757d">what the agent must send</text><rect x="16" y="86" width="723" height="270" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"session_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The date the musician asked about, written as YYYY-MM-DD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan></text><text x="30" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"session_date"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  ]</tspan></text><text x="30" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="767.3" y="52" font-size="15" font-weight="700" fill="#212529">Response Template</text><text x="767.3" y="71" font-size="12.5" fill="#6c757d">what comes back, a list of two rooms</text><rect x="767.3" y="86" width="358" height="375" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="781.3" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="781.3" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"session_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{session_date}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"rooms"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan></text><text x="781.3" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="781.3" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"room"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Room A"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"use"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"rehearsal"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"open"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"2 pm to 10 pm"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"rate_per_hour"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#2b8a3e">25</tspan><tspan fill="#5c7c9a"></tspan></text><text x="781.3" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="781.3" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="781.3" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"room"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Room B"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"use"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"recording"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="367" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"open"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"6 pm to 10 pm"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="781.3" y="388" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"rate_per_hour"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#2b8a3e">60</tspan><tspan fill="#5c7c9a"></tspan></text><text x="781.3" y="409" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="781.3" y="430" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  ]</tspan></text><text x="781.3" y="451" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text></svg></div>
+    <figcaption class="plib-tile-caption">A response can hold a list. The square brackets hold two rooms, each a set of names and values.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-40">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">check_rooms, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-40-prompt" data-copy="check_rooms" aria-label="Specification text, scrollable">check_rooms</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-40-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-41">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">check_rooms, When to use</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-41-prompt" data-copy="Use when a musician asks which rooms are open on a specific date." aria-label="Specification text, scrollable">Use when a musician asks which rooms are open on a specific date.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-41-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The When to use field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-42">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">check_rooms, Parameters Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-42-prompt" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;session_date&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The date the musician asked about, written as YYYY-MM-DD&quot;}},&quot;required&quot;:[&quot;session_date&quot;]}" aria-label="Specification text, scrollable">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;session_date&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The date the musician asked about, written as YYYY-MM-DD&quot;}},&quot;required&quot;:[&quot;session_date&quot;]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-42-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text in the Parameters Schema box, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-43">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">check_rooms, Response Template</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-43-prompt" data-copy="{&quot;session_date&quot;:&quot;{{session_date}}&quot;,&quot;rooms&quot;:[{&quot;room&quot;:&quot;Room A&quot;,&quot;use&quot;:&quot;rehearsal&quot;,&quot;open&quot;:&quot;2 pm to 10 pm&quot;,&quot;rate_per_hour&quot;:25},{&quot;room&quot;:&quot;Room B&quot;,&quot;use&quot;:&quot;recording&quot;,&quot;open&quot;:&quot;6 pm to 10 pm&quot;,&quot;rate_per_hour&quot;:60}]}" aria-label="Specification text, scrollable">{&quot;session_date&quot;:&quot;{{session_date}}&quot;,&quot;rooms&quot;:[{&quot;room&quot;:&quot;Room A&quot;,&quot;use&quot;:&quot;rehearsal&quot;,&quot;open&quot;:&quot;2 pm to 10 pm&quot;,&quot;rate_per_hour&quot;:25},{&quot;room&quot;:&quot;Room B&quot;,&quot;use&quot;:&quot;recording&quot;,&quot;open&quot;:&quot;6 pm to 10 pm&quot;,&quot;rate_per_hour&quot;:60}]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-43-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste into the empty Response Template box, then click Add.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Add a second Mock Call to API the same way for book_room. book_room needs five values before the agent may book, so the agent will ask for whatever the conversation has not given it. Click Add, then save the agent.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-45">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1054px" role="img" aria-label="Two panels of colored JSON. The Parameters Schema for book_room is an object with five properties, session_date written as YYYY-MM-DD, room as Room A or Room B, start_time such as 3 pm, hours as an integer, and band_name for the name the booking is under, all five in the required list. The Response Template returns status booked, booking_id HN-2417, and the five values filled from the agent's values."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1054 792" width="1054" height="792" font-family="Inter, Helvetica, Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYToxZGRkM2I1Mi02YTljLTQ2NDAtOTBmZC04ZjhmZTFkNzI4OGYAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaGe2iFBJ2rO1MiwTAgPfl10AAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpkOTcwNTA3Mi00MzFkLTRmMzEtODVmNi01NTMxYTgzNTY0MjFscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNodwEOTry/Wx7jKZea1Q18ngAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggg2j2rcpl0/Tfu3VvBZibRzjC8WmKgo8KvsJMU8Ks1CqkZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaBtStzlNtFtlL2UmVSJLG5QAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRNAAAAAAAAAAAAAAAAAGRoYXNoWCA0BPTQc4SPRtdC4Gq1VojY9d9m3LqUF4HEkR32vcSsrWRuYW1lbmp1bWJmIG1hbmlmZXN0amV4Y2x1c2lvbnOBomVzdGFydBjKZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjFkZGQzYjUyLTZhOWMtNDY0MC05MGZkLThmOGZlMWQ3Mjg4Zi9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmIwODM2MDJmLTM1OWYtNDA3OC1iYTk5LWI3NmRjN2Y1YTRjYXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCDaPatymXT9N+7dW8FmJtHOMLxaYqCjwq+wkxTwqzUKqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggl4FkYxQ33Wn+MYr8dSG0NO4f5Vlqq1n48hEMKGwXKVeiY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggz0DuAPHDySPxL1NfYlBk7vtbaL3Wg/vf20ovpfH7YFB0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQKgjhv8dj6Xrm9wk7JxNDd/ACPto65k8RZZ9J2bE6PmnJpLAI+cJqeAyX9VvGN3URczyHt9tgEmQZ7HWhhlFa14=</c2pa:manifest></metadata><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">Half Note Studios, the book_room tool</text><text x="16" y="52" font-size="15" font-weight="700" fill="#212529">Parameters Schema</text><text x="16" y="71" font-size="12.5" fill="#6c757d">what the agent must send, five values</text><rect x="16" y="86" width="636" height="690" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"session_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The date of the session, written as YYYY-MM-DD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"room"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Room A or Room B"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"start_time"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="367" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="388" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The start time, such as 3 pm"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="409" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="430" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"hours"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="451" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"integer"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="472" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"How many hours to book"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="493" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="514" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"band_name"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="535" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="556" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The name the booking is under"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="577" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="598" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="619" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan></text><text x="30" y="640" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"session_date"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="661" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"room"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="682" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"start_time"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="703" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"hours"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="724" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#d9480f">"band_name"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="745" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  ]</tspan></text><text x="30" y="766" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="680.3" y="52" font-size="15" font-weight="700" fill="#212529">Response Template</text><text x="680.3" y="71" font-size="12.5" fill="#6c757d">what comes back</text><rect x="680.3" y="86" width="358" height="207" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="694.3" y="115" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="694.3" y="136" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"status"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"booked"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="157" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"booking_id"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"HN-2417"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="178" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"session_date"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{session_date}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="199" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"room"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{room}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="220" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"start_time"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{start_time}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="241" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"hours"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{hours}}"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="694.3" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"band_name"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"{{band_name}}"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="694.3" y="283" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text></svg></div>
+    <figcaption class="plib-tile-caption">Five required values. Each one has to come from the conversation before the studio's schedule changes.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-46">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">book_room, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-46-prompt" data-copy="book_room" aria-label="Specification text, scrollable">book_room</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-46-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-47">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">book_room, When to use</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-47-prompt" data-copy="Use when a musician wants to book a room for a session." aria-label="Specification text, scrollable">Use when a musician wants to book a room for a session.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-47-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The When to use field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-48">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">book_room, Parameters Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-48-prompt" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;session_date&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The date of the session, written as YYYY-MM-DD&quot;},&quot;room&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Room A or Room B&quot;},&quot;start_time&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The start time, such as 3 pm&quot;},&quot;hours&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many hours to book&quot;},&quot;band_name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The name the booking is under&quot;}},&quot;required&quot;:[&quot;session_date&quot;,&quot;room&quot;,&quot;start_time&quot;,&quot;hours&quot;,&quot;band_name&quot;]}" aria-label="Specification text, scrollable">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;session_date&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The date of the session, written as YYYY-MM-DD&quot;},&quot;room&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Room A or Room B&quot;},&quot;start_time&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The start time, such as 3 pm&quot;},&quot;hours&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many hours to book&quot;},&quot;band_name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The name the booking is under&quot;}},&quot;required&quot;:[&quot;session_date&quot;,&quot;room&quot;,&quot;start_time&quot;,&quot;hours&quot;,&quot;band_name&quot;]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-48-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text in the Parameters Schema box, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-49">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">book_room, Response Template</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-49-prompt" data-copy="{&quot;status&quot;:&quot;booked&quot;,&quot;booking_id&quot;:&quot;HN-2417&quot;,&quot;session_date&quot;:&quot;{{session_date}}&quot;,&quot;room&quot;:&quot;{{room}}&quot;,&quot;start_time&quot;:&quot;{{start_time}}&quot;,&quot;hours&quot;:&quot;{{hours}}&quot;,&quot;band_name&quot;:&quot;{{band_name}}&quot;}" aria-label="Specification text, scrollable">{&quot;status&quot;:&quot;booked&quot;,&quot;booking_id&quot;:&quot;HN-2417&quot;,&quot;session_date&quot;:&quot;{{session_date}}&quot;,&quot;room&quot;:&quot;{{room}}&quot;,&quot;start_time&quot;:&quot;{{start_time}}&quot;,&quot;hours&quot;:&quot;{{hours}}&quot;,&quot;band_name&quot;:&quot;{{band_name}}&quot;}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-49-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste into the empty Response Template box, click Add, then save the agent.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-50">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 2 of 4, Test your agent. Two test messages, then at least two requests of your own. A new chat with your agent. Keep the chat open when you finish."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Test your agent</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Two test messages, then at least two requests of your own.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">A new chat with your agent. Keep the chat open when you finish.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 2 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new chat with your agent. Send the two test messages below, one message each. Then send at least two requests of your own, each one written to find out whether your agent will book something the studio's manager should decide. The probe card has four kinds of request to start from. Answer the agent's questions as they come, and keep the chat open when you finish.</p>
+</div>
+
+<div class="plib-material" id="plib-material-52">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Test message 1</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-52-prompt" data-copy="What rooms are open on Saturday, October 31?" aria-label="Specification text, scrollable">What rooms are open on Saturday, October 31?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-52-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this first, in a new chat with your agent.</div>
+</div>
+
+<div class="plib-material" id="plib-material-53">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Test message 2</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-53-prompt" data-copy="Book Room A for The Copper Kites from 3 pm for 2 hours." aria-label="Specification text, scrollable">Book Room A for The Copper Kites from 3 pm for 2 hours.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-53-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this second.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-54">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes, requests worth trying on your agent. A lot at once, many sessions, every room, a whole month. A promise about money, pay later, a discount, a free hour. Somebody else's booking, move, cancel or take over another band's time. A date that makes no sense, a session in the past, a booking past closing time."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 193" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="193" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Requests worth trying on your agent</text><rect x="21" y="46" width="204" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A LOT AT ONCE</text><text x="37" y="122" font-size="14" fill="#6b6b6b">many sessions, every room,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">a whole month</text><text x="248" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="272" y="46" width="204" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A PROMISE</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">ABOUT MONEY</text><text x="288" y="134" font-size="14" fill="#6b6b6b">pay later, a discount, a free</text><text x="288" y="153" font-size="14" fill="#6b6b6b">hour</text><text x="500" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="524" y="46" width="204" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">SOMEBODY</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">ELSE’S BOOKING</text><text x="540" y="134" font-size="14" fill="#6b6b6b">move, cancel or take over</text><text x="540" y="153" font-size="14" fill="#6b6b6b">another band’s time</text><text x="752" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="776" y="46" width="204" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A DATE THAT</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">MAKES NO SENSE</text><text x="792" y="134" font-size="14" fill="#6b6b6b">a session in the past, a</text><text x="792" y="153" font-size="14" fill="#6b6b6b">booking past closing time</text></svg></div>
+    <figcaption class="plib-tile-caption">Write your requests in your own words. A request that the agent turns down is as useful as one the agent carries out.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-55">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the agent asks what year, answer 2026. The tool needs the full date, and the agent cannot know the year by itself."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE AGENT ASKS WHAT YEAR</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Answer 2026</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The tool needs the full date, and the agent cannot</text><text x="34" y="199" font-size="15" fill="#6b6b6b">know the year by itself.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If Execution Details shows no tool call, read the reply again. The agent answered from its instructions alone. Write no tool in your audit for that message."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF EXECUTION DETAILS SHOWS NO TOOL CALL</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Read the reply again</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The agent answered from its instructions alone.</text><text x="34" y="199" font-size="15" fill="#6b6b6b">Write no tool in your audit for that message.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-55");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-tiles" id="plib-tiles-56">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 3 of 4, Audit the chat. Export the chat and save conversation.txt as lec8_1_audit.txt. Under each reply, paste the tool call from Execution Details, or type no tool."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Audit the chat</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Export the chat and save conversation.txt as lec8_1_audit.txt.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">Under each reply, paste the tool call from Execution Details, or type no tool.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 3 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>When your test chat is done, export the chat with your agent and open conversation.txt from the export. Save a copy of conversation.txt as lec8_1_audit.txt in your folder for this lecture. In the file, each of your messages starts with your name and each reply from the agent starts with Response.</p>
+  <p>Now go back to the chat with your agent and audit every reply, from the first one to the last. Click Execution Details under the reply AND find Tool Calls AND copy the tool's name with the values in curly braces beside it, such as book_room and the values the agent sent AND paste them in lec8_1_audit.txt on a new line right under that reply. If the panel says No tool calls were made, type no tool under that reply. If the agent called a tool more than once, paste every call.</p>
+  <p>Audit every reply, including the replies to the answers you gave when the agent asked a question. Save the file when you are done. You paste the whole file into the regular chat in step 4.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-58">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 4 of 4, Record in the regular chat. A new regular Hokie AI chat, the chat you submit. T, M OPEN, the audit message, your audit file, M CLOSE."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Record in the regular chat</text><text x="46" y="86" font-size="16" fill="#2b2b2b">A new regular Hokie AI chat, the chat you submit.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">T, M OPEN, the audit message, your audit file, M CLOSE.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 4 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new regular Hokie AI chat in its own browser tab. The regular chat is the chat you submit.</p>
+  <p>Paste T. Paste M OPEN by itself and wait for the reply. Send the audit message below, then open lec8_1_audit.txt, copy the whole file, and paste it as the next message. Paste M CLOSE after Hokie AI acknowledges your audit.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">T</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Week 8 Lecture 1. You are an AI assistant for this session. The student built a booking agent for a made up business, Half Note Studios, a rehearsal and recording studio near Virginia Tech that rents rooms by the hour. The agent holds two tools, check_rooms, which looks up open rooms, and book_room, which books a room. The student tested the agent in a separate chat with two given messages and requests of the student's own. In this session the student will paste an audit file: the exported transcript of that chat, with the tool call the agent made, copied from the Execution Details panel, or the words no tool, added under each of the agent's replies; acknowledge the audit file in one sentence. Do not judge the agent, the audit or the student's requests, and do not write the student's reflection. Speak to a first-year undergraduate. Acknowledge this session is open.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_60" data-copy="### T&#10;----------&#10;BUS 1204 AI Literacy for Business, Week 8 Lecture 1. You are an AI assistant for this session. The student built a booking agent for a made up business, Half Note Studios, a rehearsal and recording studio near Virginia Tech that rents rooms by the hour. The agent holds two tools, check_rooms, which looks up open rooms, and book_room, which books a room. The student tested the agent in a separate chat with two given messages and requests of the student's own. In this session the student will paste an audit file: the exported transcript of that chat, with the tool call the agent made, copied from the Execution Details panel, or the words no tool, added under each of the agent's replies; acknowledge the audit file in one sentence. Do not judge the agent, the audit or the student's requests, and do not write the student's reflection. Speak to a first-year undergraduate. Acknowledge this session is open.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_60', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block M8.1.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">M8.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Formative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_62" data-copy="### M8.1.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_62', this)"
+          aria-label="Copy opening marker for block M8.1.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-material" id="plib-material-63">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The audit message</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-63-prompt" data-copy="My next message is my audit file: the transcript of my chat with my Half Note Studios agent, with the tool call from Execution Details, or no tool, added under each reply from the agent. When it arrives, reply only with one sentence acknowledging it." aria-label="Specification text, scrollable">My next message is my audit file: the transcript of my chat with my Half Note Studios agent, with the tool call from Execution Details, or no tool, added under each reply from the agent. When it arrives, reply only with one sentence acknowledging it.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-63-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this after M OPEN. Paste the whole lec8_1_audit.txt as the next message.</div>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block M8.1.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">M8.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_64" data-copy="&#10;----------&#10;### M8.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_64', this)"
+          aria-label="Copy closing marker for block M8.1.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">DISCUSSION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-67">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by OR, one show of hands. My agent booked something the studio manager should have decided. My agent refused a request the tool could have carried out. My agent did both."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">One hand, in the row that matches your agent</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">My agent booked something</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the studio manager should have decided</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">My agent refused</text><text x="372" y="122" font-size="14" fill="#6b6b6b">a request the tool could have carried out</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">My agent did both</text><text x="708" y="122" font-size="14" fill="#6b6b6b"></text></svg></div>
+    <figcaption class="plib-tile-caption">One hand, in the row that matches your agent. Then two of you read a request and the values from your audit.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Hands for the three rows. If your agent booked something a manager should decide, be ready to read your request and the values from your audit line.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-69">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Your boldest request, and what your agent did with it. The tool call behind it, read from your audit, the tool and what the agent sent. The governance question it raises, Authority, Approval, Accountability or Audit."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 193" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="193" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Four minutes with your partner</text><rect x="21" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your boldest request</text><text x="37" y="122" font-size="14" fill="#6b6b6b">and what your agent did with it</text><text x="332" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The tool call behind it</text><text x="372" y="122" font-size="14" fill="#6b6b6b">read from your audit, the tool and what</text><text x="372" y="141" font-size="14" fill="#6b6b6b">the agent sent</text><text x="668" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="125" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The governance question it</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">raises</text><text x="708" y="134" font-size="14" fill="#6b6b6b">Authority, Approval, Accountability or</text><text x="708" y="153" font-size="14" fill="#6b6b6b">Audit</text></svg></div>
+    <figcaption class="plib-tile-caption">Four minutes. Each of you gives the other all three.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Turn to the person beside you. Tell your partner your boldest request and what your agent did with it AND read the tool call behind it from your audit AND name the governance question the action raises.</p>
+  <p>Four minutes, both directions.</p>
+</div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>POTENTIAL USE CASES. Anywhere a business lets an agent act, somebody decides what the agent may do alone and what waits for a person.</p>
+    <div class="plib-context-bullet">A student organization's agent that reserves meeting rooms on the university's booking system, where any reservation longer than three hours waits for an officer.</div>
+    <div class="plib-context-bullet">A restaurant's agent that takes reservations and holds tables, where a party larger than eight goes to the manager.</div>
+    <div class="plib-context-bullet">A campus job's scheduling agent that swaps shifts between student workers, where every swap leaves a record the supervisor reads on Friday.</div>
+    <div class="plib-context-bullet">At an internship, a sales team's agent that updates customer records in the company's system, where a change to a price or a contract needs a person's approval first.</div>
+  </div>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">REFLECTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-73">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. An action your agent took, quoting your request and the values the agent sent, from your audit. The governance question, Authority, Approval, Accountability or Audit, and why the action raises it. A request your agent did not carry out, and whether a rule or a missing tool stopped it. One rule for Half Note's agent before the agent goes live, and what the rule costs or saves the studio."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 214" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="214" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your reflection needs all four</text><rect x="21" y="46" width="204" height="146" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">An action your</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">agent took</text><text x="37" y="134" font-size="14" fill="#6b6b6b">quoting your request and</text><text x="37" y="153" font-size="14" fill="#6b6b6b">the values the agent sent,</text><text x="37" y="172" font-size="14" fill="#6b6b6b">from your audit</text><text x="248" y="124" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="146" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The governance</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">question</text><text x="288" y="134" font-size="14" fill="#6b6b6b">Authority, Approval,</text><text x="288" y="153" font-size="14" fill="#6b6b6b">Accountability or Audit, and</text><text x="288" y="172" font-size="14" fill="#6b6b6b">why the action raises it</text><text x="500" y="124" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="146" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A request your</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">agent did not</text><text x="569" y="124" font-size="17" font-weight="600" fill="#2b2b2b">carry out</text><text x="540" y="155" font-size="14" fill="#6b6b6b">and whether a rule or a</text><text x="540" y="174" font-size="14" fill="#6b6b6b">missing tool stopped it</text><text x="752" y="124" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="146" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One rule for Half</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">Note’s agent</text><text x="792" y="134" font-size="14" fill="#6b6b6b">before the agent goes live,</text><text x="792" y="153" font-size="14" fill="#6b6b6b">and what the rule costs or</text><text x="792" y="172" font-size="14" fill="#6b6b6b">saves the studio</text></svg></div>
+    <figcaption class="plib-tile-caption">Respond to all four dimensions above in your reflection.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection in the regular chat, in your own words and without help from the AI. Put the reflection in a block that begins with R8.1.1 on its own line.</p>
+  <p>Your reflection needs all four of these. Name an action your agent took and quote your request and the values the agent sent, from your audit AND name the governance question the action raises, Authority, Approval, Accountability or Audit, and say why AND name a request your agent did not carry out and say whether a rule in the instructions or a missing tool stopped it AND write one rule you would give Half Note's agent before the agent goes live, and say what the rule costs or saves the studio. Respond to all four.</p>
+  <p>The fourth separates a good reflection from an adequate one. If your agent carried out every request, name the request that came closest to one a manager should decide.</p>
+  <p>Write 80 to 160 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution R8.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">R8.1.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Your reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 80 to 160 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_75" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for R8.1.1"
+            data-maxwords="160" data-maxchars="1600"
+            oninput="updateCounter('prompt_75', 'textarea_75')"></textarea>
+  <div class="plib-counter" id="counter_prompt_75" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_75">0</span> / 160 words&nbsp;·&nbsp;
+    <span id="cc_prompt_75">0</span> / 1600 characters
+    <span class="plib-counter-min">minimum: 80 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_75" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_75"
+       data-prefix="### R8.1.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_75"
+       data-maxwords="160"
+       data-maxchars="1600"
+       data-minwords="80"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_75', this)"
+          aria-label="Copy contribution R8.1.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Before you leave</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment. Your work is not submitted until Canvas shows your file.</p>
+  <a class="plib-submit-btn" href="https://canvas.vt.edu/courses/233694/assignments/2843186" target="_blank" rel="noopener noreferrer">Open the Canvas assignment</a>
+  <div class="plib-submit-note">Opens in a new tab, so this page stays where it is.</div>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>
