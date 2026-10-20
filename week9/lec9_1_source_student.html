@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>An Agent That Reads Live Data</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 9 · Lecture 1</div>
+  <div class="plib-meta-title">An Agent That Reads Live Data</div>
+  <div class="plib-meta-details"><span><strong>Duration:</strong> 75 minutes</span>&ensp;·&ensp;<span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> The regular Hokie AI thread, holding the student's audit file and the reflection, exported as a .zip and uploaded to Canvas before leaving class</span>&ensp;·&ensp;<span><strong>Lecture Mode:</strong> exploratory</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this lecture, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Tell a mock call, which answers with what its author wrote, from a live API call, which answers from another company's system.</li>
+    <li>Fill the five fields of an API Call source, Name, Description, Parameter Schema, Endpoint and Method, and add a Website source.</li>
+    <li>Read three things for every live answer: what the agent sent, what the service sent back, and what the agent said.</li>
+    <li>Check an agent's answer by opening the address from the Execution Log Data in a browser and comparing the service's value with the agent's.</li>
+    <li>Name what live data adds to governance: a dependency the business does not control, who answers to the guest, and a source and date on every number.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 5</div><div class="plib-section-t">INTRODUCTION</div></div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Last week your Half Note agent's tools were mock calls, and every answer was one somebody typed into the Response Template. Today the agent asks real systems that belong to other companies, and the answer changes every day.</p>
+    <p>The business is Copperleaf Inn from homework 7, the made up 14 room boutique inn in Blacksburg. Its new agent is a concierge that answers guests' planning questions about weather, money and football weekends.</p>
+  </div>
+</div>
+
+<figure class="plib-slide">
+  <img class="plib-slide-img" src="lec9_1_slide1.png" alt="A cartoon of an inn's concierge agent reading live data. A friendly AI character at a front desk under a sign for Copperleaf Inn holds a phone line to three distant buildings labeled weather, money and football. A student manager holds a magnifying glass over a printed reply, comparing it with a browser window." loading="lazy">
+  <figcaption class="plib-slide-caption">The concierge asks other companies' systems, and you check what came back.</figcaption>
+</figure>
+
+<div class="plib-narration">
+  <p>Last week every tool was a mock call. The answer came from the Response Template, which you pasted, so the agent could only ever say what its author wrote. An API Call asks a real system run by another company, and that system writes the answer.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-9">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes, last week and this week. Mock call to API, answers with the Response Template its author wrote, the same every time. API call, answers from another company's system, with today's data."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Last week and this week</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">MOCK CALL TO API</text><text x="37" y="122" font-size="14" fill="#6b6b6b">answers with the Response Template its author wrote, the same</text><text x="37" y="141" font-size="14" fill="#6b6b6b">every time</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">API CALL</text><text x="540" y="122" font-size="14" fill="#6b6b6b">answers from another company’s system, with today’s data</text></svg></div>
+    <figcaption class="plib-tile-caption">A live answer is only as good as the system that sent it, and the inn does not run that system.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>An API Call source has five fields. Name and Description work the way they did for the mock calls. The Parameter Schema says what the agent must send. The Response Template is gone, because the service writes the response. In its place the Endpoint holds the service's address and the Method says what kind of request it is. Every source today reads, so the Method is always GET.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-11">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, the five fields of an API Call source. Name, the label the instructions use, such as get_forecast. Description, the agent's rule for choosing the tool. Parameter Schema, what the agent must send. Endpoint, the service's address, with any fixed settings. Method, GET, to read."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The five fields of an API Call source</text><rect x="21" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">NAME</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the label the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">instructions use,</text><text x="37" y="160" font-size="14" fill="#6b6b6b">such as</text><text x="37" y="179" font-size="14" fill="#6b6b6b">get_forecast</text><text x="198" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">DESCRIPTION</text><text x="238" y="122" font-size="14" fill="#6b6b6b">the agent’s rule for</text><text x="238" y="141" font-size="14" fill="#6b6b6b">choosing the tool</text><text x="399" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">PARAMETER</text><text x="468" y="103" font-size="17" font-weight="600" fill="#2b2b2b">SCHEMA</text><text x="439" y="134" font-size="14" fill="#6b6b6b">what the agent</text><text x="439" y="153" font-size="14" fill="#6b6b6b">must send</text><text x="601" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">ENDPOINT</text><text x="641" y="122" font-size="14" fill="#6b6b6b">the service’s</text><text x="641" y="141" font-size="14" fill="#6b6b6b">address, with any</text><text x="641" y="160" font-size="14" fill="#6b6b6b">fixed settings</text><text x="802" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">METHOD</text><text x="842" y="122" font-size="14" fill="#6b6b6b">GET, to read</text></svg></div>
+    <figcaption class="plib-tile-caption">The Endpoint and the Method replace the Response Template.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Copperleaf Inn's concierge holds four sources. Three are API Calls to free public services that need no account, and the fourth is a Website source, which searches a site at the moment a guest asks.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-13">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes, the concierge's four sources. find_place, Open-Meteo place search, a town's name to its coordinates. get_forecast, Open-Meteo, seven days of highs, lows and rain. get_exchange_rate, Frankfurter, today's European Central Bank rate. The football schedule, a Website source, searched at question time."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The concierge’s four sources</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">find_place</text><text x="37" y="122" font-size="14" fill="#6b6b6b">Open-Meteo place search,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">a town’s name to its</text><text x="37" y="160" font-size="14" fill="#6b6b6b">coordinates</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">get_forecast</text><text x="288" y="122" font-size="14" fill="#6b6b6b">Open-Meteo, seven days of</text><text x="288" y="141" font-size="14" fill="#6b6b6b">highs, lows and rain</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">get_exchange_rate</text><text x="540" y="122" font-size="14" fill="#6b6b6b">Frankfurter, today’s</text><text x="540" y="141" font-size="14" fill="#6b6b6b">European Central Bank rate</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The football</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">schedule</text><text x="792" y="134" font-size="14" fill="#6b6b6b">a Website source, searched</text><text x="792" y="153" font-size="14" fill="#6b6b6b">at question time</text></svg></div>
+    <figcaption class="plib-tile-caption">A home game weekend fills every room in town, which is why the schedule is here.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Here is get_forecast, field by field. The Parameter Schema is JSON, the same format as last week: names in quotation marks, a colon, then a value, with curly braces around each set. It names two values the agent must send, latitude and longitude, both numbers, and the required list says the agent may not call without them.</p>
+  <p>The Endpoint is a web address with settings after it. The question mark starts the settings, each setting is a name, an equals sign and a value, and an ampersand joins one setting to the next. You write the fixed settings once, when you build the tool. At question time the agent adds its own two settings at the end, and the whole address appears in Execution Details, in the Execution Log Data at the top of the panel. Open that address in a browser and you see exactly what the service sent the agent.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-15">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:715px" role="img" aria-label="The five fields of get_forecast. Name, get_forecast. Description, use when a guest asks about the weather for the next seven days at a place, returning the daily high and low in Fahrenheit and the chance of rain. Parameter Schema, nested JSON: an object with two properties, latitude and longitude, each of type number with a description giving Blacksburg's value, and a required list holding both. Endpoint, taken apart: the address https://api.open-meteo.com/v1/forecast, then daily set to the high, the low and the chance of rain, timezone set to Eastern time, forecast_days 7, and temperature_unit fahrenheit, then the part the agent adds, latitude 37.27097 and longitude -79.94143, the coordinates find_place returned for Roanoke, Virginia. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 715 899" width="715" height="899" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">get_forecast, an API Call to the Open-Meteo forecast</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="683" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">get_forecast</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="683" height="56" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use when a guest asks about the weather for the next seven days at a place. Returns the</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">daily high and low in Fahrenheit and the chance of rain.</text><text x="16" y="229" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="229" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="239" width="683" height="312" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="266" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="287" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="308" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="329" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"latitude"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="350" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"number"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="371" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Latitude of the place, such as 37.23 for Blacksburg"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="392" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="413" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"longitude"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="434" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"number"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="455" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Longitude of the place, such as -80.41 for Blacksburg"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="476" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="497" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="518" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"latitude"</tspan><tspan fill="#5c7c9a">, </tspan><tspan fill="#d9480f">"longitude"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="539" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="581" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="581" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="591" width="683" height="260" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="618" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://api.open-meteo.com/v1/forecast</tspan></text><text x="46" y="635" font-size="12.5" fill="#6c757d" xml:space="preserve">Open-Meteo’s forecast. The question mark starts the settings, and &amp; joins them.</text><text x="30" y="658" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">daily</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">temperature_2m_max,temperature_2m_min,precipitation_probability_max</tspan></text><text x="46" y="675" font-size="12.5" fill="#6c757d" xml:space="preserve">three lists per day: the high, the low and the chance of rain</text><text x="30" y="698" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">timezone</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">America%2FNew_York</tspan></text><text x="46" y="715" font-size="12.5" fill="#6c757d" xml:space="preserve">days in Eastern time</text><text x="30" y="738" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">forecast_days</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">7</tspan></text><text x="46" y="755" font-size="12.5" fill="#6c757d" xml:space="preserve">seven days, today and the six after it</text><text x="30" y="778" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">temperature_unit</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">fahrenheit</tspan></text><text x="46" y="795" font-size="12.5" fill="#6c757d" xml:space="preserve">degrees Fahrenheit</text><text x="30" y="822" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">latitude</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">37.27097</tspan><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">longitude</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">-79.94143</tspan></text><text x="46" y="839" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent, here the coordinates find_place returned for Roanoke, Virginia</text><text x="16" y="881" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="881" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">Pink names, orange text, green numbers. The blue part at the end of the Endpoint is the only part the agent writes.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>So every live answer has three things to read. Execution Details shows what the agent sent. The address, opened in a browser, shows what came back. The reply shows what the agent said about it. The second and the third should agree, and checking that they do is today's skill.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-17">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, three things to read for every live answer. What was sent, Execution Details, the tool and its arguments. What came back, the address from the Execution Log Data, opened in a browser. What the agent said, the reply, with its numbers."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Three things to read for every live answer</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What was sent</text><text x="37" y="122" font-size="14" fill="#6b6b6b">Execution Details, the tool and its</text><text x="37" y="141" font-size="14" fill="#6b6b6b">arguments</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What came back</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the address from the Execution Log Data,</text><text x="372" y="141" font-size="14" fill="#6b6b6b">opened in a browser</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What the agent said</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the reply, with its numbers</text></svg></div>
+    <figcaption class="plib-tile-caption">Compare the second box with the third, number by number.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Before the demonstration:</p>
+  <ul class="plib-discussion-list">
+    <li>A mock call's answer was written by the person who built the tool. Who wrote the answer to a live call, and can the inn see how it was made?</li>
+    <li>Open-Meteo changes its service or goes down for a day. What can the inn do about it?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 5</div><div class="plib-section-t">DEMONSTRATION</div></div>
+
+<div class="plib-narration">
+  <p>Your instructor's concierge holds all four sources. Watch six guest questions, each in a new chat. After every reply your instructor opens Execution Details, reads the Execution Log Data, and opens the address in a browser. Live data moves, so the numbers on the screen today are today's, and the check is the part to watch.</p>
+  <p>The first question needs one call.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.1</span>
+    <span class="plib-prompt-type-label">Question 1. One call checked in a browser</span>
+  </div>
+  <div class="plib-prompt-display">What will the weather be like here this weekend?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The browser shows the service's answer in JSON. The forecast lists the dates under time, and the highs, lows and rain chances in lists in the same order, so the third high goes with the third date.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-23">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes, reading the forecast in a browser. The dates, the list named time, seven dates in order. The highs, the list named temperature_2m_max, in the same order. The rain, the chance of rain for each date, in the same order."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Reading the forecast in a browser</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The dates</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the list named time, seven dates in order</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The highs</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the list named temperature_2m_max, in</text><text x="372" y="141" font-size="14" fill="#6b6b6b">the same order</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The rain</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the chance of rain for each date, in the</text><text x="708" y="141" font-size="14" fill="#6b6b6b">same order</text></svg></div>
+    <figcaption class="plib-tile-caption">The lows are under temperature_2m_min, in the same order again.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>The second question names a town the agent has no coordinates for. Several towns in the United States are called Roanoke. Watch which one the agent chooses and whether the reply says so.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.2</span>
+    <span class="plib-prompt-type-label">Question 2. Two calls chained</span>
+  </div>
+  <div class="plib-prompt-display">We're driving over from Roanoke on Saturday morning. What should we expect for weather there and here?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The third question needs a rate and some arithmetic. The rate is the European Central Bank's daily reference rate, which no bank or card actually pays a traveler.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.3">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.3</span>
+    <span class="plib-prompt-type-label">Question 3. A rate and the arithmetic</span>
+  </div>
+  <div class="plib-prompt-display">Our King Room is 159 dollars a night. How much is that in euros?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The fourth question asks for a currency the European Central Bank does not publish. Watch the Execution Log Data, and watch what reaches the guest.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.4">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.4</span>
+    <span class="plib-prompt-type-label">Question 4. A call that fails at the service</span>
+  </div>
+  <div class="plib-prompt-display">My parents are visiting from Buenos Aires. What is the King Room in Argentine pesos tonight?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The fifth question goes to the Website source. A Website source searches the schedule site when the guest asks, so the answer leaves a search in Execution Details and no address to open. The check is the schedule page itself.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.5">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.5</span>
+    <span class="plib-prompt-type-label">Question 5. A web page searched at question time</span>
+  </div>
+  <div class="plib-prompt-display">We're thinking of coming the weekend of November 14. Is there a home football game that weekend, and should we book early?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The last question is the kind a real guest sends, and it needs every source at once. Several places are called Cascades, and the instructions say to ask when the agent cannot tell which one the guest means.</p>
+</div>
+
+<div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S9.1.6">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id">S9.1.6</span>
+    <span class="plib-prompt-type-label">Question 6. Every source at once</span>
+  </div>
+  <div class="plib-prompt-display">My parents fly in from Frankfurt and arrive Friday. If they stay Friday and Saturday in a King Room, what is that in euros, will the weekend be good for a hike at the Cascades, and is there a home game?</div>
+  <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
+</div>
+
+<div class="plib-narration">
+  <p>Every answer today came from a system the inn does not run. Week 8's governance questions still apply, and live data adds three things to them.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-35">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, what live data adds to governance. A dependency, a service the inn does not own, pay for or control. Accountability, who answers to the guest when the forecast was wrong. Audit, a number with no source and no date cannot be checked later."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">What live data adds to governance</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A DEPENDENCY</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a service the inn does not own, pay for or</text><text x="37" y="141" font-size="14" fill="#6b6b6b">control</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">ACCOUNTABILITY</text><text x="372" y="122" font-size="14" fill="#6b6b6b">who answers to the guest when the</text><text x="372" y="141" font-size="14" fill="#6b6b6b">forecast was wrong</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">AUDIT</text><text x="708" y="122" font-size="14" fill="#6b6b6b">a number with no source and no date</text><text x="708" y="141" font-size="14" fill="#6b6b6b">cannot be checked later</text></svg></div>
+    <figcaption class="plib-tile-caption">The concierge's instructions already ask for a source and a date on every number, and the rule is the audit.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">While it runs:</p>
+  <ul class="plib-discussion-list">
+    <li>In question 4, what did the guest learn from the reply, and who wrote it?</li>
+    <li>The search behind question 5 returned pages from earlier seasons. What would a wrong year cost the inn?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 5</div><div class="plib-section-t">INTERACTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-38">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Build, your concierge, with three API Call sources and the football schedule. Test, one chat, the test question and one question of your own. Read, the tools behind each reply, and check one number. Record, in a regular Hokie AI chat, T, M OPEN, your audit, M CLOSE."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Build, test, check, record</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Build</text><text x="37" y="122" font-size="14" fill="#6b6b6b">your concierge, with three</text><text x="37" y="141" font-size="14" fill="#6b6b6b">API Call sources and the</text><text x="37" y="160" font-size="14" fill="#6b6b6b">football schedule</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Test</text><text x="288" y="122" font-size="14" fill="#6b6b6b">one chat, the test question</text><text x="288" y="141" font-size="14" fill="#6b6b6b">and one question of your</text><text x="288" y="160" font-size="14" fill="#6b6b6b">own</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Read</text><text x="540" y="122" font-size="14" fill="#6b6b6b">the tools behind each reply,</text><text x="540" y="141" font-size="14" fill="#6b6b6b">and check one number</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">in a regular Hokie AI chat,</text><text x="792" y="141" font-size="14" fill="#6b6b6b">T, M OPEN, your audit, M</text><text x="792" y="160" font-size="14" fill="#6b6b6b">CLOSE</text></svg></div>
+    <figcaption class="plib-tile-caption">One chat with your concierge and one regular Hokie AI chat. Only the regular chat is submitted.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-39">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 1 of 4, Build your concierge. Copperleaf Inn, with three API Call sources and the football schedule. Create the agent, then add the four sources from the copy boxes below."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Build your concierge</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Copperleaf Inn, with three API Call sources and the football schedule.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">Create the agent, then add the four sources from the copy boxes below.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 1 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Create a new agent in Hokie AI named Copperleaf Inn Concierge, with the description &quot;Concierge for Copperleaf Inn, a boutique inn in Blacksburg.&quot; Put the instructions below in the Specific tab and the class Platform text in the Platform tab. Pick luna, switch every capability off, delete the welcome message, and Create.</p>
+</div>
+
+<div class="plib-material" id="plib-material-41">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-41-prompt" data-copy="You are the concierge of Copperleaf Inn, a 14-room boutique inn in Blacksburg, Virginia. Today's date is Tuesday, October 20, 2026. Blacksburg is at latitude 37.23 and longitude -80.41.&#10;&#10;Use find_place to get the coordinates of any other place a guest names, then get_forecast for its weather. When find_place returns several places with the same name, choose the one the guest means and say which one you chose, or ask if you cannot tell. Use get_exchange_rate for prices in another currency; the King Room is 159 dollars a night. Never guess a forecast, a rate, a place or a game date.&#10;&#10;Every number you give comes with its source and its date, such as &quot;Open-Meteo forecast, checked October 20&quot;. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself." aria-label="Specification text, scrollable">You are the concierge of Copperleaf Inn, a 14-room boutique inn in Blacksburg, Virginia. Today's date is Tuesday, October 20, 2026. Blacksburg is at latitude 37.23 and longitude -80.41.
+
+Use find_place to get the coordinates of any other place a guest names, then get_forecast for its weather. When find_place returns several places with the same name, choose the one the guest means and say which one you chose, or ask if you cannot tell. Use get_exchange_rate for prices in another currency; the King Room is 159 dollars a night. Never guess a forecast, a rate, a place or a game date.
+
+Every number you give comes with its source and its date, such as &quot;Open-Meteo forecast, checked October 20&quot;. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-41-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste into the Specific tab.</div>
+</div>
+
+<div class="plib-material" id="plib-material-42">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The class Platform text</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-42-prompt" data-copy="You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them." aria-label="Specification text, scrollable">You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.
+
+Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.
+
+Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-42-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Delete the default text in the Platform tab first, then paste this.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Open the agent's edit page, click Add Knowledge Source, and choose API Call. You add three API Calls, one at a time. Read each figure before you paste, so you know what each field tells the agent.</p>
+  <p>find_place takes one value, a town's name, and its Endpoint carries three fixed settings. Read the figure, then fill the fields from the boxes below, one box to one field, choose GET as the Method, and click Add.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-44">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:952px" role="img" aria-label="The five fields of find_place. Name, find_place. Description, use when a guest names a city or town and you need its latitude and longitude, returning up to five places with that name, each with its state or region and country. Parameter Schema, nested JSON: an object with one property, name, of type string, described as the name of a city or town only, such as Roanoke, with no state, no country and no commas, and a required list holding name. Endpoint, taken apart: the address https://geocoding-api.open-meteo.com/v1/search, then count 5 for up to five places, language en for English names, and format json, then the part the agent adds, name Roanoke. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 952 794" width="952" height="794" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">find_place, an API Call to Open-Meteo place search</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="920" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">find_place</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="920" height="75" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use when a guest names a city or town and you need its latitude and longitude, for example</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">before asking for its forecast. Returns up to five places with that name, each with its</text><text x="30" y="206" font-size="13.5" fill="#212529" xml:space="preserve">state or region and country.</text><text x="16" y="248" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="248" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="258" width="920" height="228" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="285" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="306" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="327" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="348" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"name"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="369" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="390" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The name of a city or town only, such as Roanoke. No state, no country, no commas."</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="411" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="432" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="453" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"name"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="474" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="516" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="516" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="526" width="920" height="220" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="553" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://geocoding-api.open-meteo.com/v1/search</tspan></text><text x="46" y="570" font-size="12.5" fill="#6c757d" xml:space="preserve">Open-Meteo’s place search. The question mark starts the settings, and &amp; joins them.</text><text x="30" y="593" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">count</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">5</tspan></text><text x="46" y="610" font-size="12.5" fill="#6c757d" xml:space="preserve">return up to five places with the name</text><text x="30" y="633" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">language</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">en</tspan></text><text x="46" y="650" font-size="12.5" fill="#6c757d" xml:space="preserve">names in English</text><text x="30" y="673" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">format</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">json</tspan></text><text x="46" y="690" font-size="12.5" fill="#6c757d" xml:space="preserve">the reply in JSON</text><text x="30" y="717" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">name</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">Roanoke</tspan></text><text x="46" y="734" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent from the Parameter Schema, here the town a guest named</text><text x="16" y="776" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="776" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">The schema's description tells the agent to send a town's name alone, because the search reads a whole phrase as one name.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-45">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">find_place, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-45-prompt" data-copy="find_place" aria-label="Specification text, scrollable">find_place</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-45-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-46">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">find_place, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-46-prompt" data-copy="Use when a guest names a city or town and you need its latitude and longitude, for example before asking for its forecast. Returns up to five places with that name, each with its state or region and country." aria-label="Specification text, scrollable">Use when a guest names a city or town and you need its latitude and longitude, for example before asking for its forecast. Returns up to five places with that name, each with its state or region and country.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-46-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-47">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">find_place, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-47-prompt" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The name of a city or town only, such as Roanoke. No state, no country, no commas.&quot;}},&quot;required&quot;:[&quot;name&quot;]}" aria-label="Specification text, scrollable">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The name of a city or town only, such as Roanoke. No state, no country, no commas.&quot;}},&quot;required&quot;:[&quot;name&quot;]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-47-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text in the Parameter Schema box, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-48">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">find_place, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-48-prompt" data-copy="https://geocoding-api.open-meteo.com/v1/search?count=5&amp;language=en&amp;format=json" aria-label="Specification text, scrollable">https://geocoding-api.open-meteo.com/v1/search?count=5&amp;language=en&amp;format=json</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-48-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add.</div>
+</div>
+
+<div class="plib-narration">
+  <p>get_forecast is the figure from the start of the lecture, with latitude and longitude from the agent. Fill its fields the same way, GET, and Add.</p>
+</div>
+
+<div class="plib-material" id="plib-material-50">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_forecast, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-50-prompt" data-copy="get_forecast" aria-label="Specification text, scrollable">get_forecast</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-50-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-51">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_forecast, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-51-prompt" data-copy="Use when a guest asks about the weather for the next seven days at a place. Returns the daily high and low in Fahrenheit and the chance of rain." aria-label="Specification text, scrollable">Use when a guest asks about the weather for the next seven days at a place. Returns the daily high and low in Fahrenheit and the chance of rain.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-51-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-52">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_forecast, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-52-prompt" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;latitude&quot;:{&quot;type&quot;:&quot;number&quot;,&quot;description&quot;:&quot;Latitude of the place, such as 37.23 for Blacksburg&quot;},&quot;longitude&quot;:{&quot;type&quot;:&quot;number&quot;,&quot;description&quot;:&quot;Longitude of the place, such as -80.41 for Blacksburg&quot;}},&quot;required&quot;:[&quot;latitude&quot;,&quot;longitude&quot;]}" aria-label="Specification text, scrollable">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;latitude&quot;:{&quot;type&quot;:&quot;number&quot;,&quot;description&quot;:&quot;Latitude of the place, such as 37.23 for Blacksburg&quot;},&quot;longitude&quot;:{&quot;type&quot;:&quot;number&quot;,&quot;description&quot;:&quot;Longitude of the place, such as -80.41 for Blacksburg&quot;}},&quot;required&quot;:[&quot;latitude&quot;,&quot;longitude&quot;]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-52-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-53">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_forecast, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-53-prompt" data-copy="https://api.open-meteo.com/v1/forecast?daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&amp;timezone=America%2FNew_York&amp;forecast_days=7&amp;temperature_unit=fahrenheit" aria-label="Specification text, scrollable">https://api.open-meteo.com/v1/forecast?daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&amp;timezone=America%2FNew_York&amp;forecast_days=7&amp;temperature_unit=fahrenheit</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-53-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add.</div>
+</div>
+
+<div class="plib-narration">
+  <p>get_exchange_rate has no fixed settings, so its Endpoint ends at latest, and the agent starts the settings itself with the question mark. Fill its fields, GET, and Add.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-55">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:738px" role="img" aria-label="The five fields of get_exchange_rate. Name, get_exchange_rate. Description, use when a guest asks how much a price is in another currency, returning the latest exchange rate between two currencies. Parameter Schema, nested JSON: an object with two properties, base and symbols, each a string holding a three letter currency code, base the currency to convert from, such as USD, and symbols the currency to convert to, such as EUR, and a required list holding both. Endpoint, taken apart: the address https://api.frankfurter.dev/v1/latest with no fixed settings, then the part the agent adds, base USD and symbols EUR. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 738 739" width="738" height="739" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">get_exchange_rate, an API Call to Frankfurter</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="706" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">get_exchange_rate</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="706" height="56" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use when a guest asks how much a price is in another currency. Returns the latest exchange</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">rate between two currencies.</text><text x="16" y="229" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="229" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="239" width="706" height="312" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="266" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="287" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="308" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="329" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"base"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="350" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="371" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Three letter currency code to convert from, such as USD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="392" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="413" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"symbols"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="434" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="455" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Three letter currency code to convert to, such as EUR"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="476" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="497" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="518" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"base"</tspan><tspan fill="#5c7c9a">, </tspan><tspan fill="#d9480f">"symbols"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="539" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="581" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="581" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="591" width="706" height="100" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="618" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://api.frankfurter.dev/v1/latest</tspan></text><text x="46" y="635" font-size="12.5" fill="#6c757d" xml:space="preserve">Frankfurter’s latest European Central Bank rates. This Endpoint has no fixed settings.</text><text x="30" y="662" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">base</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">USD</tspan><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">symbols</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">EUR</tspan></text><text x="46" y="679" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent, the currency to convert from and the currency to convert to</text><text x="16" y="721" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="721" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">A currency the European Central Bank does not publish is still a valid code, and the service answers it with an error.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-56">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_exchange_rate, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-56-prompt" data-copy="get_exchange_rate" aria-label="Specification text, scrollable">get_exchange_rate</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-56-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-57">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_exchange_rate, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-57-prompt" data-copy="Use when a guest asks how much a price is in another currency. Returns the latest exchange rate between two currencies." aria-label="Specification text, scrollable">Use when a guest asks how much a price is in another currency. Returns the latest exchange rate between two currencies.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-57-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-58">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_exchange_rate, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-58-prompt" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;base&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Three letter currency code to convert from, such as USD&quot;},&quot;symbols&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Three letter currency code to convert to, such as EUR&quot;}},&quot;required&quot;:[&quot;base&quot;,&quot;symbols&quot;]}" aria-label="Specification text, scrollable">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;base&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Three letter currency code to convert from, such as USD&quot;},&quot;symbols&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;Three letter currency code to convert to, such as EUR&quot;}},&quot;required&quot;:[&quot;base&quot;,&quot;symbols&quot;]}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-58-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-59">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_exchange_rate, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-59-prompt" data-copy="https://api.frankfurter.dev/v1/latest" aria-label="Specification text, scrollable">https://api.frankfurter.dev/v1/latest</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-59-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Last, click Add Knowledge Source once more and choose Website. A Website source has three fields, and none of them is JSON. The address limits the search to one site, the When to use sentence is the agent's rule for choosing the source, and the maximum number of pages caps how many pages one search returns. Paste the address and the When to use sentence below, set the maximum number of pages to 10, click Add, and save the agent.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-61">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:842px" role="img" aria-label="The three fields of the football schedule Website source. Website address, https://hokiesports.com/sports/football/schedule, the search stays inside this address. When to use, use when a guest asks whether Virginia Tech plays a home football game on a given date or weekend, or who the opponent is. Maximum pages, 10, how many pages one search may return. At question time the agent writes a search question, a Bing search of the address returns up to ten pages, and the agent answers from those pages and cites them. Nothing is stored ahead of time."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 842 345" width="842" height="345" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">The football schedule, a Website source</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Website address</text><text x="166.0" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the search stays inside this address</text><rect x="16" y="68" width="810" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://hokiesports.com/sports/football/schedule</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">When to use</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the source</text><rect x="16" y="143" width="810" height="56" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use when a guest asks whether Virginia Tech plays a home football game on a given date or</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">weekend, or who the opponent is.</text><text x="16" y="229" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Maximum pages</text><text x="147.6" y="229" font-size="12.5" fill="#6c757d" xml:space="preserve">how many pages one search may return</text><rect x="16" y="239" width="810" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="262" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#2b8a3e">10</tspan></text><text x="16" y="308" font-size="13" fill="#6c757d" xml:space="preserve">At question time the agent writes a search question, and a Bing search of the address returns up to ten pages.</text><text x="16" y="327" font-size="13" fill="#6c757d" xml:space="preserve">The agent answers from those pages and cites them. Nothing is stored ahead of time.</text></svg></div>
+    <figcaption class="plib-tile-caption">The agent writes a new search question every time, so two guests asking the same thing may get different searches.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-62">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The football schedule, Website address</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-62-prompt" data-copy="https://hokiesports.com/sports/football/schedule" aria-label="Specification text, scrollable">https://hokiesports.com/sports/football/schedule</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-62-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Website address field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-63">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The football schedule, When to use</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-63-prompt" data-copy="Use when a guest asks whether Virginia Tech plays a home football game on a given date or weekend, or who the opponent is." aria-label="Specification text, scrollable">Use when a guest asks whether Virginia Tech plays a home football game on a given date or weekend, or who the opponent is.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-63-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The When to use field. Maximum pages 10, then Add, then save the agent.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-64">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 2 of 4, Test your concierge. The test question, then one question of your own. One new chat with your concierge. Keep the chat open when you finish."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Test your concierge</text><text x="46" y="86" font-size="16" fill="#2b2b2b">The test question, then one question of your own.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">One new chat with your concierge. Keep the chat open when you finish.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 2 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new chat with your concierge and send the test question below. It is two sentences long, and it asks about a currency, the weather and the football schedule at once. Then send one short question of your own, in your own words, that touches at least two of the boxes on the questions card. Keep the chat open when you finish.</p>
+</div>
+
+<div class="plib-material" id="plib-material-66">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The test question</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-66-prompt" data-copy="My sister flies in from London this Friday. What will Friday and Saturday nights in a King Room cost her in British pounds, what weather should she pack for here, and is there a home game?" aria-label="Specification text, scrollable">My sister flies in from London this Friday. What will Friday and Saturday nights in a King Room cost her in British pounds, what weather should she pack for here, and is there a home game?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-66-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this first, in a new chat with your concierge.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-67">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes, your own question touches at least two. The weather somewhere, your hometown or a town on the way. A currency, the King Room in a currency a parent or a friend would use. A weekend to visit, a home game that weekend, and whether to book early."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your own question touches at least two</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">THE WEATHER</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">SOMEWHERE</text><text x="37" y="134" font-size="14" fill="#6b6b6b">your hometown or a town on the way</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A CURRENCY</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the King Room in a currency a parent or</text><text x="372" y="141" font-size="14" fill="#6b6b6b">a friend would use</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">·</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A WEEKEND TO VISIT</text><text x="708" y="122" font-size="14" fill="#6b6b6b">a home game that weekend, and</text><text x="708" y="141" font-size="14" fill="#6b6b6b">whether to book early</text></svg></div>
+    <figcaption class="plib-tile-caption">One question, two sentences at most.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-68">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the editor will not save, check the Endpoint. Paste the Endpoint exactly as the box gives it, with nothing added after it."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE EDITOR WILL NOT SAVE</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the Endpoint</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Paste the Endpoint exactly as the box gives it,</text><text x="34" y="199" font-size="15" fill="#6b6b6b">with nothing added after it.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If a number has no address, choose another number. A Website answer leaves no address. A weather or currency number always has one."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF A NUMBER HAS NO ADDRESS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Choose another number</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">A Website answer leaves no address. A weather</text><text x="34" y="199" font-size="15" fill="#6b6b6b">or currency number always has one.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-68");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-tiles" id="plib-tiles-69">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 3 of 4, Read the tools, check one number. Under each reply, open Execution Details and note the tools in order. Then open one address from the Execution Log Data and compare one number."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Read the tools, check one number</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Under each reply, open Execution Details and note the tools in order.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">Then open one address from the Execution Log Data and compare one number.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 3 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Under each reply, open Execution Details and look at Tool Calls. Note which tools ran and in what order. You do not copy anything; the tool names are enough. A short question often sets off three or four tools.</p>
+  <p>Then check one number. Choose one weather or currency number from either reply AND find the address for that call in the Execution Log Data at the top of the panel AND open it in a new browser tab AND compare the service's number with the agent's.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-71">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Step 4 of 4, Record in the regular chat. A new regular Hokie AI chat, the chat you submit. T, M OPEN, your audit, M CLOSE."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 150" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="150" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="110" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="59" cy="52" r="13" fill="#630031" opacity="0.3"/><text x="59" y="58" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="80" y="58" font-size="18" font-weight="600" fill="#630031">Record in the regular chat</text><text x="46" y="86" font-size="16" fill="#2b2b2b">A new regular Hokie AI chat, the chat you submit.</text><text x="46" y="112" font-size="14" fill="#6b6b6b">T, M OPEN, your audit, M CLOSE.</text></svg></div>
+    <figcaption class="plib-tile-caption">Step 4 of 4.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new regular Hokie AI chat in its own browser tab. The regular chat is the chat you submit.</p>
+  <p>Paste T. Paste M OPEN by itself and wait for the reply. Copy the audit box below into the chat, fill in each line by typing, and send it. Paste M CLOSE after Hokie AI acknowledges your audit.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">T</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Week 9 Lecture 1. You are an AI assistant for this session. The student built a concierge agent for a made up business, Copperleaf Inn, a boutique inn in Blacksburg, Virginia. The agent holds three live API Call sources, find_place and get_forecast from Open-Meteo and get_exchange_rate from Frankfurter, and a Website source that searches the Virginia Tech football schedule. The student tested the agent in a separate chat with one given question and one of the student's own. In this session the student will send a short typed audit: the tools each question set off, in order, and one number checked against the address the agent called, with whether it matches; acknowledge the audit in one sentence. Do not judge the agent, the audit or the student's questions, do not check the numbers yourself, and do not write the student's reflection. Speak to a first-year undergraduate. Acknowledge this session is open.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_73" data-copy="### T&#10;----------&#10;BUS 1204 AI Literacy for Business, Week 9 Lecture 1. You are an AI assistant for this session. The student built a concierge agent for a made up business, Copperleaf Inn, a boutique inn in Blacksburg, Virginia. The agent holds three live API Call sources, find_place and get_forecast from Open-Meteo and get_exchange_rate from Frankfurter, and a Website source that searches the Virginia Tech football schedule. The student tested the agent in a separate chat with one given question and one of the student's own. In this session the student will send a short typed audit: the tools each question set off, in order, and one number checked against the address the agent called, with whether it matches; acknowledge the audit in one sentence. Do not judge the agent, the audit or the student's questions, do not check the numbers yourself, and do not write the student's reflection. Speak to a first-year undergraduate. Acknowledge this session is open.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_73', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block M9.1.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">M9.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Formative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_75" data-copy="### M9.1.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_75', this)"
+          aria-label="Copy opening marker for block M9.1.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-material" id="plib-material-76">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your audit</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-76-prompt" data-copy="My concierge audit. Reply only with one sentence acknowledging it.&#10;&#10;Question 1:&#10;Tools in Execution Details, in order:&#10;&#10;Question 2:&#10;Tools in Execution Details, in order:&#10;&#10;One number I checked, from which question:&#10;What the agent said:&#10;What the service said, at the address in the Execution Log Data:&#10;Match, yes or no:" aria-label="Specification text, scrollable">My concierge audit. Reply only with one sentence acknowledging it.
+
+Question 1:
+Tools in Execution Details, in order:
+
+Question 2:
+Tools in Execution Details, in order:
+
+One number I checked, from which question:
+What the agent said:
+What the service said, at the address in the Execution Log Data:
+Match, yes or no:</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-76-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Copy it into the regular chat after M OPEN, type your answers on each line, and send it as one message.</div>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block M9.1.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">M9.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_77" data-copy="&#10;----------&#10;### M9.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_77', this)"
+          aria-label="Copy closing marker for block M9.1.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">DISCUSSION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-80">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by OR, one show of hands. My question set off one or two tools. My question set off three tools. My question set off four or more."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">One hand, for the question you wrote</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One or two tools</text><text x="37" y="122" font-size="14" fill="#6b6b6b"></text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Three tools</text><text x="372" y="122" font-size="14" fill="#6b6b6b"></text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Four or more</text><text x="708" y="122" font-size="14" fill="#6b6b6b"></text></svg></div>
+    <figcaption class="plib-tile-caption">One hand, for your own question. Then two of you read your question and the tools it set off.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Hands for the three rows, for the question you wrote. Be ready to read your question and the tools it set off. If your checked number did not match, say so when your instructor asks.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-82">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. The answer you trust least, and the question behind it. The tools behind it, from Execution Details. Who answers to the guest, if that answer was wrong."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Four minutes with your partner</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The answer you trust least</text><text x="37" y="122" font-size="14" fill="#6b6b6b">and the question behind it</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The tools behind it</text><text x="372" y="122" font-size="14" fill="#6b6b6b">from Execution Details</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Who answers to the guest</text><text x="708" y="122" font-size="14" fill="#6b6b6b">if that answer was wrong</text></svg></div>
+    <figcaption class="plib-tile-caption">Four minutes. Each of you gives the other all three.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Turn to the person beside you. Tell your partner the answer you trust least and the question behind it AND the tools behind it, from Execution Details AND who answers to the guest if that answer was wrong.</p>
+  <p>Four minutes, both directions.</p>
+</div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>POTENTIAL USE CASES. Anywhere an agent reads a system the business does not run, somebody checks what it read and decides who answers for it.</p>
+    <div class="plib-context-bullet">A campus event office's agent that tells visitors the weather for an outdoor event, where a rain chance over a set level sends the question to a person.</div>
+    <div class="plib-context-bullet">A study abroad office's agent that quotes program costs in a student's home currency, where every quote carries the rate's source and date.</div>
+    <div class="plib-context-bullet">A real estate firm's agent that answers questions about a neighborhood from public data, where an answer it cannot source is not given.</div>
+    <div class="plib-context-bullet">At an internship, a travel team's agent that checks flight status for employees, where the airline's own page is the record a manager reads.</div>
+  </div>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">REFLECTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-86">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. One answer that could mislead a guest, or that you could not check, quoting your question and the agent's value. What your check showed, the address or page you opened and the service's value, or why you could not check. Who answers to the guest, if the answer was wrong, the inn or the service, and why. A rule for the concierge, added to its instructions because of it, and what it costs or saves the inn."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 233" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="233" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your reflection needs all four</text><rect x="21" y="46" width="204" height="165" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One answer that</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">could mislead a</text><text x="66" y="124" font-size="17" font-weight="600" fill="#2b2b2b">guest</text><text x="37" y="155" font-size="14" fill="#6b6b6b">or that you could not check,</text><text x="37" y="174" font-size="14" fill="#6b6b6b">quoting your question and</text><text x="37" y="193" font-size="14" fill="#6b6b6b">the agent’s value</text><text x="248" y="134" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="165" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What your check</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">showed</text><text x="288" y="134" font-size="14" fill="#6b6b6b">the address or page you</text><text x="288" y="153" font-size="14" fill="#6b6b6b">opened and the service’s</text><text x="288" y="172" font-size="14" fill="#6b6b6b">value, or why you could not</text><text x="288" y="191" font-size="14" fill="#6b6b6b">check</text><text x="500" y="134" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="165" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Who answers to</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">the guest</text><text x="540" y="134" font-size="14" fill="#6b6b6b">if the answer was wrong,</text><text x="540" y="153" font-size="14" fill="#6b6b6b">the inn or the service, and</text><text x="540" y="172" font-size="14" fill="#6b6b6b">why</text><text x="752" y="134" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="165" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A rule for the</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">concierge</text><text x="792" y="134" font-size="14" fill="#6b6b6b">added to its instructions</text><text x="792" y="153" font-size="14" fill="#6b6b6b">because of it, and what it</text><text x="792" y="172" font-size="14" fill="#6b6b6b">costs or saves the inn</text></svg></div>
+    <figcaption class="plib-tile-caption">Respond to all four dimensions above in your reflection.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection in the regular chat, in your own words and without help from the AI. Put the reflection in a block that begins with R9.1.1 on its own line.</p>
+  <p>Your reflection needs all four of these. Name one answer from your test that could mislead a guest, or that you could not check, and quote your question and the agent's value AND say what your check showed, the address or page you opened and the service's value, or why you could not check AND say who answers to the guest if the answer was wrong, the inn or the service, and why AND write one rule you would add to the concierge's instructions because of it, and say what the rule costs or saves the inn. Respond to all four.</p>
+  <p>The fourth separates a good reflection from an adequate one. If every answer matched, choose the answer you trust least and say why. On Thursday the class writes rules like yours into version 2 of the concierge.</p>
+  <p>Write 80 to 160 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution R9.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">R9.1.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Your reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 80 to 160 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_88" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for R9.1.1"
+            data-maxwords="160" data-maxchars="1600"
+            oninput="updateCounter('prompt_88', 'textarea_88')"></textarea>
+  <div class="plib-counter" id="counter_prompt_88" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_88">0</span> / 160 words&nbsp;·&nbsp;
+    <span id="cc_prompt_88">0</span> / 1600 characters
+    <span class="plib-counter-min">minimum: 80 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_88" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_88"
+       data-prefix="### R9.1.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_88"
+       data-maxwords="160"
+       data-maxchars="1600"
+       data-minwords="80"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_88', this)"
+          aria-label="Copy contribution R9.1.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Before you leave</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment. Your work is not submitted until Canvas shows your file.</p>
+  <a class="plib-submit-btn" href="https://canvas.vt.edu/courses/233694/assignments/2843190" target="_blank" rel="noopener noreferrer">Open the Canvas assignment</a>
+  <div class="plib-submit-note">Opens in a new tab, so this page stays where it is.</div>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>
