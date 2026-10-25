@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Club's Assistant on Live Treasury and Market Data</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 9 · Homework 8 · Part 1 of 2</div>
+  <div class="plib-meta-title">A Club's Assistant on Live Treasury and Market Data</div>
+  <div class="plib-meta-details"><span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> The chat with the student's Larkspur Club Assistant, exported as a .zip and uploaded to Canvas</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this part, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Build an agent for a new client from given instructions, a knowledge file and three live API Calls, each with a link to its documentation.</li>
+    <li>Check every live answer by reading what was sent in Tool Calls, opening the URI from Execution Log Data in a browser, and comparing the service's value with the agent's.</li>
+    <li>Find in a service's documentation what a number means, how often it is published and which parameters a call can carry.</li>
+    <li>Compare two sources for the same number on the same date, and tell a difference in sources from a difference in dates.</li>
+    <li>Judge when an answer that matches its source can still mislead the person who asked.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 4</div><div class="plib-section-t">ORIENTATION</div></div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Homework 8 has a new client from outside the hotel business, the Larkspur Investment Club. The club is made up for this homework, and it is modeled on the student investing clubs many business schools have. It helps first-year students think about saving and investing, and it gives education, not advice.</p>
+    <p>Part 1 runs in one chat with a new agent you build today, the Larkspur Club Assistant, and that chat is what you submit. Make a folder for homework 8 inside your HomeWork folder. Part 2 extends the same agent, so keep it.</p>
+  </div>
+</div>
+
+<div class="plib-narration">
+  <p>In week 9 your concierge looked up live data, and you checked each answer by opening the address in Execution Log Data in a browser. Part 1 brings the same habit to a client whose numbers are money. You build the club's assistant with three live tools, two from the U.S. Treasury and one from Frankfurter, a service that publishes market exchange rates.</p>
+  <p>Every tool on this page comes with a link to its documentation, the page where the service explains its data. You do not need to write any part of a tool yourself. You read the documentation for two things a tool cannot tell you, what the number means and what else the service can do.</p>
+  <p>Case one uses the two Treasury tools. You ask about Treasury Bills, the euro and one question of your own, check every answer, and read what the Treasury says its average interest rate is. In case two the market rate joins the Treasury's official rate, and you find out how much of the difference between two sources comes from their dates.</p>
+  <p>Part 1 is worth 100 points. The two cases are worth 50 each, and inside a case your work in the M block and your reflection in the R block are worth 25 each. Pasting a prompt earns nothing, because it is not work.</p>
+  <p>Work alone. You may look back at your notes and at both week 9 lectures. Do not ask Hokie AI to write your reflections. Take as long as you need.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-6">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Create, a new agent, Larkspur Club Assistant, on luna, every capability off. Instruct, the Platform text and the Specific instructions. Upload, club_options.txt, the club's options page. Connect, three API Calls, two from the Treasury and one from Frankfurter."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Build the club’s assistant</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Create</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a new agent, Larkspur</text><text x="37" y="141" font-size="14" fill="#6b6b6b">Club Assistant, on luna,</text><text x="37" y="160" font-size="14" fill="#6b6b6b">every capability off</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Instruct</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the Platform text and</text><text x="288" y="141" font-size="14" fill="#6b6b6b">the Specific instructions</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Upload</text><text x="540" y="122" font-size="14" fill="#6b6b6b">club_options.txt, the</text><text x="540" y="141" font-size="14" fill="#6b6b6b">club’s options page</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Connect</text><text x="792" y="122" font-size="14" fill="#6b6b6b">three API Calls, two</text><text x="792" y="141" font-size="14" fill="#6b6b6b">from the Treasury and</text><text x="792" y="160" font-size="14" fill="#6b6b6b">one from Frankfurter</text></svg></div>
+    <figcaption class="plib-tile-caption">Build everything before you open the chat you submit.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Create a new agent in Hokie AI named Larkspur Club Assistant, with the description &quot;Assistant for the Larkspur Investment Club, a made up student club.&quot; Leave your Foxglove Inn concierge and your homework 7 agent as they are. Put the class Platform text in the Platform tab and the instructions below in the Specific tab. Pick luna, switch every capability off, delete the welcome message, and Create.</p>
+</div>
+
+<div class="plib-material" id="plib-material-8">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Platform text</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-8-prompt" data-copy="You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them." aria-label="Specification text, scrollable">You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.
+
+Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.
+
+Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-8-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Platform tab, the same text as in week 9.</div>
+</div>
+
+<div class="plib-material" id="plib-material-9">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-9-prompt" data-copy="You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.&#10;&#10;Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return and the club's rules.&#10;&#10;Never tell a student what to buy or which option to choose. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.&#10;&#10;Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself." aria-label="Specification text, scrollable">You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.
+
+Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return and the club's rules.
+
+Never tell a student what to buy or which option to choose. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.
+
+Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-9-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Specific tab.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Then download the club's options page below and add it with Add Knowledge Source, Upload files. Read it once. In it the club names its three savings options, the certificate rate and the stock return the club board assumes, and you need them again in part 2.</p>
+</div>
+
+<div class="plib-material" id="plib-material-11">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The club's options page</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="club_options.txt" download="club_options.txt" target="_blank" rel="noopener noreferrer">club_options.txt</a>
+  </div>
+  <div class="plib-material-note">Upload it with Add Knowledge Source, Upload files. If the download opens as text, right click the button and choose Save link as.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Now add the three tools. For each one click Add Knowledge Source, choose API Call, fill the four fields from the copy boxes, choose GET as the Method, and click Add. Each figure shows what the fields do, with the part the agent adds at question time in blue. Save the agent when all three are in.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-13">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1531px" role="img" aria-label="The five fields of get_treasury_rates. Name, get_treasury_rates. Description, use for the average interest rate the U.S. Treasury pays on its securities, such as Treasury Bills, Treasury Notes or Treasury Bonds, as a guide to a safe interest rate today, returning the three most recent months, newest first, each with its record date and the average rate in percent. Parameter Schema, nested JSON, an object with one property, filter, of type string, described as which security to return, written as security_desc:eq: followed by its name, and a required list holding filter. Endpoint, the Treasury's dataset of average interest rates, then fields, the four columns to send back, sort, newest record date first, and page size 3, the three most recent months, with the brackets written as %5B and %5D, then the part the agent adds, filter security_desc:eq:Treasury Bills. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1531 813" width="1531" height="813" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">get_treasury_rates, an API Call to Treasury Fiscal Data</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="1499" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">get_treasury_rates</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="1499" height="94" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use for the average interest rate the U.S. Treasury pays on its securities, such as Treasury</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">Bills, Treasury Notes or Treasury Bonds, as a guide to a safe interest rate today. Returns</text><text x="30" y="206" font-size="13.5" fill="#212529" xml:space="preserve">the three most recent months, newest first, each with its record date and the average rate</text><text x="30" y="225" font-size="13.5" fill="#212529" xml:space="preserve">in percent.</text><text x="16" y="267" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="267" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="277" width="1499" height="228" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="304" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="325" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="346" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="367" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"filter"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="388" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="409" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Which security to return, written as security_desc:eq: followed by its name, such as security_desc:eq:Treasury Bills or security_desc:eq:Treasury Notes"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="430" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="451" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="472" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"filter"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="493" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="535" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="535" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="545" width="1499" height="220" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="572" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates</tspan></text><text x="46" y="589" font-size="12.5" fill="#6c757d" xml:space="preserve">the Treasury’s dataset of average interest rates on its securities</text><text x="30" y="612" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">fields</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">record_date,security_type_desc,security_desc,avg_interest_rate_amt</tspan></text><text x="46" y="629" font-size="12.5" fill="#6c757d" xml:space="preserve">the four columns to send back</text><text x="30" y="652" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">sort</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">-record_date</tspan></text><text x="46" y="669" font-size="12.5" fill="#6c757d" xml:space="preserve">newest record date first</text><text x="30" y="692" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">page[size]</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">3</tspan></text><text x="46" y="709" font-size="12.5" fill="#6c757d" xml:space="preserve">three rows, the three most recent months; the address writes the brackets as %5B and %5D</text><text x="30" y="736" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">filter</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">security_desc:eq:Treasury Bills</tspan></text><text x="46" y="753" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent, which security, written field:eq:value</text><text x="16" y="795" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="795" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">One value from the agent, the filter. In its documentation the Treasury calls eq an operator, and it means equals.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-14">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_rates, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-14-prompt" data-copy="get_treasury_rates" aria-label="Specification text, scrollable">get_treasury_rates</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-14-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-15">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_rates, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-15-prompt" data-copy="Use for the average interest rate the U.S. Treasury pays on its securities, such as Treasury Bills, Treasury Notes or Treasury Bonds, as a guide to a safe interest rate today. Returns the three most recent months, newest first, each with its record date and the average rate in percent." aria-label="Specification text, scrollable">Use for the average interest rate the U.S. Treasury pays on its securities, such as Treasury Bills, Treasury Notes or Treasury Bonds, as a guide to a safe interest rate today. Returns the three most recent months, newest first, each with its record date and the average rate in percent.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-15-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-16">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_rates, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-16-prompt" data-copy="{&#10;  &quot;type&quot;: &quot;object&quot;,&#10;  &quot;properties&quot;: {&#10;    &quot;filter&quot;: {&#10;      &quot;type&quot;: &quot;string&quot;,&#10;      &quot;description&quot;: &quot;Which security to return, written as security_desc:eq: followed by its name, such as security_desc:eq:Treasury Bills or security_desc:eq:Treasury Notes&quot;&#10;    }&#10;  },&#10;  &quot;required&quot;: [&quot;filter&quot;]&#10;}" aria-label="Specification text, scrollable">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;filter&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Which security to return, written as security_desc:eq: followed by its name, such as security_desc:eq:Treasury Bills or security_desc:eq:Treasury Notes&quot;
+    }
+  },
+  &quot;required&quot;: [&quot;filter&quot;]
+}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-16-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-17">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_rates, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-17-prompt" data-copy="https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt&amp;sort=-record_date&amp;page%5Bsize%5D=3" aria-label="Specification text, scrollable">https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/avg_interest_rates?fields=record_date,security_type_desc,security_desc,avg_interest_rate_amt&amp;sort=-record_date&amp;page%5Bsize%5D=3</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-17-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add.</div>
+</div>
+
+<div class="plib-material" id="plib-material-18">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_rates, documentation</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://fiscaldata.treasury.gov/datasets/average-interest-rates-treasury-securities/average-interest-rates-on-u-s-treasury-securities" target="_blank" rel="noopener noreferrer">Open the Treasury's dataset page</a>
+  </div>
+  <div class="plib-material-note">On this page the Treasury explains the dataset, lists every security in it and keeps a data dictionary for each field. You answer two questions about it in case one.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-19">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:2220px" role="img" aria-label="The five fields of get_treasury_exchange_rate. Name, get_treasury_exchange_rate. Description, use for the U.S. Treasury's official exchange rate for a foreign currency, the rate federal agencies use, published every quarter, returning the two most recent quarters, newest first, each with its record date and the number of units of the currency per U.S. dollar. Parameter Schema, nested JSON, an object with one property, filter, of type string, described as which currency to return, written as country_currency_desc:eq: followed by the country and currency, such as Euro Zone-Euro, Japan-Yen or United Kingdom-Pound, and a required list holding filter. Endpoint, the Treasury's official exchange rates, published every quarter, then fields, the three columns to send back, sort, newest record date first, and page size 2, the two most recent quarters, with the brackets written as %5B and %5D, then the part the agent adds, filter country_currency_desc:eq:Euro Zone-Euro. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2220 794" width="2220" height="794" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">get_treasury_exchange_rate, an API Call to Treasury Fiscal Data</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="2188" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">get_treasury_exchange_rate</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="2188" height="75" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use for the U.S. Treasury's official exchange rate for a foreign currency, the rate federal</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">agencies use, published every quarter. Returns the two most recent quarters, newest first,</text><text x="30" y="206" font-size="13.5" fill="#212529" xml:space="preserve">each with its record date and the number of units of the currency per U.S. dollar.</text><text x="16" y="248" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="248" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="258" width="2188" height="228" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="285" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="306" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="327" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="348" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"filter"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="369" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="390" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"Which currency to return, written as country_currency_desc:eq: followed by the country and currency, such as country_currency_desc:eq:Euro Zone-Euro, country_currency_desc:eq:Japan-Yen or country_currency_desc:eq:United Kingdom-Pound"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="411" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="432" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="453" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"filter"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="474" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="516" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="516" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="526" width="2188" height="220" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="553" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange</tspan></text><text x="46" y="570" font-size="12.5" fill="#6c757d" xml:space="preserve">the Treasury’s official exchange rates, published every quarter</text><text x="30" y="593" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">fields</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">record_date,country_currency_desc,exchange_rate</tspan></text><text x="46" y="610" font-size="12.5" fill="#6c757d" xml:space="preserve">the three columns to send back</text><text x="30" y="633" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">sort</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">-record_date</tspan></text><text x="46" y="650" font-size="12.5" fill="#6c757d" xml:space="preserve">newest record date first</text><text x="30" y="673" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">page[size]</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#d9480f">2</tspan></text><text x="46" y="690" font-size="12.5" fill="#6c757d" xml:space="preserve">two rows, the two most recent quarters; the address writes the brackets as %5B and %5D</text><text x="30" y="717" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">filter</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">country_currency_desc:eq:Euro Zone-Euro</tspan></text><text x="46" y="734" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent, which currency, written field:eq:value</text><text x="16" y="776" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="776" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">The same kind of filter, on another dataset. The Treasury writes each currency with its country first.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-20">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_exchange_rate, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-20-prompt" data-copy="get_treasury_exchange_rate" aria-label="Specification text, scrollable">get_treasury_exchange_rate</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-20-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-21">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_exchange_rate, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-21-prompt" data-copy="Use for the U.S. Treasury's official exchange rate for a foreign currency, the rate federal agencies use, published every quarter. Returns the two most recent quarters, newest first, each with its record date and the number of units of the currency per U.S. dollar." aria-label="Specification text, scrollable">Use for the U.S. Treasury's official exchange rate for a foreign currency, the rate federal agencies use, published every quarter. Returns the two most recent quarters, newest first, each with its record date and the number of units of the currency per U.S. dollar.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-21-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-22">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_exchange_rate, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-22-prompt" data-copy="{&#10;  &quot;type&quot;: &quot;object&quot;,&#10;  &quot;properties&quot;: {&#10;    &quot;filter&quot;: {&#10;      &quot;type&quot;: &quot;string&quot;,&#10;      &quot;description&quot;: &quot;Which currency to return, written as country_currency_desc:eq: followed by the country and currency, such as country_currency_desc:eq:Euro Zone-Euro, country_currency_desc:eq:Japan-Yen or country_currency_desc:eq:United Kingdom-Pound&quot;&#10;    }&#10;  },&#10;  &quot;required&quot;: [&quot;filter&quot;]&#10;}" aria-label="Specification text, scrollable">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;filter&quot;: {
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;description&quot;: &quot;Which currency to return, written as country_currency_desc:eq: followed by the country and currency, such as country_currency_desc:eq:Euro Zone-Euro, country_currency_desc:eq:Japan-Yen or country_currency_desc:eq:United Kingdom-Pound&quot;
+    }
+  },
+  &quot;required&quot;: [&quot;filter&quot;]
+}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-22-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-23">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_exchange_rate, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-23-prompt" data-copy="https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=record_date,country_currency_desc,exchange_rate&amp;sort=-record_date&amp;page%5Bsize%5D=2" aria-label="Specification text, scrollable">https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=record_date,country_currency_desc,exchange_rate&amp;sort=-record_date&amp;page%5Bsize%5D=2</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-23-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add.</div>
+</div>
+
+<div class="plib-material" id="plib-material-24">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_treasury_exchange_rate, documentation</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://fiscaldata.treasury.gov/datasets/treasury-reporting-rates-exchange/treasury-reporting-rates-of-exchange" target="_blank" rel="noopener noreferrer">Open the Treasury's exchange rate page</a>
+  </div>
+  <div class="plib-material-note">The page explains where the official rates come from and lists every country and currency the Treasury writes.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-25">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1069px" role="img" aria-label="The five fields of get_market_exchange_rate. Name, get_market_exchange_rate. Description, use for today's market exchange rate between two currencies, from central bank reference rates published every working day, returning the latest rate of the quote currency per one unit of the base currency, with its date. Parameter Schema, nested JSON, an object with two properties, base, the three letter code of the currency to convert from, such as USD, and quotes, the three letter code of the currency to convert to, such as EUR, or several separated by commas, and a required list holding both. Endpoint, Frankfurter's latest rates with no fixed settings, then the part the agent adds, base USD and quotes EUR. Method, GET."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1069 758" width="1069" height="758" font-family="Inter, Helvetica, Arial, sans-serif"><rect width="100%" height="100%" fill="#ffffff" rx="10"/><text x="16" y="28" font-size="17" font-weight="700" fill="#212529">get_market_exchange_rate, an API Call to Frankfurter</text><text x="16" y="58" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Name</text><text x="64.8" y="58" font-size="12.5" fill="#6c757d" xml:space="preserve">the label the instructions use</text><rect x="16" y="68" width="1037" height="35" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="91" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">get_market_exchange_rate</tspan></text><text x="16" y="133" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Description</text><text x="129.2" y="133" font-size="12.5" fill="#6c757d" xml:space="preserve">the agent’s rule for choosing the tool</text><rect x="16" y="143" width="1037" height="75" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="168" font-size="13.5" fill="#212529" xml:space="preserve">Use for today's market exchange rate between two currencies, from central bank reference</text><text x="30" y="187" font-size="13.5" fill="#212529" xml:space="preserve">rates published every working day. Returns the latest rate of the quote currency per one</text><text x="30" y="206" font-size="13.5" fill="#212529" xml:space="preserve">unit of the base currency, with its date.</text><text x="16" y="248" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Parameter Schema</text><text x="175.2" y="248" font-size="12.5" fill="#6c757d" xml:space="preserve">what the agent must send, nested</text><rect x="16" y="258" width="1037" height="312" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="285" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529"></tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="306" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"object"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="327" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"properties"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="348" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"base"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="369" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="390" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The three letter code of the currency to convert from, such as USD"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="411" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    },</tspan></text><text x="30" y="432" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">    </tspan><tspan fill="#c2255c">"quotes"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">{</tspan></text><text x="30" y="453" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"type"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"string"</tspan><tspan fill="#5c7c9a">,</tspan></text><text x="30" y="474" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">      </tspan><tspan fill="#c2255c">"description"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#d9480f">"The three letter code of the currency to convert to, such as EUR, or several separated by commas"</tspan><tspan fill="#5c7c9a"></tspan></text><text x="30" y="495" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">    }</tspan></text><text x="30" y="516" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">  },</tspan></text><text x="30" y="537" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">  </tspan><tspan fill="#c2255c">"required"</tspan><tspan fill="#5c7c9a">: </tspan><tspan fill="#5c7c9a">[</tspan><tspan fill="#d9480f">"base"</tspan><tspan fill="#5c7c9a">, </tspan><tspan fill="#d9480f">"quotes"</tspan><tspan fill="#5c7c9a">]</tspan></text><text x="30" y="558" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">}</tspan></text><text x="16" y="600" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Endpoint</text><text x="101.6" y="600" font-size="12.5" fill="#6c757d" xml:space="preserve">the service’s address, taken apart, then what the agent adds</text><rect x="16" y="610" width="1037" height="100" rx="8" fill="#f8f9fa" stroke="#dee2e6"/><text x="30" y="637" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#212529">https://api.frankfurter.dev/v2/rates</tspan></text><text x="46" y="654" font-size="12.5" fill="#6c757d" xml:space="preserve">Frankfurter’s latest rates. This Endpoint has no fixed settings.</text><text x="30" y="681" font-family="Consolas, Menlo, monospace" font-size="14" xml:space="preserve"><tspan fill="#5c7c9a">?</tspan><tspan fill="#c2255c">base</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">USD</tspan><tspan fill="#5c7c9a">&amp;</tspan><tspan fill="#c2255c">quotes</tspan><tspan fill="#5c7c9a">=</tspan><tspan fill="#1971c2">EUR</tspan></text><text x="46" y="698" font-size="12.5" fill="#1971c2" xml:space="preserve">added by the agent, the currency to convert from and the one to convert to</text><text x="16" y="740" font-size="15" fill="#212529" font-weight="700" xml:space="preserve">Method</text><text x="83.19999999999999" y="740" font-size="12.5" fill="#6c757d" xml:space="preserve">GET, which reads and changes nothing</text></svg></div>
+    <figcaption class="plib-tile-caption">Two values from the agent. The schema holds only the two this homework needs, and in case two you find what else the documentation offers.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-26">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_market_exchange_rate, Name</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-26-prompt" data-copy="get_market_exchange_rate" aria-label="Specification text, scrollable">get_market_exchange_rate</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-26-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Name field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-27">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_market_exchange_rate, Description</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-27-prompt" data-copy="Use for today's market exchange rate between two currencies, from central bank reference rates published every working day. Returns the latest rate of the quote currency per one unit of the base currency, with its date." aria-label="Specification text, scrollable">Use for today's market exchange rate between two currencies, from central bank reference rates published every working day. Returns the latest rate of the quote currency per one unit of the base currency, with its date.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-27-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The Description field.</div>
+</div>
+
+<div class="plib-material" id="plib-material-28">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_market_exchange_rate, Parameter Schema</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-28-prompt" data-copy="{&#10;  &quot;type&quot;: &quot;object&quot;,&#10;  &quot;properties&quot;: {&#10;    &quot;base&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;The three letter code of the currency to convert from, such as USD&quot;},&#10;    &quot;quotes&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;The three letter code of the currency to convert to, such as EUR, or several separated by commas&quot;}&#10;  },&#10;  &quot;required&quot;: [&quot;base&quot;, &quot;quotes&quot;]&#10;}" aria-label="Specification text, scrollable">{
+  &quot;type&quot;: &quot;object&quot;,
+  &quot;properties&quot;: {
+    &quot;base&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;The three letter code of the currency to convert from, such as USD&quot;},
+    &quot;quotes&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;The three letter code of the currency to convert to, such as EUR, or several separated by commas&quot;}
+  },
+  &quot;required&quot;: [&quot;base&quot;, &quot;quotes&quot;]
+}</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-28-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Select the example text, delete it, and paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-29">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_market_exchange_rate, Endpoint</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-29-prompt" data-copy="https://api.frankfurter.dev/v2/rates" aria-label="Specification text, scrollable">https://api.frankfurter.dev/v2/rates</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-29-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Paste exactly, with nothing after it. Method GET, then Add, then save the agent.</div>
+</div>
+
+<div class="plib-material" id="plib-material-30">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">get_market_exchange_rate, documentation</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://frankfurter.dev" target="_blank" rel="noopener noreferrer">Open Frankfurter's documentation</a>
+  </div>
+  <div class="plib-material-note">The Rates section lists every parameter a call to this address can carry. You look one of them up in case two.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new chat with your Larkspur Club Assistant. This chat is the one you submit, so keep everything for part 1 in it. Paste the block below by itself and wait for the acknowledgment.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">TH8.1</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Homework 8 Part 1. The student built you, the assistant of the Larkspur Investment Club, a made up student club, and this chat is the student's homework record. Stay the club's assistant for the whole chat and answer the student's questions with your tools and your instructions, as you would for any student. The student will also paste class records into this chat: opening and closing markers, two typed audits and two reflections. When a record arrives, acknowledge it in one sentence and do not answer, judge or correct it. Acknowledge this session is open.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_32" data-copy="### TH8.1&#10;----------&#10;BUS 1204 AI Literacy for Business, Homework 8 Part 1. The student built you, the assistant of the Larkspur Investment Club, a made up student club, and this chat is the student's homework record. Stay the club's assistant for the whole chat and answer the student's questions with your tools and your instructions, as you would for any student. The student will also paste class records into this chat: opening and closing markers, two typed audits and two reflections. When a record arrives, acknowledge it in one sentence and do not answer, judge or correct it. Acknowledge this session is open.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_32', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 4</div><div class="plib-section-t">CASE ONE</div></div>
+
+<div class="plib-narration">
+  <p>Case one is worth 50 points, 25 for your work in the M block and 25 for the reflection in the R block.</p>
+  <p>Paste the opening marker by itself. Then send question 1 and question 2 below, each as its own message, and then one question of your own from the card. After each reply, open Execution Details. Note the tool and its filter in Tool Calls. Copy the URI from Execution Log Data at the top, open it in a new browser tab, and find the rate and its record date in what the service sent back. Then compare them with the agent's reply.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MH8.1.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MH8.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Consolidation</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_36" data-copy="### MH8.1.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_36', this)"
+          aria-label="Copy opening marker for block MH8.1.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-37">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. What was sent, the tool and its values, in Tool Calls. What came back, the URI from Execution Log Data, opened in your browser. What the agent said, the number and the date in its reply."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Three things to read for every answer</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What was sent</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the tool and its values, in Tool Calls</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What came back</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the URI from Execution Log Data,</text><text x="372" y="141" font-size="14" fill="#6b6b6b">opened in your browser</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What the agent said</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the number and the date in its reply</text></svg></div>
+    <figcaption class="plib-tile-caption">The week 9 habit. The lesson is often in the gap between the second box and the third.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-38">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Question 1, Treasury Bills</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-38-prompt" data-copy="What is the Treasury paying on Treasury Bills right now?" aria-label="Specification text, scrollable">What is the Treasury paying on Treasury Bills right now?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-38-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this first, after the opening marker.</div>
+</div>
+
+<div class="plib-material" id="plib-material-39">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Question 2, the euro</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-39-prompt" data-copy="I am saving for a semester in Spain next fall. What is the Treasury's exchange rate for the euro?" aria-label="Specification text, scrollable">I am saving for a semester in Spain next fall. What is the Treasury's exchange rate for the euro?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-39-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this second.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-40">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by OR. Another Treasury security, one named on the dataset page, such as Treasury Notes, Treasury Bonds or TIPS. Another currency, one a parent or a friend would use, with its country."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your own question, one of these</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Another Treasury security</text><text x="37" y="122" font-size="14" fill="#6b6b6b">one named on the dataset page, such as Treasury Notes,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">Treasury Bonds or TIPS</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Another currency</text><text x="540" y="122" font-size="14" fill="#6b6b6b">one a parent or a friend would use, with its country</text></svg></div>
+    <figcaption class="plib-tile-caption">One question, in your own words. The agent writes the filter, and you check what it wrote.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-41">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the URI sends back no rows. The name did not match. The Treasury matches names exactly. Find the name on the dataset page, note it in your audit, and ask again with that name."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 281" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="281" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE URI SENDS BACK NO ROWS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">The name did not match</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The Treasury matches names exactly. Find</text><text x="34" y="199" font-size="15" fill="#6b6b6b">the name on the dataset page, note it in</text><text x="34" y="220" font-size="15" fill="#6b6b6b">your audit, and ask again with that name.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If Tool Calls is empty. The agent answered without a tool. Note it in your audit. A number with no tool call behind it has no source you can check."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 281" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="281" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF TOOL CALLS IS EMPTY</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">The agent answered</text><text x="34" y="138" font-size="25" font-weight="600" fill="#630031">without a tool</text><rect x="34" y="178" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="212" font-size="15" fill="#6b6b6b">Note it in your audit. A number with no tool</text><text x="34" y="233" font-size="15" fill="#6b6b6b">call behind it has no source you can check.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-41");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-narration">
+  <p>Now open the documentation page of get_treasury_rates from its link above. Read the description at the top and the data dictionary, the table that explains each field. Find how often the Treasury releases this dataset AND how the data dictionary says the average interest rate is calculated.</p>
+  <p>Fill in every line of the audit box below by typing on this page, press Copy what you typed, paste it into the chat, and send it. Paste the closing marker after the agent acknowledges your audit.</p>
+</div>
+
+<div class="plib-material" id="plib-material-43">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your case one audit</div>
+  <textarea class="plib-textarea" id="plib-material-43-edit" rows="24" data-copy="My audit for case one. Reply only with one sentence acknowledging it.&#10;&#10;Question 1, Treasury Bills:&#10;Tool and filter in Tool Calls:&#10;Rate and record date at the URI in Execution Log Data:&#10;Rate and date the agent gave:&#10;Match, yes or no:&#10;&#10;Question 2, the euro:&#10;Tool and filter in Tool Calls:&#10;Rate and record date at the URI in Execution Log Data:&#10;Rate and date the agent gave:&#10;Match, yes or no:&#10;&#10;My own question, in a few words:&#10;Tool and filter in Tool Calls:&#10;What the URI in Execution Log Data returned, with its date:&#10;What the agent gave, with its date:&#10;Match, yes or no:&#10;&#10;From the documentation page of get_treasury_rates:&#10;How often the Treasury releases this dataset:&#10;How the average interest rate is calculated, from the data dictionary:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My audit for case one. Reply only with one sentence acknowledging it.
+
+Question 1, Treasury Bills:
+Tool and filter in Tool Calls:
+Rate and record date at the URI in Execution Log Data:
+Rate and date the agent gave:
+Match, yes or no:
+
+Question 2, the euro:
+Tool and filter in Tool Calls:
+Rate and record date at the URI in Execution Log Data:
+Rate and date the agent gave:
+Match, yes or no:
+
+My own question, in a few words:
+Tool and filter in Tool Calls:
+What the URI in Execution Log Data returned, with its date:
+What the agent gave, with its date:
+Match, yes or no:
+
+From the documentation page of get_treasury_rates:
+How often the Treasury releases this dataset:
+How the average interest rate is calculated, from the data dictionary:</textarea>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-43-edit', this)" aria-label="Copy what you typed to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy what you typed
+  </button>
+  <div class="plib-material-note">Type on each line, press Copy what you typed, and paste it into the chat as one message.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-44">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Ask, questions 1 and 2, then your own question. Check, every reply against the URI in Execution Log Data. Read, the documentation page of get_treasury_rates. Record, your audit, then the closing marker."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Ask, check, read, record</text><rect x="21" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask</text><text x="37" y="122" font-size="14" fill="#6b6b6b">questions 1 and 2, then</text><text x="37" y="141" font-size="14" fill="#6b6b6b">your own question</text><text x="248" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Check</text><text x="288" y="122" font-size="14" fill="#6b6b6b">every reply against the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">URI in Execution Log</text><text x="288" y="160" font-size="14" fill="#6b6b6b">Data</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Read</text><text x="540" y="122" font-size="14" fill="#6b6b6b">the documentation page</text><text x="540" y="141" font-size="14" fill="#6b6b6b">of get_treasury_rates</text><text x="752" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">your audit, then the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">closing marker</text></svg></div>
+    <figcaption class="plib-tile-caption">Four steps, all in the chat you submit.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MH8.1.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MH8.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_45" data-copy="&#10;----------&#10;### MH8.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_45', this)"
+          aria-label="Copy closing marker for block MH8.1.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection for case one, in your own words and without help from the AI. Paste the closing marker first if you have not.</p>
+  <p>Your reflection needs all three parts below. Trace one answer with its tool and filter, the value the URI sent back and whether the agent's reply matched AND say what filter the agent wrote for your own question and whether the service sent back what you asked for AND name one way an answer that matched the service exactly could still mislead a student deciding where to save, using what the documentation says the number is, and say what the assistant should tell that student. Respond to all three parts.</p>
+  <p>The third part is where a reflection separates itself. A number can be right about the Treasury's data and still be the wrong number for the student's question, and the documentation is where you find out which.</p>
+  <p>Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-48">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. One answer traced, the tool and its filter, the value at the URI, and whether the agent matched. Your own question, the filter the agent wrote, and whether the service sent back what you asked for. A match that could mislead, what the documentation says the number is, and what the assistant should tell a student."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your case one reflection needs all three</text><rect x="21" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One answer traced</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the tool and its filter, the value at</text><text x="37" y="141" font-size="14" fill="#6b6b6b">the URI, and whether the agent</text><text x="37" y="160" font-size="14" fill="#6b6b6b">matched</text><text x="332" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your own question</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the filter the agent wrote, and</text><text x="372" y="141" font-size="14" fill="#6b6b6b">whether the service sent back what</text><text x="372" y="160" font-size="14" fill="#6b6b6b">you asked for</text><text x="668" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A match that could</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">mislead</text><text x="708" y="134" font-size="14" fill="#6b6b6b">what the documentation says the</text><text x="708" y="153" font-size="14" fill="#6b6b6b">number is, and what the assistant</text><text x="708" y="172" font-size="14" fill="#6b6b6b">should tell a student</text></svg></div>
+    <figcaption class="plib-tile-caption">All three parts of the case one reflection, inside 100 to 200 words.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RH8.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RH8.1.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Case one reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_49" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RH8.1.1"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_49', 'textarea_49')"></textarea>
+  <div class="plib-counter" id="counter_prompt_49" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_49">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_49">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_49" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_49"
+       data-prefix="### RH8.1.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_49"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_49', this)"
+          aria-label="Copy contribution RH8.1.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 4</div><div class="plib-section-t">CASE TWO</div></div>
+
+<div class="plib-narration">
+  <p>Case two is worth 50 points, 25 for your work in the M block and 25 for the reflection in the R block. Stay in the same chat.</p>
+  <p>The Treasury publishes one official exchange rate a quarter, and the market rate changes every working day. A student budgeting a semester abroad could be given either. In this case you put the two side by side and find out how much of the difference between them comes from the sources and how much from their dates.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-53">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND. The Treasury's official rate, set every quarter, the rate federal agencies use, dated the last day of the quarter. The market rate, from central bank reference rates, published every working day."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Two sources for one exchange rate</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The Treasury’s official rate</text><text x="37" y="122" font-size="14" fill="#6b6b6b">set every quarter, the rate federal agencies use, dated the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">last day of the quarter</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The market rate</text><text x="540" y="122" font-size="14" fill="#6b6b6b">from central bank reference rates, published every working</text><text x="540" y="141" font-size="14" fill="#6b6b6b">day</text></svg></div>
+    <figcaption class="plib-tile-caption">Two numbers for the same currency. Before you compare them, read their dates.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Paste the opening marker by itself. Send question 3 below and check both tools in Execution Details, each with its own URI.</p>
+  <p>Then open Frankfurter's documentation from its link above and find, in the Rates section, the parameter that looks up rates for a specific date. Take the market URI from your Execution Log Data, add that parameter at the end with the Treasury's record date from question 3, such as &amp;date=2026-09-30, and open it in your browser. Write down the market rate on that date.</p>
+  <p>Then send question 4, which asks the agent for the same thing. The schema you installed has no place for a date, so watch what the agent does and what it calls. Last, send one question of your own that compares the two rates for another currency, and check both URIs again.</p>
+  <p>Fill in every line of the audit box below by typing on this page, press Copy what you typed, paste it into the chat, and send it. Paste the closing marker after the agent acknowledges your audit.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MH8.1.2, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MH8.1.2</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_55" data-copy="### MH8.1.2 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_55', this)"
+          aria-label="Copy opening marker for block MH8.1.2">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-material" id="plib-material-56">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Question 3, market and official</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-56-prompt" data-copy="What is today's market exchange rate from dollars to euros, and how does it compare with the Treasury's official rate?" aria-label="Specification text, scrollable">What is today's market exchange rate from dollars to euros, and how does it compare with the Treasury's official rate?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-56-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this first, after the opening marker.</div>
+</div>
+
+<div class="plib-material" id="plib-material-57">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Question 4, a date the schema cannot send</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-57-prompt" data-copy="What was the market exchange rate from dollars to euros on September 30, 2026?" aria-label="Specification text, scrollable">What was the market exchange rate from dollars to euros on September 30, 2026?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-57-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this after your same date check in the browser.</div>
+</div>
+
+<div class="plib-material" id="plib-material-58">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your case two audit</div>
+  <textarea class="plib-textarea" id="plib-material-58-edit" rows="23" data-copy="My audit for case two. Reply only with one sentence acknowledging it.&#10;&#10;Question 3, market and official:&#10;Tools in Tool Calls, with their values:&#10;Market rate and date at its URI:&#10;Official rate and date at its URI:&#10;Match with what the agent gave, yes or no:&#10;&#10;From the Frankfurter documentation:&#10;The parameter that looks up rates for a specific date:&#10;The URI I opened with it, for the Treasury's record date:&#10;Market rate on that date:&#10;&#10;Question 4, September 30:&#10;Tools in Tool Calls, with their values:&#10;What the agent gave, and the date it named:&#10;&#10;My own question, in a few words:&#10;Tools in Tool Calls, with their values:&#10;Market rate and date at its URI:&#10;Official rate and date at its URI:&#10;Match with what the agent gave, yes or no:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My audit for case two. Reply only with one sentence acknowledging it.
+
+Question 3, market and official:
+Tools in Tool Calls, with their values:
+Market rate and date at its URI:
+Official rate and date at its URI:
+Match with what the agent gave, yes or no:
+
+From the Frankfurter documentation:
+The parameter that looks up rates for a specific date:
+The URI I opened with it, for the Treasury's record date:
+Market rate on that date:
+
+Question 4, September 30:
+Tools in Tool Calls, with their values:
+What the agent gave, and the date it named:
+
+My own question, in a few words:
+Tools in Tool Calls, with their values:
+Market rate and date at its URI:
+Official rate and date at its URI:
+Match with what the agent gave, yes or no:</textarea>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-58-edit', this)" aria-label="Copy what you typed to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy what you typed
+  </button>
+  <div class="plib-material-note">Type on each line, press Copy what you typed, and paste it into the chat as one message. Then paste the closing marker.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-59">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Ask, question 3, and check both tools' URIs. Look up a date, the market rate on the Treasury's record date, with the parameter from the documentation. Ask again, question 4, then your own question, and check every URI. Record, your audit, then the closing marker."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Ask, look up a date, ask again, record</text><rect x="21" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask</text><text x="37" y="122" font-size="14" fill="#6b6b6b">question 3, and check</text><text x="37" y="141" font-size="14" fill="#6b6b6b">both tools’ URIs</text><text x="248" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Look up a date</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the market rate on the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">Treasury’s record date,</text><text x="288" y="160" font-size="14" fill="#6b6b6b">with the parameter</text><text x="288" y="179" font-size="14" fill="#6b6b6b">from the documentation</text><text x="500" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask again</text><text x="540" y="122" font-size="14" fill="#6b6b6b">question 4, then your</text><text x="540" y="141" font-size="14" fill="#6b6b6b">own question, and</text><text x="540" y="160" font-size="14" fill="#6b6b6b">check every URI</text><text x="752" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">your audit, then the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">closing marker</text></svg></div>
+    <figcaption class="plib-tile-caption">Four steps. The date you add in the browser is the one the agent cannot send.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MH8.1.2, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MH8.1.2</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_60" data-copy="&#10;----------&#10;### MH8.1.2 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_60', this)"
+          aria-label="Copy closing marker for block MH8.1.2">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection for case two, in your own words and without help from the AI. Paste the closing marker first if you have not.</p>
+  <p>Your reflection needs all three parts below. Give the two euro rates from question 3, each with its date and the tool call behind it, and the gap between them AND say what the agent did with question 4, quoting its tool calls, and which parameter from the documentation you would add to the tool's schema, and why AND say how much of the gap in question 3 came from the two sources and how much from their dates, using your same date check, and which rate the club's assistant should give a student budgeting a semester abroad. Respond to all three parts.</p>
+  <p>The third part is where a reflection separates itself. Two numbers that look like a disagreement between sources can be one number measured on two days, and your browser check is the evidence that tells them apart.</p>
+  <p>Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-63">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. The two euro rates, each with its date and its tool call, and the gap between them. The September 30 question, what the agent did, quoting its tool calls, and the parameter you would add to the schema, and why. Where the gap came from, the dates or the sources, from your same date check, and which rate the club should give."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your case two reflection needs all three</text><rect x="21" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The two euro rates</text><text x="37" y="122" font-size="14" fill="#6b6b6b">each with its date and its tool call,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">and the gap between them</text><text x="332" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The September 30</text><text x="401" y="103" font-size="17" font-weight="600" fill="#2b2b2b">question</text><text x="372" y="134" font-size="14" fill="#6b6b6b">what the agent did, quoting its tool</text><text x="372" y="153" font-size="14" fill="#6b6b6b">calls, and the parameter you would</text><text x="372" y="172" font-size="14" fill="#6b6b6b">add to the schema, and why</text><text x="668" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Where the gap came</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">from</text><text x="708" y="134" font-size="14" fill="#6b6b6b">the dates or the sources, from your</text><text x="708" y="153" font-size="14" fill="#6b6b6b">same date check, and which rate</text><text x="708" y="172" font-size="14" fill="#6b6b6b">the club should give</text></svg></div>
+    <figcaption class="plib-tile-caption">All three parts of the case two reflection, inside 100 to 200 words.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RH8.1.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RH8.1.2</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Case two reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_64" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RH8.1.2"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_64', 'textarea_64')"></textarea>
+  <div class="plib-counter" id="counter_prompt_64" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_64">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_64">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_64" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_64"
+       data-prefix="### RH8.1.2&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_64"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_64', this)"
+          aria-label="Copy contribution RH8.1.2 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 4</div><div class="plib-section-t">SUBMISSION</div></div>
+
+<div class="plib-narration">
+  <p>You are done with part 1. Both cases are in one chat with your Larkspur Club Assistant, and that chat is what you submit.</p>
+  <p>Export the chat from Hokie AI as a .zip and upload the .zip to the Canvas assignment for part 1. Keep the agent, because part 2 extends it.</p>
+  <p>Leave the turns where something went wrong. How you recovered is part of what is being read, and a tidied chat reads as a thinner one.</p>
+</div>
+
+<div class="plib-material" id="plib-material-68">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Homework 8 part 1 on Canvas</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://canvas.vt.edu/courses/233694/assignments/2881017" target="_blank" rel="noopener noreferrer">Open the part 1 assignment</a>
+  </div>
+  <div class="plib-material-note">Upload the exported .zip of the chat here. Part 2 has its own assignment, so check the title on the page before you upload.</div>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Turn it in</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment for this part. Leave the file as it came out. Your work is not submitted until Canvas shows your file.</p>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>

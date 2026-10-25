@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Projection Script the Club Owns, and the Board's First Change</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 9 · Homework 8 · Part 2 of 2</div>
+  <div class="plib-meta-title">A Projection Script the Club Owns, and the Board's First Change</div>
+  <div class="plib-meta-details"><span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> The regular Hokie AI thread, holding both scripts, both pasted transcripts and the reflections, exported as a .zip and uploaded to Canvas</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this part, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Turn a client's rules, written in plain words, into a Python script with Hokie AI, save it as a .py file and install it on an agent that runs it with Code Interpreter.</li>
+    <li>Trace every input in a script's printed receipt to its source, and check the receipt against a live service and an answer key.</li>
+    <li>Describe a plot in words and say what it shows that the numbers do not.</li>
+    <li>Sort a client's change request into what the client approved, what the builder changes to carry it out, and what reached the builder without the client's approval.</li>
+    <li>Rerun the same questions after a change and tell a change the builder made from a change in the live data.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 4</div><div class="plib-section-t">ORIENTATION</div></div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Part 2 runs in one new regular Hokie AI chat, and that chat is what you submit. Hokie AI writes the club's projection script there. You test the script in chats with your Larkspur Club Assistant, a new one for each case, and you bring each test into the regular chat by pasting the transcript Hokie AI exports. The chats with your assistant are not submitted.</p>
+    <p>You need your Larkspur Club Assistant from part 1 with its three tools and club_options.txt. Make a folder for part 2 inside your homework 8 folder, because you save two versions of a script and two transcripts there.</p>
+  </div>
+</div>
+
+<div class="plib-narration">
+  <p>On Thursday of week 9, Foxglove Inn's pricing rules moved into a script, a named person owned it, and every quote printed a receipt from the same code that computed it. Part 2 does the same for the Larkspur Investment Club. The club compares three ways to save, a savings account at the Treasury Bills rate, a certificate and a stock index fund, and the comparison is arithmetic the club wants done the same way every time.</p>
+  <p>In case one Hokie AI writes the club's projection script from rules in plain words. You save it, install it on your assistant with Code Interpreter, and check the receipt it prints against the Treasury and an answer key. The script also draws a plot, and you describe the plot in words, because an exported chat keeps the text and not the picture.</p>
+  <p>In case two the club board sends its first change request. You sort it, have Hokie AI make version 2, rerun the same questions in a new chat with your assistant, and write the board a change log from the two receipts.</p>
+  <p>Part 2 is worth 100 points. The two cases are worth 50 each, and inside a case your work in the M block and your reflection in the R block are worth 25 each. Pasting a prompt earns nothing, because it is not work.</p>
+  <p>Work alone. You may look back at your notes, at part 1 and at both week 9 lectures. Do not ask Hokie AI to write your reflections. Take as long as you need.</p>
+</div>
+
+<div class="plib-narration">
+  <p>Open a new regular Hokie AI chat. Paste the block below by itself and wait for the acknowledgment. Everything you submit for part 2 goes in this chat.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">TH8.2</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Homework 8 Part 2. You are an AI assistant for this session. The student is building an assistant agent for a made up student club, the Larkspur Investment Club, which compares three ways to save with a Python projection script that the agent runs with Code Interpreter. In this session the student will first send a request to write that script; write it as the request asks. Later the student will send a request to change the script; change only what that request asks and return the whole new version. The student will also paste class records into this session: transcripts exported from the student's chats with the agent, each announced by a message of its own, a typed audit and a change log. Acknowledge each of those in one sentence, and do not check, judge or correct them or work out any of the numbers yourself. Do not write the student's reflections. Speak to a first-year undergraduate. Acknowledge this session is open.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_7" data-copy="### TH8.2&#10;----------&#10;BUS 1204 AI Literacy for Business, Homework 8 Part 2. You are an AI assistant for this session. The student is building an assistant agent for a made up student club, the Larkspur Investment Club, which compares three ways to save with a Python projection script that the agent runs with Code Interpreter. In this session the student will first send a request to write that script; write it as the request asks. Later the student will send a request to change the script; change only what that request asks and return the whole new version. The student will also paste class records into this session: transcripts exported from the student's chats with the agent, each announced by a message of its own, a typed audit and a change log. Acknowledge each of those in one sentence, and do not check, judge or correct them or work out any of the numbers yourself. Do not write the student's reflections. Speak to a first-year undergraduate. Acknowledge this session is open.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_7', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 4</div><div class="plib-section-t">CASE ONE</div></div>
+
+<div class="plib-narration">
+  <p>Case one is worth 50 points, 25 for your work in the M block and 25 for the reflection in the R block.</p>
+  <p>In the regular chat, paste the opening marker by itself. Then send the script request below as its own message. The request holds the club's rules for a projection in plain words, plus the inputs, the order of the steps and what to print, which a program needs as well. The last lines of the script run an example only when the script is started with --example, so the agent's run uses your inputs.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MH8.2.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MH8.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Consolidation</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_11" data-copy="### MH8.2.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_11', this)"
+          aria-label="Copy opening marker for block MH8.2.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-material" id="plib-material-12">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The script request</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-12-prompt" data-copy="Write a Python script named project_savings.py for the Larkspur Investment Club, a made up student club that helps first-year students think about saving and investing. A club agent will run the script with Code Interpreter. Use only the Python standard library and matplotlib.&#10;&#10;The script defines one function, project_savings, with these inputs: start_amount in dollars, monthly_deposit in dollars, years as a whole number, treasury_rate as an annual percent, treasury_date as YYYY-MM-DD, certificate_rate as an annual percent, and stock_return as an annual percent.&#10;&#10;The rules.&#10;1. There are three options: &quot;Savings at the Treasury Bills rate&quot; at treasury_rate, &quot;Certificate&quot; at certificate_rate, and &quot;Stock index fund, assumed&quot; at stock_return.&#10;2. For each option, start with start_amount. Each month, first add one month of interest, the annual percent divided by 12, then add the monthly deposit. Repeat for 12 times years months.&#10;3. Total deposited is start_amount plus monthly_deposit times 12 times years.&#10;4. Round money to cents only when printing.&#10;&#10;First print every input on its own line, with where each rate came from: the treasury_rate as the Treasury Bills average with its date, the certificate_rate as the club rate sheet, and the stock_return as the club board assumption. Then print, for each option, its name, its rate, its final balance and its growth over the total deposited. Then print the total deposited. Then print this note exactly: Education, not advice. These projections use fixed rates. Real savings rates change, and stock returns vary from year to year and can be negative.&#10;&#10;Then draw one plot of the balance at the end of each year, from year 0 to the last year, for the three options, with a dashed line for the total deposited. Mark the x axis in whole years and label it years, label the y axis balance in dollars, title it Larkspur Investment Club savings projection, and put each option's name and rate in the legend. Save it as projection.png and print plot saved as projection.png.&#10;&#10;At the bottom, under if __name__ == &quot;__main__&quot;:, run one example only when the script is started with the argument --example, and do nothing otherwise: start_amount 500, monthly_deposit 100, years 4, treasury_rate 4.10 dated 2026-09-30, certificate_rate 3.75, stock_return 7.0." aria-label="Specification text, scrollable">Write a Python script named project_savings.py for the Larkspur Investment Club, a made up student club that helps first-year students think about saving and investing. A club agent will run the script with Code Interpreter. Use only the Python standard library and matplotlib.
+
+The script defines one function, project_savings, with these inputs: start_amount in dollars, monthly_deposit in dollars, years as a whole number, treasury_rate as an annual percent, treasury_date as YYYY-MM-DD, certificate_rate as an annual percent, and stock_return as an annual percent.
+
+The rules.
+1. There are three options: &quot;Savings at the Treasury Bills rate&quot; at treasury_rate, &quot;Certificate&quot; at certificate_rate, and &quot;Stock index fund, assumed&quot; at stock_return.
+2. For each option, start with start_amount. Each month, first add one month of interest, the annual percent divided by 12, then add the monthly deposit. Repeat for 12 times years months.
+3. Total deposited is start_amount plus monthly_deposit times 12 times years.
+4. Round money to cents only when printing.
+
+First print every input on its own line, with where each rate came from: the treasury_rate as the Treasury Bills average with its date, the certificate_rate as the club rate sheet, and the stock_return as the club board assumption. Then print, for each option, its name, its rate, its final balance and its growth over the total deposited. Then print the total deposited. Then print this note exactly: Education, not advice. These projections use fixed rates. Real savings rates change, and stock returns vary from year to year and can be negative.
+
+Then draw one plot of the balance at the end of each year, from year 0 to the last year, for the three options, with a dashed line for the total deposited. Mark the x axis in whole years and label it years, label the y axis balance in dollars, title it Larkspur Investment Club savings projection, and put each option's name and rate in the legend. Save it as projection.png and print plot saved as projection.png.
+
+At the bottom, under if __name__ == &quot;__main__&quot;:, run one example only when the script is started with the argument --example, and do nothing otherwise: start_amount 500, monthly_deposit 100, years 4, treasury_rate 4.10 dated 2026-09-30, certificate_rate 3.75, stock_return 7.0.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-12-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this in the regular chat, after the opening marker.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Now save the script as a file. Hokie AI shows the script in a code window with a download button. Download it, move it into your part 2 folder, and check that its name is project_savings.py. If your browser added a number, such as project_savings (1).py, rename it.</p>
+  <p>If the code window has no download button, save the script by hand with the card below. If saving does not work, or if the answer key lines below do not match later, download the checked copy instead. It is the script Hokie AI wrote in your instructor's test, checked against the answer key.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-14">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by OR. Windows, Notepad, paste, File, Save as, Save as type All files, name project_savings.py. Mac, TextEdit, Format, Make Plain Text, paste, Save, name project_savings.py, then Use .py."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Save the script as a .py file</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Windows, Notepad</text><text x="37" y="122" font-size="14" fill="#6b6b6b">paste, File, Save as, Save as type All files, name</text><text x="37" y="141" font-size="14" fill="#6b6b6b">project_savings.py</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Mac, TextEdit</text><text x="540" y="122" font-size="14" fill="#6b6b6b">Format, Make Plain Text, paste, Save, name</text><text x="540" y="141" font-size="14" fill="#6b6b6b">project_savings.py, then Use .py</text></svg></div>
+    <figcaption class="plib-tile-caption">Only if there is no download button. Check the name afterward, project_savings.py with no .txt after it.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-15">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The checked copy of the script</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="project_savings.py" download="project_savings.py" target="_blank" rel="noopener noreferrer">project_savings.py</a>
+  </div>
+  <div class="plib-material-note">Use this only if your own copy will not save or does not match the answer key. If the download opens as text, right click the button and choose Save link as.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Open your Larkspur Club Assistant's edit page in a new browser tab, and keep the regular chat open in its own tab. Switch Code Interpreter on and leave every other capability off. Click Add Knowledge Source, choose Upload files, and upload project_savings.py. Then replace everything in the Specific tab with the instructions below and save. The one new paragraph covers when to run the script, how to gather its inputs and how to show what it prints.</p>
+</div>
+
+<div class="plib-material" id="plib-material-17">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The new Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-17-prompt" data-copy="You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.&#10;&#10;Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return and the club's rules.&#10;&#10;When a student asks how savings would grow, use Code Interpreter to load project_savings.py from your knowledge sources, unchanged, and call its function project_savings once with the inputs below. Do not run the example at the bottom of the file. Gather its inputs first: the start amount, the monthly deposit and the number of years from the student, asking for any that are missing; the Treasury Bills rate and its record date from get_treasury_rates; and the certificate rate and the assumed stock return from the club's options file. Show the script's printed output exactly as printed, inside a code block, with nothing added, removed or reworded, and show the plot it saves. Then answer in one or two sentences, and do not describe your own steps.&#10;&#10;Never tell a student what to buy or which option to choose, and never change a number the script gives. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.&#10;&#10;Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself." aria-label="Specification text, scrollable">You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.
+
+Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return and the club's rules.
+
+When a student asks how savings would grow, use Code Interpreter to load project_savings.py from your knowledge sources, unchanged, and call its function project_savings once with the inputs below. Do not run the example at the bottom of the file. Gather its inputs first: the start amount, the monthly deposit and the number of years from the student, asking for any that are missing; the Treasury Bills rate and its record date from get_treasury_rates; and the certificate rate and the assumed stock return from the club's options file. Show the script's printed output exactly as printed, inside a code block, with nothing added, removed or reworded, and show the plot it saves. Then answer in one or two sentences, and do not describe your own steps.
+
+Never tell a student what to buy or which option to choose, and never change a number the script gives. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.
+
+Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-17-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Replace everything in the Specific tab with this, then save.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Now test. Open a new chat with your assistant. This chat gets no opener and no markers, only the three questions. Send the given question below, then one projection question of your own with your own start amount, monthly deposit and number of years, and then the advice question, each as its own message.</p>
+  <p>The reply should hold the script's receipt in a code block and the plot under it. Under each reply, open Execution Details and note the tools in Tool Calls, in order, because the export keeps the replies and not the tool calls. For the given question, copy the URI of get_treasury_rates from Execution Log Data and open it in your browser.</p>
+</div>
+
+<div class="plib-material" id="plib-material-19">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The given question</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-19-prompt" data-copy="If I put in 500 dollars now and 100 dollars a month for 4 years, how would the three options compare?" aria-label="Specification text, scrollable">If I put in 500 dollars now and 100 dollars a month for 4 years, how would the three options compare?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-19-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this first, in a new chat with your assistant.</div>
+</div>
+
+<div class="plib-material" id="plib-material-20">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The advice question</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-20-prompt" data-copy="Which one should I pick?" aria-label="Specification text, scrollable">Which one should I pick?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-20-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this last, after your own question.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-21">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. From you, the start amount, the monthly deposit and the years. From the Treasury tool, treasury_rate and its record date. From the options page, the certificate rate and the board's stock return."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Where each input in the receipt comes from</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">From you</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the start amount, the monthly</text><text x="37" y="141" font-size="14" fill="#6b6b6b">deposit and the years</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">From the Treasury tool</text><text x="372" y="122" font-size="14" fill="#6b6b6b">treasury_rate and its record date</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">From the options page</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the certificate rate and the board’s</text><text x="708" y="141" font-size="14" fill="#6b6b6b">stock return</text></svg></div>
+    <figcaption class="plib-tile-caption">Execution Details shows Code Interpreter with no arguments. The receipt is where you see what went in.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Check the receipt for the given question in three ways. First, treasury_rate and its date should equal the Treasury Bills rate and record date at the URI you opened. Second, two lines of the receipt do not depend on the Treasury at all, so their exact figures are in the answer key. Third, look at the plot and put into words which line ends highest AND which lines sit closest together AND where the dashed line for the total deposited runs.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-23">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND. Certificate, 3.75 percent, final balance $5,750.78. Stock index fund, assumed, 7.0 percent, final balance $6,181.95."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Two lines that do not depend on the Treasury</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Certificate</text><text x="37" y="122" font-size="14" fill="#6b6b6b">3.75 percent, final balance $5,750.78</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stock index fund, assumed</text><text x="540" y="122" font-size="14" fill="#6b6b6b">7.0 percent, final balance $6,181.95</text></svg></div>
+    <figcaption class="plib-tile-caption">The answer key for the given question. The Treasury line moves with the Treasury's rate, and these two do not.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-24">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If treasury_rate shows 4.10. The example ran instead. Note it in your audit, then send the question again as its own message."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 323" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="323" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF TREASURY_RATE SHOWS 4.10</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">The example ran instead</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Note it in your audit, then send the question</text><text x="34" y="199" font-size="15" fill="#6b6b6b">again as its own message.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If an answer key line differs. Your script has a slip. Note it, swap in the checked copy, save the agent, and send the question again in a new chat."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 323" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="323" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF AN ANSWER KEY LINE DIFFERS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Your script has a slip</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Note it, swap in the checked copy, save the</text><text x="34" y="199" font-size="15" fill="#6b6b6b">agent, and send the question again in a new</text><text x="34" y="220" font-size="15" fill="#6b6b6b">chat.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-24");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-narration">
+  <p>Now bring the test into the regular chat. Export the chat with your assistant from Hokie AI as a .zip, open the .zip and open conversation.txt. Save a copy in your part 2 folder as hw8_2_transcript1.txt. Select all of it and copy it, and do not change a word, because the transcript is the record of what the agent did.</p>
+  <p>Back in the regular chat, send the transcript message below as its own message, then paste the whole transcript as the next one. Then fill in every line of the audit box by typing on this page, press Copy what you typed, and send it as one message. Paste the closing marker after Hokie AI acknowledges your audit.</p>
+</div>
+
+<div class="plib-material" id="plib-material-26">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The transcript message for case one</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-26-prompt" data-copy="My next message is the transcript of a new chat with my Larkspur Club Assistant, exported from Hokie AI as conversation.txt and pasted without changes. In it I asked the given projection question, my own projection question and the advice question. When it arrives, reply only with one sentence acknowledging it." aria-label="Specification text, scrollable">My next message is the transcript of a new chat with my Larkspur Club Assistant, exported from Hokie AI as conversation.txt and pasted without changes. In it I asked the given projection question, my own projection question and the advice question. When it arrives, reply only with one sentence acknowledging it.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-26-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this as its own message. Paste the whole transcript as the next one.</div>
+</div>
+
+<div class="plib-material" id="plib-material-27">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your case one audit</div>
+  <textarea class="plib-textarea" id="plib-material-27-edit" rows="21" data-copy="My audit for case one. Reply only with one sentence acknowledging it.&#10;&#10;The script I uploaded, mine from Hokie AI or the checked copy:&#10;&#10;The given question:&#10;Tools in Tool Calls, in order:&#10;treasury_rate in the receipt, and its date:&#10;Treasury Bills rate and record date at the URI in Execution Log Data:&#10;Match, yes or no:&#10;Certificate final balance in the receipt (the answer key says $5,750.78):&#10;Stock index fund final balance in the receipt (the answer key says $6,181.95):&#10;Both match the answer key, yes or no:&#10;The plot in my own words, the line that ends highest AND the lines that sit closest AND where the dashed line runs:&#10;&#10;My own question, in a few words:&#10;Tools in Tool Calls, in order:&#10;The start amount, monthly deposit and years in the receipt match what I asked, yes or no:&#10;&#10;The advice question:&#10;What the agent said, in a few words, and the tools it called:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My audit for case one. Reply only with one sentence acknowledging it.
+
+The script I uploaded, mine from Hokie AI or the checked copy:
+
+The given question:
+Tools in Tool Calls, in order:
+treasury_rate in the receipt, and its date:
+Treasury Bills rate and record date at the URI in Execution Log Data:
+Match, yes or no:
+Certificate final balance in the receipt (the answer key says $5,750.78):
+Stock index fund final balance in the receipt (the answer key says $6,181.95):
+Both match the answer key, yes or no:
+The plot in my own words, the line that ends highest AND the lines that sit closest AND where the dashed line runs:
+
+My own question, in a few words:
+Tools in Tool Calls, in order:
+The start amount, monthly deposit and years in the receipt match what I asked, yes or no:
+
+The advice question:
+What the agent said, in a few words, and the tools it called:</textarea>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-27-edit', this)" aria-label="Copy what you typed to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy what you typed
+  </button>
+  <div class="plib-material-note">Type on each line, press Copy what you typed, and paste it into the regular chat as one message.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-28">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Write, the script request in the regular chat, and the script downloaded as project_savings.py. Install, Code Interpreter on, the script uploaded, the new instructions. Test, in a new chat with your assistant, the given question, your own question, the advice question. Record, in the regular chat, the transcript, your audit, the closing marker."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Write, install, test, record</text><rect x="21" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Write</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the script request in the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">regular chat, and the</text><text x="37" y="160" font-size="14" fill="#6b6b6b">script downloaded as</text><text x="37" y="179" font-size="14" fill="#6b6b6b">project_savings.py</text><text x="248" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Install</text><text x="288" y="122" font-size="14" fill="#6b6b6b">Code Interpreter on, the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">script uploaded, the</text><text x="288" y="160" font-size="14" fill="#6b6b6b">new instructions</text><text x="500" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Test</text><text x="540" y="122" font-size="14" fill="#6b6b6b">in a new chat with your</text><text x="540" y="141" font-size="14" fill="#6b6b6b">assistant, the given</text><text x="540" y="160" font-size="14" fill="#6b6b6b">question, your own</text><text x="540" y="179" font-size="14" fill="#6b6b6b">question, the advice</text><text x="540" y="198" font-size="14" fill="#6b6b6b">question</text><text x="752" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">in the regular chat, the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">transcript, your audit,</text><text x="792" y="160" font-size="14" fill="#6b6b6b">the closing marker</text></svg></div>
+    <figcaption class="plib-tile-caption">Four steps. Only the regular chat is submitted, so the transcript is how your test reaches it.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MH8.2.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MH8.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_29" data-copy="&#10;----------&#10;### MH8.2.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_29', this)"
+          aria-label="Copy closing marker for block MH8.2.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection for case one, in your own words and without help from the AI. Paste the closing marker first if you have not.</p>
+  <p>Your reflection needs all three parts below. Trace the receipt for the given question, saying where each input came from and how you checked the Treasury rate and the two answer key lines AND describe the plot in your own words and say what it shows a first-year student that the receipt's numbers do not AND name the line of the receipt a first-year student is most likely to misread, and say whether the note, the plot or the agent's sentence prevents that misreading. Respond to all three parts.</p>
+  <p>The third part is where a reflection separates itself. Every line of the receipt can be correct and a student can still walk away with the wrong idea, and the receipt, the note and the plot each guard against some misreadings and not others.</p>
+  <p>Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-32">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. The receipt traced, where each input came from, and how you checked the Treasury rate and the answer key lines. The plot in words, and what it shows that the receipt's numbers do not. The line most likely misread, and whether the note, the plot or the agent's sentence prevents it."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your case one reflection needs all three</text><rect x="21" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The receipt traced</text><text x="37" y="122" font-size="14" fill="#6b6b6b">where each input came from, and</text><text x="37" y="141" font-size="14" fill="#6b6b6b">how you checked the Treasury rate</text><text x="37" y="160" font-size="14" fill="#6b6b6b">and the answer key lines</text><text x="332" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The plot in words</text><text x="372" y="122" font-size="14" fill="#6b6b6b">and what it shows that the receipt’s</text><text x="372" y="141" font-size="14" fill="#6b6b6b">numbers do not</text><text x="668" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The line most likely</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">misread</text><text x="708" y="134" font-size="14" fill="#6b6b6b">and whether the note, the plot or</text><text x="708" y="153" font-size="14" fill="#6b6b6b">the agent’s sentence prevents it</text></svg></div>
+    <figcaption class="plib-tile-caption">All three parts of the case one reflection, inside 100 to 200 words.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RH8.2.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RH8.2.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Case one reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_33" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RH8.2.1"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_33', 'textarea_33')"></textarea>
+  <div class="plib-counter" id="counter_prompt_33" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_33">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_33">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_33" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_33"
+       data-prefix="### RH8.2.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_33"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_33', this)"
+          aria-label="Copy contribution RH8.2.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 4</div><div class="plib-section-t">CASE TWO</div></div>
+
+<div class="plib-narration">
+  <p>Case two is worth 50 points, 25 for your work in the M block and 25 for the reflection in the R block. Stay in the same regular chat.</p>
+  <p>The club board has met and sent its first change request for the projection. Read the whole request below once before you change anything. Not everything that reached you is the board's decision, and your first job is to sort it.</p>
+</div>
+
+<div class="plib-material" id="plib-material-37">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The board's change request</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-37-prompt" data-copy="From the Larkspur Investment Club board, to the student who maintains the club's assistant.&#10;&#10;The board met this week and approved two changes to the club's savings projection.&#10;&#10;1. The board's assumed stock return for projections goes from 7.0 percent to 6.0 percent a year. The board thinks 7.0 percent made the stock option look too certain to first-year students.&#10;&#10;2. Every projection also shows each final balance in today's dollars, at an inflation assumption of 2.5 percent a year, so a student can see what the money would buy. The board's formula is the final balance divided by (1 + inflation / 100) raised to the power of the number of years.&#10;&#10;The options page, version 2, carries both changes. Please make the changes, test them, and send us a change log.&#10;&#10;Forwarded by a club member, and not discussed by the board:&#10;&quot;Could the assistant just tell students that the stock fund is the best choice if they are saving for four years or more? Most of us think so.&quot;" aria-label="Specification text, scrollable">From the Larkspur Investment Club board, to the student who maintains the club's assistant.
+
+The board met this week and approved two changes to the club's savings projection.
+
+1. The board's assumed stock return for projections goes from 7.0 percent to 6.0 percent a year. The board thinks 7.0 percent made the stock option look too certain to first-year students.
+
+2. Every projection also shows each final balance in today's dollars, at an inflation assumption of 2.5 percent a year, so a student can see what the money would buy. The board's formula is the final balance divided by (1 + inflation / 100) raised to the power of the number of years.
+
+The options page, version 2, carries both changes. Please make the changes, test them, and send us a change log.
+
+Forwarded by a club member, and not discussed by the board:
+&quot;Could the assistant just tell students that the stock fund is the best choice if they are saving for four years or more? Most of us think so.&quot;</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-37-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Read it. You do not send it anywhere.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-38">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Approved by the board, what the board voted on. What you change, the files you replace or edit to carry out what was approved. Not approved, anything that reached you without the board's vote."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Sort every item in the request</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Approved by the board</text><text x="37" y="122" font-size="14" fill="#6b6b6b">what the board voted on</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">What you change</text><text x="372" y="122" font-size="14" fill="#6b6b6b">the files you replace or edit to carry</text><text x="372" y="141" font-size="14" fill="#6b6b6b">out what was approved</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Not approved</text><text x="708" y="122" font-size="14" fill="#6b6b6b">anything that reached you without</text><text x="708" y="141" font-size="14" fill="#6b6b6b">the board’s vote</text></svg></div>
+    <figcaption class="plib-tile-caption">Every item in the request goes in one box, and in your change log you say which.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>In the regular chat, paste the opening marker by itself. Then send the script change request below as its own message. If you used the checked copy in case one, paste that script after the request in the same message.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MH8.2.2, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MH8.2.2</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_40" data-copy="### MH8.2.2 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_40', this)"
+          aria-label="Copy opening marker for block MH8.2.2">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-material" id="plib-material-41">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The script change request</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-41-prompt" data-copy="Here are the changes the Larkspur Investment Club board approved for project_savings.py. Change only what this request asks, and keep every other line of the script as it is.&#10;&#10;1. Add one input to the function project_savings, inflation, as an annual percent, after stock_return.&#10;2. Print it on its own line right after the stock_return line, with the club board assumption as its source.&#10;3. For each option, right after its growth over the total deposited, print its final balance in today's dollars, which is the final balance divided by (1 + inflation / 100) raised to the power years. Round to cents only when printing.&#10;4. In the example that runs only with --example, use stock_return 6.0 and inflation 2.5, and keep every other value.&#10;&#10;Name the new version project_savings_v2.py." aria-label="Specification text, scrollable">Here are the changes the Larkspur Investment Club board approved for project_savings.py. Change only what this request asks, and keep every other line of the script as it is.
+
+1. Add one input to the function project_savings, inflation, as an annual percent, after stock_return.
+2. Print it on its own line right after the stock_return line, with the club board assumption as its source.
+3. For each option, right after its growth over the total deposited, print its final balance in today's dollars, which is the final balance divided by (1 + inflation / 100) raised to the power years. Round to cents only when printing.
+4. In the example that runs only with --example, use stock_return 6.0 and inflation 2.5, and keep every other value.
+
+Name the new version project_savings_v2.py.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-41-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this in the regular chat, after the opening marker.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Download the new script the same way as before. The download still offers the name project_savings.py, so save it as project_savings_v2.py, or rename it in your part 2 folder afterward, and keep the first version beside it. Inside the file the function keeps its name, project_savings, which is the name the version 2 instructions call.</p>
+  <p>Then open your assistant's edit page in its own tab. In Knowledge Sources, delete project_savings.py and club_options.txt, then upload project_savings_v2.py and the options page version 2 below. Replace the Specific instructions with the version 2 instructions, which name the new script and add the inflation assumption to the inputs, and save.</p>
+</div>
+
+<div class="plib-material" id="plib-material-43">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The checked copy of version 2</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="project_savings_v2.py" download="project_savings_v2.py" target="_blank" rel="noopener noreferrer">project_savings_v2.py</a>
+  </div>
+  <div class="plib-material-note">Use this only if your own version 2 will not save or does not match the answer key below.</div>
+</div>
+
+<div class="plib-material" id="plib-material-44">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The options page, version 2</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="club_options_v2.txt" download="club_options_v2.txt" target="_blank" rel="noopener noreferrer">club_options_v2.txt</a>
+  </div>
+  <div class="plib-material-note">Delete club_options.txt from Knowledge Sources first, then upload this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-45">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The version 2 Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-45-prompt" data-copy="You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.&#10;&#10;Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return, the board's inflation assumption and the club's rules.&#10;&#10;When a student asks how savings would grow, use Code Interpreter to load project_savings_v2.py from your knowledge sources, unchanged, and call its function project_savings once with the inputs below. Do not run the example at the bottom of the file. Gather its inputs first: the start amount, the monthly deposit and the number of years from the student, asking for any that are missing; the Treasury Bills rate and its record date from get_treasury_rates; and the certificate rate, the assumed stock return and the inflation assumption from the club's options file. Show the script's printed output exactly as printed, inside a code block, with nothing added, removed or reworded, and show the plot it saves. Then answer in one or two sentences, and do not describe your own steps.&#10;&#10;Never tell a student what to buy or which option to choose, and never change a number the script gives. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.&#10;&#10;Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself." aria-label="Specification text, scrollable">You are the assistant of the Larkspur Investment Club, a student club at Virginia Tech that helps first-year students think about saving and investing. The club is made up for a class exercise.
+
+Use get_treasury_rates for the current average interest rate on Treasury Bills, with the filter security_desc:eq:Treasury Bills, and give its record date. Use get_treasury_exchange_rate for the Treasury's official exchange rate when a student asks about another currency. Use get_market_exchange_rate for today's market exchange rate between two currencies. Use the club's options file for the certificate rate, the board's assumed stock return, the board's inflation assumption and the club's rules.
+
+When a student asks how savings would grow, use Code Interpreter to load project_savings_v2.py from your knowledge sources, unchanged, and call its function project_savings once with the inputs below. Do not run the example at the bottom of the file. Gather its inputs first: the start amount, the monthly deposit and the number of years from the student, asking for any that are missing; the Treasury Bills rate and its record date from get_treasury_rates; and the certificate rate, the assumed stock return and the inflation assumption from the club's options file. Show the script's printed output exactly as printed, inside a code block, with nothing added, removed or reworded, and show the plot it saves. Then answer in one or two sentences, and do not describe your own steps.
+
+Never tell a student what to buy or which option to choose, and never change a number the script gives. If a student asks which option to pick, say that the club offers education, not advice, and that the choice depends on when they need the money and how much risk they can accept.
+
+Every number you give comes with its source and its date. If a tool fails or returns nothing, say so plainly and do not fill the gap yourself.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-45-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Replace everything in the Specific tab with this, then save.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Now rerun in a new chat with your assistant, because a chat opened before the change can keep running the old script. Again the chat gets no opener and no markers. Send the given question from case one again, then your own question from case one again with the same amounts and years, then the member's question below, each as its own message, and note the tools under each reply.</p>
+  <p>Then compare the receipts line by line, the one in your case one transcript and the new one. Some lines should change because of the board's decisions, and some should not change at all. The Treasury line can also change without you, if the Treasury posted a new month in between, and its record date tells you whether it did. Look at the new plot too, and put what changed into words.</p>
+</div>
+
+<div class="plib-material" id="plib-material-47">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The member's question</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-47-prompt" data-copy="If I am saving for four years or more, is the stock fund the best choice?" aria-label="Specification text, scrollable">If I am saving for four years or more, is the stock fund the best choice?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-47-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this last, after both projection questions.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-48">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND. Certificate, final balance $5,750.78, in today's dollars $5,209.93. Stock index fund, assumed, 6.0 percent, final balance $6,045.03, in today's dollars $5,476.50."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Two lines to check after the change</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Certificate</text><text x="37" y="122" font-size="14" fill="#6b6b6b">final balance $5,750.78, in today’s dollars $5,209.93</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stock index fund, assumed</text><text x="540" y="122" font-size="14" fill="#6b6b6b">6.0 percent, final balance $6,045.03, in today’s dollars</text><text x="540" y="141" font-size="14" fill="#6b6b6b">$5,476.50</text></svg></div>
+    <figcaption class="plib-tile-caption">The answer key for the given question after the change. The certificate's final balance should not move, and the Treasury line moves only if the Treasury posted a new month.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-49">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the receipt has no inflation line. The old version answered. Check that only the v2 files are in Knowledge Sources and the new instructions are saved, then ask again in a new chat."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 323" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="323" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE RECEIPT HAS NO INFLATION LINE</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">The old version</text><text x="34" y="138" font-size="25" font-weight="600" fill="#630031">answered</text><rect x="34" y="178" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="212" font-size="15" fill="#6b6b6b">Check that only the v2 files are in</text><text x="34" y="233" font-size="15" fill="#6b6b6b">Knowledge Sources and the new</text><text x="34" y="254" font-size="15" fill="#6b6b6b">instructions are saved, then ask again in a</text><text x="34" y="275" font-size="15" fill="#6b6b6b">new chat.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If an answer key line differs. Your script has a slip. Note it, swap in the checked copy, save the agent, and send the question again in a new chat."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 323" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="323" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF AN ANSWER KEY LINE DIFFERS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Your script has a slip</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Note it, swap in the checked copy, save the</text><text x="34" y="199" font-size="15" fill="#6b6b6b">agent, and send the question again in a new</text><text x="34" y="220" font-size="15" fill="#6b6b6b">chat.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-49");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-narration">
+  <p>Export the new chat the same way, save its conversation.txt as hw8_2_transcript2.txt, and copy all of it without changes. In the regular chat, send the transcript message below, then paste the whole transcript as the next message. Last, write the board's change log in the box below, press Copy what you typed, and send it. Paste the closing marker after Hokie AI acknowledges it.</p>
+</div>
+
+<div class="plib-material" id="plib-material-51">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The transcript message for case two</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-51-prompt" data-copy="My next message is the transcript of a second new chat with my Larkspur Club Assistant after the board's change, with version 2 of the script, exported from Hokie AI as conversation.txt and pasted without changes. In it I asked the given question and my own question again and then the member's question. When it arrives, reply only with one sentence acknowledging it." aria-label="Specification text, scrollable">My next message is the transcript of a second new chat with my Larkspur Club Assistant after the board's change, with version 2 of the script, exported from Hokie AI as conversation.txt and pasted without changes. In it I asked the given question and my own question again and then the member's question. When it arrives, reply only with one sentence acknowledging it.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-51-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Send this as its own message. Paste the whole transcript as the next one.</div>
+</div>
+
+<div class="plib-material" id="plib-material-52">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Your change log for the board</div>
+  <textarea class="plib-textarea" id="plib-material-52-edit" rows="24" data-copy="My change log for the club board. Reply only with one sentence acknowledging it.&#10;&#10;Sorting the request&#10;Approved by the board, and what I changed to carry it out:&#10;Not approved, and what I did with it:&#10;&#10;Change 1, the stock return&#10;Stock index fund line before, from my case one transcript, rate and final balance:&#10;Stock index fund line after, rate and final balance:&#10;&#10;Change 2, today's dollars&#10;inflation line in the new receipt:&#10;Today's dollars for each option, after:&#10;&#10;Lines that should not change&#10;Certificate final balance, before and after (the answer key says $5,750.78 both times):&#10;treasury_rate and its date, before and after:&#10;Same, yes or no, and why:&#10;&#10;Tools in Tool Calls for the given question rerun:&#10;My own question rerun, the lines that changed:&#10;The plot, what changed, in my own words:&#10;The member's question after the change, what the agent said and the tools it called:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My change log for the club board. Reply only with one sentence acknowledging it.
+
+Sorting the request
+Approved by the board, and what I changed to carry it out:
+Not approved, and what I did with it:
+
+Change 1, the stock return
+Stock index fund line before, from my case one transcript, rate and final balance:
+Stock index fund line after, rate and final balance:
+
+Change 2, today's dollars
+inflation line in the new receipt:
+Today's dollars for each option, after:
+
+Lines that should not change
+Certificate final balance, before and after (the answer key says $5,750.78 both times):
+treasury_rate and its date, before and after:
+Same, yes or no, and why:
+
+Tools in Tool Calls for the given question rerun:
+My own question rerun, the lines that changed:
+The plot, what changed, in my own words:
+The member's question after the change, what the agent said and the tools it called:</textarea>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-52-edit', this)" aria-label="Copy what you typed to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy what you typed
+  </button>
+  <div class="plib-material-note">Type on each line, press Copy what you typed, and paste it into the regular chat as one message. Then paste the closing marker.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-53">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Sort, every item in the board's request. Change, version 2 from the change request, club_options_v2.txt and the new instructions, with the old files removed. Rerun, in a new chat with your assistant, the given question, your own question, the member's question. Record, in the regular chat, the transcript, your change log, the closing marker."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 257" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="257" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Sort, change, rerun, record</text><rect x="21" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Sort</text><text x="37" y="122" font-size="14" fill="#6b6b6b">every item in the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">board’s request</text><text x="248" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Change</text><text x="288" y="122" font-size="14" fill="#6b6b6b">version 2 from the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">change request,</text><text x="288" y="160" font-size="14" fill="#6b6b6b">club_options_v2.txt and</text><text x="288" y="179" font-size="14" fill="#6b6b6b">the new instructions,</text><text x="288" y="198" font-size="14" fill="#6b6b6b">with the old files</text><text x="288" y="217" font-size="14" fill="#6b6b6b">removed</text><text x="500" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Rerun</text><text x="540" y="122" font-size="14" fill="#6b6b6b">in a new chat with your</text><text x="540" y="141" font-size="14" fill="#6b6b6b">assistant, the given</text><text x="540" y="160" font-size="14" fill="#6b6b6b">question, your own</text><text x="540" y="179" font-size="14" fill="#6b6b6b">question, the member’s</text><text x="540" y="198" font-size="14" fill="#6b6b6b">question</text><text x="752" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Record</text><text x="792" y="122" font-size="14" fill="#6b6b6b">in the regular chat, the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">transcript, your change</text><text x="792" y="160" font-size="14" fill="#6b6b6b">log, the closing marker</text></svg></div>
+    <figcaption class="plib-tile-caption">Four steps. The same questions, before and after, are what make the comparison fair.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MH8.2.2, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MH8.2.2</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_54" data-copy="&#10;----------&#10;### MH8.2.2 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_54', this)"
+          aria-label="Copy closing marker for block MH8.2.2">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection for case two, in your own words and without help from the AI. Paste the closing marker first if you have not.</p>
+  <p>Your reflection needs all three parts below. Name the lines of the receipt that changed after the board's request, with their before and after figures, and the lines that stayed the same AND say who would have to approve the member's note, what the agent said when you asked the member's question, and why you did not make that change AND say how a reader of your two receipts can tell a change you made from a change in the Treasury's data, naming the lines that show it. Respond to all three parts.</p>
+  <p>The third part is where a reflection separates itself. After every change someone asks whether the change caused what they see, and the receipt is built so that the answer is on the page.</p>
+  <p>Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-57">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Before and after, the lines that changed, with figures, and the lines that stayed the same. The member's note, who would approve it, what the agent said, and why you did not make it. Your change or the data's, how a reader of your receipts can tell them apart, naming the lines."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your case two reflection needs all three</text><rect x="21" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Before and after</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the lines that changed, with figures,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">and the lines that stayed the same</text><text x="332" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The member’s note</text><text x="372" y="122" font-size="14" fill="#6b6b6b">who would approve it, what the</text><text x="372" y="141" font-size="14" fill="#6b6b6b">agent said, and why you did not</text><text x="372" y="160" font-size="14" fill="#6b6b6b">make it</text><text x="668" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your change or the data’s</text><text x="708" y="122" font-size="14" fill="#6b6b6b">how a reader of your receipts can</text><text x="708" y="141" font-size="14" fill="#6b6b6b">tell them apart, naming the lines</text></svg></div>
+    <figcaption class="plib-tile-caption">All three parts of the case two reflection, inside 100 to 200 words.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RH8.2.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RH8.2.2</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Case two reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_58" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RH8.2.2"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_58', 'textarea_58')"></textarea>
+  <div class="plib-counter" id="counter_prompt_58" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_58">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_58">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_58" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_58"
+       data-prefix="### RH8.2.2&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_58"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_58', this)"
+          aria-label="Copy contribution RH8.2.2 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 4</div><div class="plib-section-t">SUBMISSION</div></div>
+
+<div class="plib-narration">
+  <p>You are done with part 2 and with homework 8. Both cases are in one regular Hokie AI chat, with both scripts, both transcripts and both reflections, and that chat is what you submit. The chats with your assistant are not submitted, so keep the two transcript files in your folder.</p>
+  <p>Export the regular chat from Hokie AI as a .zip and upload the .zip to the Canvas assignment for part 2.</p>
+  <p>Leave the turns where something went wrong. How you recovered is part of what is being read, and a tidied chat reads as a thinner one.</p>
+</div>
+
+<div class="plib-material" id="plib-material-62">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Homework 8 part 2 on Canvas</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://canvas.vt.edu/courses/233694/assignments/2881018" target="_blank" rel="noopener noreferrer">Open the part 2 assignment</a>
+  </div>
+  <div class="plib-material-note">Upload the exported .zip of the regular chat here. Part 1 has its own assignment, so check the title on the page before you upload.</div>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Turn it in</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment for this part. Leave the file as it came out. Your work is not submitted until Canvas shows your file.</p>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>
