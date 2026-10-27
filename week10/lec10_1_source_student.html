@@ -327,7 +327,7 @@ Keep the whole reply under 150 words. Begin the reply with the label: Explain it
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.1">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.1</span>
-    <span class="plib-prompt-type-label">Request P</span>
+    <span class="plib-prompt-type-label">Explain a concept</span>
   </div>
   <div class="plib-prompt-display">Explain what depreciation is.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
@@ -336,14 +336,14 @@ Keep the whole reply under 150 words. Begin the reply with the label: Explain it
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.2">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.2</span>
-    <span class="plib-prompt-type-label">Request R</span>
+    <span class="plib-prompt-type-label">Fix a sentence</span>
   </div>
   <div class="plib-prompt-display">Fix the grammar in this sentence: their going to the store tomorrow and buys supplies.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
 </div>
 
 <div class="plib-narration">
-  <p>When a skill loads, a small pill box with the skill's name appears under the reply, and Execution Details lists a get_skill_content call under Tool Calls. In your instructor's runs, Request P carried the label and the pill box, and Request R carried neither.</p>
+  <p>When a skill loads, a small pill box with the skill's name appears under the reply, and Execution Details lists a get_skill_content call under Tool Calls. In your instructor's runs, the concept question carried the label and the pill box, and the sentence fix carried neither.</p>
 </div>
 
 <div class="plib-discussion">
@@ -392,7 +392,7 @@ When you draft or reply to an email to a customer or client of a business:
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.3">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.3</span>
-    <span class="plib-prompt-type-label">Request A (a customer email)</span>
+    <span class="plib-prompt-type-label">A customer email</span>
   </div>
   <div class="plib-prompt-display">Write a short email to a customer, Dana Brooks, telling her that her order of two tents will ship three days late because of a supplier delay.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
@@ -401,7 +401,7 @@ When you draft or reply to an email to a customer or client of a business:
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.4">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.4</span>
-    <span class="plib-prompt-type-label">Request C (an email to a professor)</span>
+    <span class="plib-prompt-type-label">An email to a professor</span>
   </div>
   <div class="plib-prompt-display">Write an email to my professor asking for a one day extension on my marketing paper.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
@@ -410,7 +410,7 @@ When you draft or reply to an email to a customer or client of a business:
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.5">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.5</span>
-    <span class="plib-prompt-type-label">Request D (a text message)</span>
+    <span class="plib-prompt-type-label">A text message</span>
   </div>
   <div class="plib-prompt-display">Write a text message to a customer letting him know his table is ready.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
@@ -419,15 +419,15 @@ When you draft or reply to an email to a customer or client of a business:
 <div class="plib-prompt-s plib-prompt-s-ref" role="region" aria-label="Reference prompt S10.1.6">
   <div class="plib-prompt-header">
     <span class="plib-prompt-id">S10.1.6</span>
-    <span class="plib-prompt-type-label">Request E (a summary)</span>
+    <span class="plib-prompt-type-label">A summary</span>
   </div>
   <div class="plib-prompt-display">Summarize this in two sentences: Our store will close early on Friday for inventory, and all online orders placed after noon will ship on Monday.</div>
   <p class="plib-ref-note">Your instructor runs this prompt on screen. You do not paste it yourself.</p>
 </div>
 
 <div class="plib-narration">
-  <p>In your instructor's runs, Request A loaded the skill every time and the email ended with the marker. The professor email, the text message and the summary did not load it, which is what the description says.</p>
-  <p>Then your instructor changes one field. The description becomes Professional email style., the body stays the same, and Request C goes again in a new chat. In that run the professor email loaded the skill and ended with the marker. The shorter description reached further, and wherever the skill loaded, every rule in the body came with it.</p>
+  <p>In your instructor's runs, the customer email loaded the skill every time and ended with the marker. The professor email, the text message and the summary did not load it, which is what the description says.</p>
+  <p>Then your instructor changes one field. The description becomes Professional email style., the body stays the same, and the professor email goes again in a new chat. In that run the professor email loaded the skill and ended with the marker. The shorter description reached further, and wherever the skill loaded, every rule in the body came with it.</p>
 </div>
 
 <div class="plib-material" id="plib-material-27">
@@ -442,19 +442,19 @@ When you draft or reply to an email to a customer or client of a business:
 
 <div class="plib-tiles" id="plib-tiles-28">
   <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A table of the four requests against the two descriptions. Request A, a customer email, loaded with both descriptions. Request C, the professor email, did not load with the specific description and loaded with Professional email style. Request D, the text message, did not load with either. Request E, the summary, did not load with either. Wherever the skill loaded, the marker line appeared."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Where the house style skill loaded, in your instructor's runs</text><rect x="21" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request A, a</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">customer email</text><text x="37" y="134" font-size="14" fill="#6b6b6b">loaded with both</text><text x="37" y="153" font-size="14" fill="#6b6b6b">descriptions</text><text x="248" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="272" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request C, the</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">professor email</text><text x="288" y="134" font-size="14" fill="#6b6b6b">stayed out with the specific</text><text x="288" y="153" font-size="14" fill="#6b6b6b">description, loaded with</text><text x="288" y="172" font-size="14" fill="#6b6b6b">Professional email style.</text><text x="500" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="524" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request D, the</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">text message</text><text x="540" y="134" font-size="14" fill="#6b6b6b">stayed out with both</text><text x="752" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="776" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request E, the</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">summary</text><text x="792" y="134" font-size="14" fill="#6b6b6b">stayed out with both</text></svg></div>
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A table of the four requests against the two descriptions. The customer email loaded with both descriptions. The professor email did not load with the specific description and loaded with Professional email style. The text message did not load with either. The summary did not load with either. Wherever the skill loaded, the marker line appeared."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Where the house style skill loaded, in your instructor's runs</text><rect x="21" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A customer email</text><text x="37" y="122" font-size="14" fill="#6b6b6b">loaded with both</text><text x="37" y="141" font-size="14" fill="#6b6b6b">descriptions</text><text x="248" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="272" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The professor</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">email</text><text x="288" y="134" font-size="14" fill="#6b6b6b">stayed out with the specific</text><text x="288" y="153" font-size="14" fill="#6b6b6b">description, loaded with</text><text x="288" y="172" font-size="14" fill="#6b6b6b">Professional email style.</text><text x="500" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="524" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The text message</text><text x="540" y="122" font-size="14" fill="#6b6b6b">stayed out with both</text><text x="752" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75"></text><rect x="776" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The summary</text><text x="792" y="122" font-size="14" fill="#6b6b6b">stayed out with both</text></svg></div>
     <figcaption class="plib-tile-caption">Your instructor's runs. The description sets where the skill reaches.</figcaption>
   </figure>
 </div>
 
 <div class="plib-narration">
-  <p>Asked afterward which skills had been active, Hokie AI named the house style skill and called the marker line an internal marker that should not have appeared in the email. That marker is the line the skill told it to add. The pill box and Execution Details are the record of what loaded, and Hokie AI's own account of it is a second reply, which can be wrong.</p>
+  <p>In another chat, with the specific description in place, your instructor sent the customer email and then asked Hokie AI which skills had been active. It named the house style skill, and then it called the marker line an internal marker that should not have appeared in the email, although the skill's own body asks for that line. That marker is the line the skill told it to add. The pill box and Execution Details are the record of what loaded, and Hokie AI's own account of it is a second reply, which can be wrong.</p>
 </div>
 
 <div class="plib-tiles" id="plib-tiles-30">
   <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A quote card. Asked which skills were active, Hokie AI replied that the house style skill was active because the request was an email to a customer, and that the text [house style v1] was an internal marker that should not have appeared in the email. Below it, the skill's body line, After the signature, add this line exactly, [house style v1]."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 172" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="172" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">Asked which skills were active, Hokie AI replied</text><text x="46" y="86" font-size="16" fill="#2b2b2b">The house style skill was active because you asked for an email to a customer. The text [house style v1] was an internal marker</text><text x="46" y="108" font-size="16" fill="#2b2b2b">that should not have appeared in the email.</text><text x="46" y="134" font-size="14" fill="#6b6b6b">The skill's body says: After the signature, add this line exactly: [house style v1]</text></svg></div>
-    <figcaption class="plib-tile-caption">The record is the pill box and Execution Details.</figcaption>
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A quote card. In another chat, asked which skills were active, Hokie AI replied that the house style skill was active because the request was an email to a customer, and that the text [house style v1] was an internal marker that should not have appeared in the email. Below it, the skill's body line, After the signature, add this line exactly, [house style v1]."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 172" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="172" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">In another chat, asked which skills were active, Hokie AI replied</text><text x="46" y="86" font-size="16" fill="#2b2b2b">The house style skill was active because you asked for an email to a customer. The text [house style v1] was an internal marker</text><text x="46" y="108" font-size="16" fill="#2b2b2b">that should not have appeared in the email.</text><text x="46" y="134" font-size="14" fill="#6b6b6b">The skill's body says: After the signature, add this line exactly: [house style v1]</text></svg></div>
+    <figcaption class="plib-tile-caption">Hokie AI's account of what shaped a reply is one more reply. The record is the pill box and Execution Details.</figcaption>
   </figure>
 </div>
 
@@ -478,7 +478,7 @@ When you draft or reply to an email to a customer or client of a business:
 
 <div class="plib-tiles" id="plib-tiles-34">
   <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes, ideas for a skill of your own. Explain it my way, for concepts from your courses. Quiz me, three questions on a topic before any explanation. My email to a professor, the tone and length you want. Feedback on my writing, the kind of comments you find useful and the kind you do not."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Ideas for a skill of your own</text><rect x="21" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Explain it my way</text><text x="37" y="122" font-size="14" fill="#6b6b6b">for concepts from your</text><text x="37" y="141" font-size="14" fill="#6b6b6b">courses</text><text x="248" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="272" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Quiz me</text><text x="288" y="122" font-size="14" fill="#6b6b6b">three questions on a topic</text><text x="288" y="141" font-size="14" fill="#6b6b6b">before any explanation</text><text x="500" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="524" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">My email to a</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">professor</text><text x="540" y="134" font-size="14" fill="#6b6b6b">the tone and length you</text><text x="540" y="153" font-size="14" fill="#6b6b6b">want</text><text x="752" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="776" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Feedback on my</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">writing</text><text x="792" y="134" font-size="14" fill="#6b6b6b">the kind of comments you</text><text x="792" y="153" font-size="14" fill="#6b6b6b">find useful and the kind you</text><text x="792" y="172" font-size="14" fill="#6b6b6b">do not</text></svg></div>
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes, ideas for a skill of your own. Flash cards from my notes, the same card format every time. Quiz me, three questions on a topic before any explanation. My email to a professor, the tone and length you want. Feedback on my writing, the kind of comments you find useful and the kind you do not."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 212" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="212" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Ideas for a skill of your own</text><rect x="21" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Flash cards from</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">my notes</text><text x="37" y="134" font-size="14" fill="#6b6b6b">the same card format every</text><text x="37" y="153" font-size="14" fill="#6b6b6b">time</text><text x="248" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="272" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Quiz me</text><text x="288" y="122" font-size="14" fill="#6b6b6b">three questions on a topic</text><text x="288" y="141" font-size="14" fill="#6b6b6b">before any explanation</text><text x="500" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="524" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">My email to a</text><text x="569" y="103" font-size="17" font-weight="600" fill="#2b2b2b">professor</text><text x="540" y="134" font-size="14" fill="#6b6b6b">the tone and length you</text><text x="540" y="153" font-size="14" fill="#6b6b6b">want</text><text x="752" y="123" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="776" y="46" width="204" height="144" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Feedback on my</text><text x="820" y="103" font-size="17" font-weight="600" fill="#2b2b2b">writing</text><text x="792" y="134" font-size="14" fill="#6b6b6b">the kind of comments you</text><text x="792" y="153" font-size="14" fill="#6b6b6b">find useful and the kind you</text><text x="792" y="172" font-size="14" fill="#6b6b6b">do not</text></svg></div>
     <figcaption class="plib-tile-caption">Pick one, or write your own.</figcaption>
   </figure>
 </div>
@@ -634,7 +634,7 @@ This protocol applies for the remainder of this session.
 <div class="plib-material" id="plib-material-44">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">Your test log</div>
-  <textarea class="plib-textarea" id="plib-material-44-edit" rows="19" data-copy="My skill test log. Reply only with one sentence acknowledging it.&#10;&#10;Skill name:&#10;Description, copied exactly:&#10;&#10;Request 1, one that should load the skill:&#10;Pill box under the reply, yes or no:&#10;Label at the top of the reply, yes or no:&#10;&#10;Request 2, one that should load the skill:&#10;Pill box, yes or no:&#10;Label, yes or no:&#10;&#10;Request 3, one that should not load the skill:&#10;Pill box, yes or no:&#10;Label, yes or no:&#10;&#10;What I changed in the description after testing, or why I left it:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My skill test log. Reply only with one sentence acknowledging it.
+  <textarea class="plib-textarea" id="plib-material-44-edit" rows="19" data-copy="My skill test log. Reply only with one sentence acknowledging it.&#10;&#10;Skill name:&#10;Description, copied exactly:&#10;&#10;Request 1, one that should load the skill:&#10;Pill box under the reply, yes or no:&#10;Label at the top of the reply, yes or no:&#10;&#10;Request 2, one that should load the skill:&#10;Pill box, yes or no:&#10;Label, yes or no:&#10;&#10;Request 3, one that should not load the skill:&#10;Pill box, yes or no:&#10;Label, yes or no:&#10;&#10;Did I change the description after testing? If yes, what I changed:" oninput="this.setAttribute('data-copy', this.value)" aria-label="Template to complete">My skill test log. Reply only with one sentence acknowledging it.
 
 Skill name:
 Description, copied exactly:
@@ -651,11 +651,18 @@ Request 3, one that should not load the skill:
 Pill box, yes or no:
 Label, yes or no:
 
-What I changed in the description after testing, or why I left it:</textarea>
+Did I change the description after testing? If yes, what I changed:</textarea>
   <button class="plib-copy-btn" onclick="copyPrompt('plib-material-44-edit', this)" aria-label="Copy what you typed to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy what you typed
   </button>
   <div class="plib-material-note">Type your answers on each line in the box, press Copy what you typed, and paste it into the regular chat after M OPEN as one message.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-45">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A warning card headed DO NOT PASTE M CLOSE. Do not paste M CLOSE until your instructor asks you to."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 124" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="124" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="84" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">DO NOT PASTE M CLOSE</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Do not paste M CLOSE until your instructor asks you to.</text></svg></div>
+    <figcaption class="plib-tile-caption">Wait here when your test log is sent.</figcaption>
+  </figure>
 </div>
 
 <div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block M10.1.1, End">
@@ -665,8 +672,8 @@ What I changed in the description after testing, or why I left it:</textarea>
     <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
   </div>
   <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
-  <div class="plib-prompt-text" id="text_m_close_45" data-copy="&#10;----------&#10;### M10.1.1 CLOSE"></div>
-  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_45', this)"
+  <div class="plib-prompt-text" id="text_m_close_46" data-copy="&#10;----------&#10;### M10.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_46', this)"
           aria-label="Copy closing marker for block M10.1.1">
     <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
   </button>
@@ -674,7 +681,7 @@ What I changed in the description after testing, or why I left it:</textarea>
 
 <div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">DISCUSSION</div></div>
 
-<div class="plib-tiles" id="plib-tiles-48">
+<div class="plib-tiles" id="plib-tiles-49">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by OR, one show of hands. Both should load requests loaded it and the third stayed out. One test went the wrong way. Two or more went the wrong way."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 195" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="195" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">One hand, for your three tests</text><rect x="21" y="46" width="287" height="127" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Both should load requests</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">loaded it and the third</text><text x="66" y="124" font-size="17" font-weight="600" fill="#2b2b2b">stayed out</text><text x="37" y="155" font-size="14" fill="#6b6b6b"></text><text x="332" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="356" y="46" width="287" height="127" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One test went the wrong</text><text x="401" y="103" font-size="17" font-weight="600" fill="#2b2b2b">way</text><text x="372" y="134" font-size="14" fill="#6b6b6b"></text><text x="668" y="114" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="692" y="46" width="287" height="127" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Two or more went the</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">wrong way</text><text x="708" y="134" font-size="14" fill="#6b6b6b"></text></svg></div>
     <figcaption class="plib-tile-caption">One hand, for your three tests.</figcaption>
@@ -700,7 +707,7 @@ What I changed in the description after testing, or why I left it:</textarea>
   <p>Four minutes, both directions.</p>
 </div>
 
-<div class="plib-tiles" id="plib-tiles-52">
+<div class="plib-tiles" id="plib-tiles-53">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND. Your description, read aloud. A request your partner thinks should load it. A request your partner thinks should stay out."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Four minutes with the person beside you</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your description</text><text x="37" y="122" font-size="14" fill="#6b6b6b">read aloud</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A request that should load it</text><text x="372" y="122" font-size="14" fill="#6b6b6b">your partner's choice</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A request that should stay</text><text x="737" y="103" font-size="17" font-weight="600" fill="#2b2b2b">out</text><text x="708" y="134" font-size="14" fill="#6b6b6b">your partner's choice</text></svg></div>
     <figcaption class="plib-tile-caption">Four minutes. Your partner's requests are tests you did not write.</figcaption>
@@ -720,7 +727,7 @@ What I changed in the description after testing, or why I left it:</textarea>
 
 <div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">REFLECTION</div></div>
 
-<div class="plib-tiles" id="plib-tiles-55">
+<div class="plib-tiles" id="plib-tiles-56">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Your skill, its name, what it does, and its description quoted. One test, the request, whether the pill box and the label appeared, and whether you expected that. Your description, the words you changed or would change, and why. A company skill, your employer installs one in every employee's Hokie AI. Name one thing it should be allowed to change in your replies and one it should not, and how you would know it loaded."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 257" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="257" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your reflection needs all four</text><rect x="21" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your skill</text><text x="37" y="122" font-size="14" fill="#6b6b6b">its name, what it does, and</text><text x="37" y="141" font-size="14" fill="#6b6b6b">its description quoted</text><text x="248" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One test</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the request, whether the</text><text x="288" y="141" font-size="14" fill="#6b6b6b">pill box and the label</text><text x="288" y="160" font-size="14" fill="#6b6b6b">appeared, and whether you</text><text x="288" y="179" font-size="14" fill="#6b6b6b">expected that</text><text x="500" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your description</text><text x="540" y="122" font-size="14" fill="#6b6b6b">the words you changed or</text><text x="540" y="141" font-size="14" fill="#6b6b6b">would change, and why</text><text x="752" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">A company skill</text><text x="792" y="122" font-size="14" fill="#6b6b6b">your employer installs one</text><text x="792" y="141" font-size="14" fill="#6b6b6b">in every employee's Hokie</text><text x="792" y="160" font-size="14" fill="#6b6b6b">AI. One thing it may change</text><text x="792" y="179" font-size="14" fill="#6b6b6b">in your replies, one it may</text><text x="792" y="198" font-size="14" fill="#6b6b6b">not, and how you would</text><text x="792" y="217" font-size="14" fill="#6b6b6b">know it loaded</text></svg></div>
     <figcaption class="plib-tile-caption">Respond to all four dimensions above in your reflection.</figcaption>
@@ -741,25 +748,25 @@ What I changed in the description after testing, or why I left it:</textarea>
     <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
   </div>
   <p class="plib-reflect-instruction">Write your response in the box below (target: 80 to 160 words), then click Copy and paste into Hokie AI.</p>
-  <textarea id="textarea_57" class="plib-textarea"
+  <textarea id="textarea_58" class="plib-textarea"
             placeholder="Write your response here..."
             aria-label="Write your contribution for R10.1.1"
             data-maxwords="160" data-maxchars="1600"
-            oninput="updateCounter('prompt_57', 'textarea_57')"></textarea>
-  <div class="plib-counter" id="counter_prompt_57" aria-live="polite" aria-atomic="true">
-    <span id="wc_prompt_57">0</span> / 160 words&nbsp;·&nbsp;
-    <span id="cc_prompt_57">0</span> / 1600 characters
+            oninput="updateCounter('prompt_58', 'textarea_58')"></textarea>
+  <div class="plib-counter" id="counter_prompt_58" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_58">0</span> / 160 words&nbsp;·&nbsp;
+    <span id="cc_prompt_58">0</span> / 1600 characters
     <span class="plib-counter-min">minimum: 80 words</span>
   </div>
-  <div class="plib-warn" id="warn_prompt_57" role="alert" aria-live="polite"></div>
-  <div class="plib-prompt-text" id="text_prompt_57"
+  <div class="plib-warn" id="warn_prompt_58" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_58"
        data-prefix="### R10.1.1&#10;----------&#10;"
        data-suffix="&#10;----------&#10;###"
-       data-tid="textarea_57"
+       data-tid="textarea_58"
        data-maxwords="160"
        data-maxchars="1600"
        data-minwords="80"></div>
-  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_57', this)"
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_58', this)"
           aria-label="Copy contribution R10.1.1 to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy contribution
   </button>
