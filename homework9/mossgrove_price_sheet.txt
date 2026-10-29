@@ -1,0 +1,16 @@
+Mossgrove Produce, price sheet dated October 26, 2026
+Mossgrove Produce is a made up produce distributor in Roanoke, Virginia, for a class exercise.
+Prices change every Monday. This sheet replaces every earlier sheet.
+
+Item, how it is sold, price
+Romaine, case of 24 heads, 38.50 dollars a case
+Strawberries, flat of 8 quarts, 27.00 dollars a flat
+Roma tomatoes, by the pound, 2.15 dollars a pound
+Yellow onions, sack of 50 pounds, 31.00 dollars a sack
+Russet potatoes, case of 50 pounds, 29.50 dollars a case
+Lemons, case of 115 lemons, 46.00 dollars a case
+Fresh basil, by the pound, 14.00 dollars a pound
+
+Delivery days: Tuesday, Thursday and Saturday.
+Order by 2 pm the day before the delivery day.
+Minimum order: none. Orders with a subtotal under 150.00 dollars pay a 25.00 dollar delivery fee.
