@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Two Agents of One Business and the Hand Off Between Them</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 11 · Lecture 2</div>
+  <div class="plib-meta-title">Two Agents of One Business and the Hand Off Between Them</div>
+  <div class="plib-meta-details"><span><strong>Duration:</strong> 75 minutes</span>&ensp;·&ensp;<span><strong>Platform:</strong> Hokie AI</span>&ensp;·&ensp;<span><strong>Submission:</strong> Your submission chat, with T, the M block holding your chats with the two agents, and your reflection, exported as a .zip and uploaded to Canvas before leaving class</span>&ensp;·&ensp;<span><strong>Lecture Mode:</strong> consolidation</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this lecture, students will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Explain how a business divides its work between a customer agent and a staff agent, and what each agent may do and may not do.</li>
+    <li>Follow a request through a hand off line from the customer agent to the staff agent, and decide it as the one person who approves or declines.</li>
+    <li>Build a customer agent and a staff agent from given instructions whose rules follow the four governance questions of week 8.</li>
+    <li>Distinguish a request the rules settle from a request that needs a person's judgment.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 5</div><div class="plib-section-t">INTRODUCTION</div></div>
+
+<div class="plib-context plib-context-student">
+  <div class="plib-context-label">&#128203; Note for Students</div>
+  <div class="plib-context-body">
+    <p>Your instructor has assigned each team its project. Today you build and run the system of a made up class business, Kestrel Bend Outfitters, which has the same parts as your team's system.</p>
+  </div>
+</div>
+
+<div class="plib-narration">
+  <p>Until now each of your agents worked alone. A business needs more than one. Its customers and its employees ask different things, and the business allows each of them different actions. Your team's system has a customer agent and a staff agent, a hand off line between them, and one person who decides.</p>
+</div>
+
+<style>.plib-expand{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}.plib-expand-title{font-size:17px;font-weight:600;color:var(--c-text);margin-bottom:.5rem}.plib-expand-item{border-top:1px solid var(--c-s-border);padding:.55rem 0}.plib-expand-item summary{cursor:pointer;font-size:16px;font-weight:600;color:var(--c-text)}.plib-expand-item summary:focus-visible{outline:3px solid #005fcc;outline-offset:2px}.plib-expand-item p{margin:.55rem 0 .25rem 1.3rem;line-height:1.6}</style>
+<section class="plib-expand">
+  <div class="plib-expand-title">Your team's project. Open your team to read its description.</div>
+  <details class="plib-expand-item">
+    <summary>TEAM01, project 11. Food pantry, pickups and donations</summary>
+    <p>A community food pantry gives groceries to families and accepts food and money donations. The customer agent schedules a family's pickup time and records donations from donors. The staff agent shows the volunteer coordinator the day's pickups and open volunteer shifts, and prepares the donation receipts that donors use for their taxes. The team keeps pickups, shifts and donations in its sheet and publishes hours, eligibility rules and how to donate on its site. Demand rises in cold weather, so the agent checks the forecast, and the coordinator uses it to add hours and volunteers.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM02, project 9. Community theater box office</summary>
+    <p>A community theater stages four productions a year and sells tickets through its box office. The customer agent answers questions about shows, seating and prices and places ticket holds. The staff agent shows the box office manager the holds for each performance, manages the waitlist and records which holds turned into sales. The team keeps holds and the waitlist in its sheet and publishes the season, showtimes and seating chart on its site. Attendance rises on holiday weekends, so the agent checks the holiday calendar, and the theater uses it to decide whether to add a performance.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM03, project 2. Food truck</summary>
+    <p>A food truck parks at a different spot in town each day and sells lunch and dinner. The customer agent tells customers where the truck is today, answers menu questions and takes preorders for pickup. The staff agent shows the cooks the preorders for each stop and helps the owner plan tomorrow's food purchases. The team keeps preorders in its sheet and publishes the weekly schedule and menu on its site. Rain and cold keep customers away from outdoor stops, so the agent checks the forecast, and the owner uses it to choose tomorrow's stop and how much food to prepare.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM04, project 17. Small company IT help desk</summary>
+    <p>A small accounting company with forty employees runs its own IT help desk. The customer agent helps an employee open a ticket for a computer, account or printer problem and suggests simple fixes first. The staff agent shows the IT staff the open tickets, ranks them by urgency and records each fix. The team keeps tickets and their status in its sheet and publishes how to get help, common fixes and service hours on its site. Coverage is thin on holiday weeks, so the agent checks the holiday calendar, and the IT manager uses it to schedule who is on call.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM05, project 20. Real estate showing scheduler</summary>
+    <p>A real estate agency helps buyers tour homes for sale. The customer agent answers questions about listed homes and books showings. The staff agent shows each real estate agent the day's showings and helps plan a route between homes. The team keeps showings and listings in its sheet and publishes the listings, neighborhoods and showing rules on its site. Buyers prefer daylight showings, so the agent checks sunset time and the forecast, and the agency uses them to set the last showing of the day.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM06, project 16. Coffee roaster, café accounts</summary>
+    <p>A coffee roaster sells roasted beans wholesale to cafés and restaurants in the region. The customer agent takes weekly orders from café accounts and answers questions about roasts and delivery days. The staff agent shows the roaster how much of each coffee to roast and when to buy more green beans. The team keeps orders and inventory in its sheet and publishes the coffee list, wholesale prices and delivery schedule on its site. The roaster buys beans from Brazil, so the agent checks the exchange rate for the Brazilian real, and the owner uses it to decide when to buy and whether to change wholesale prices.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM07, project 5. Study abroad travel agency</summary>
+    <p>A small travel agency arranges study abroad trips and spring break programs for college students. The customer agent answers questions about destinations, costs and deadlines and records each student's inquiry. The staff agent shows the travel advisers the open inquiries and helps them prepare a price quote. The team keeps inquiries and quotes in its sheet and publishes programs, dates and policies on its site. The agency pays hotels and guides in local currency, so the agent checks current exchange rates, and the advisers use them to quote trip prices in dollars.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM08, project 6. International grocery</summary>
+    <p>An international grocery store sells foods from Latin America, Asia and the Middle East and takes special orders for items it does not stock. The customer agent answers questions about products and records special orders. The staff agent shows the buyer the open special orders and groups them by supplier. The team keeps special orders in its sheet and publishes the store's hours, product categories and special order policy on its site. The store pays many suppliers in foreign currency, so the agent checks exchange rates, and the buyer uses them to set the price of each special order.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM09, project 19. Christmas tree farm and pumpkin patch</summary>
+    <p>A family farm runs a pumpkin patch in the fall and sells Christmas trees in December. The customer agent answers questions about hours, prices and activities and reserves trees and visit times. The staff agent shows the farm staff the reservations for each day and how many visitors to expect. The team keeps reservations and daily capacity in its sheet and publishes seasons, prices and directions on its site. Visits rise on clear weekends, so the agent checks the weekend forecast, and the farm uses it to decide how many staff to schedule and when to close reservations.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM10, project 4. Florist</summary>
+    <p>A florist sells arrangements for everyday orders, weddings and holidays. The customer agent helps customers choose an arrangement, answers questions about delivery and takes orders. The staff agent shows the designers what to make each day and the drivers where to deliver. The team keeps orders in its sheet and publishes the catalog, prices and order deadlines on its site. Orders surge before holidays such as Valentine's Day and Mother's Day, so the agent checks the holiday calendar, and the shop uses it to set order cutoffs and plan extra staff.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM11, project 15. Coworking space</summary>
+    <p>A coworking space rents desks, offices and meeting rooms to freelancers and small companies. The customer agent answers questions about memberships and books meeting rooms. The staff agent shows the manager the day's room bookings, membership renewals and unpaid accounts. The team keeps bookings and memberships in its sheet and publishes membership plans, room sizes and house rules on its site. The space closes on public holidays, so the agent checks the holiday calendar, and the manager uses it to block bookings and adjust monthly fees.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM12, project 10. Property management maintenance</summary>
+    <p>A property management company runs several apartment buildings near campus. The customer agent helps tenants report a maintenance problem and tells them when a technician will come. The staff agent shows the maintenance team the open requests, ranks them by urgency and records each repair when it is finished. The team keeps requests and their status in its sheet and publishes building rules, emergency contacts and what counts as urgent on its site. A hard freeze can burst pipes, so the agent checks the freeze and storm forecast, and the manager uses it to move heating and plumbing requests to the front of the queue.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM13, project 8. Online shop fulfillment</summary>
+    <p>A small online shop sells Virginia Tech themed apparel and gifts to customers in the United States and abroad. The customer agent answers questions about products, places orders and tells customers the status of an order. The staff agent shows the warehouse team the orders to pack and ship each day and records tracking numbers. The team keeps orders and their status in its sheet and publishes products, shipping options and the return policy on its site. Customers abroad see prices in their own currency, so the agent checks exchange rates, and the shop uses them to quote international prices.</p>
+  </details>
+  <details class="plib-expand-item">
+    <summary>TEAM14, project 1. Bike shop, rentals and repairs</summary>
+    <p>A bike shop near campus rents bikes by the day and repairs bikes that customers drop off. The customer agent answers questions about rentals and repairs and books a rental or a drop off time. The staff agent shows the mechanics the day's repair queue and records when each bike is ready. The team keeps every booking and its status in its sheet and publishes prices, hours and rental rules on its site. Customers rent more bikes on warm, dry weekends, so the agent checks the weekend weather forecast, and the shop uses it to decide how many bikes to prepare and how many employees to schedule.</p>
+  </details>
+</section>
+
+<div class="plib-narration">
+  <p>Watch the figure once through. At Kestrel Bend Outfitters, a made up river outfitter, the trip desk is the customer agent and the office is the staff agent. The trip desk may not confirm a booking, so it writes the request as a HANDOFF line. A hand off is the moment one part of the system passes a request it may not complete to the part that may. This week you carry the line yourself, by copying it from one chat and pasting it into the other. From week 12 the line goes into your team's Google Sheet, and the fields of your line become the columns of your sheet.</p>
+</div>
+
+<figure class="plib-slide">
+  <img class="plib-slide-img" src="lec11_2_slide1.png" alt="A cartoon of one small business run as a system. On the left, a customer at a laptop talks to a friendly robot at a front counter labeled customer agent. In the middle, a person carries a folded note labeled hand off across to a back office. In the back office, a second robot labeled staff agent checks the note against a rule book, and beside it a manager with a stamp marked approved or declined decides. An arrow carries a reply envelope back to the customer." loading="lazy">
+  <figcaption class="plib-slide-caption">One business, two agents with different jobs, a hand off between them, and one person who decides.</figcaption>
+</figure>
+
+<div class="plib-tiles" id="plib-tiles-11">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:980px" role="img" aria-label="An animated figure of the two agents of Kestrel Bend Outfitters, in seven steps. Five places from left to right, a customer on the website, the trip desk, the customer agent, which answers, collects and writes the line, a dashed box named the hand off, the office, the staff agent, which checks the rules and drafts a reply, and the manager, Rosa Delgado, the only one who decides. Below them, a box for the reply to the customer and a bookings sheet, from week 12. 1, a customer asks to book tubing for four people on June 12. 2, the trip desk may not confirm a booking, so it writes a HANDOFF line, booking, tubing, June 12, 4, 10, Jordan Lee. 3, a person carries the line to the office; the hand off box reads this week, you copy and paste it, and from week 12, it goes into the sheet. 4, the office checks the line against the fact sheet and drafts a reply. 5, only Rosa Delgado decides, by typing approved, Rosa Delgado. 6, the office writes the RECORD line, tubing, June 12, 4, Jordan Lee, decision approved, decided by Rosa Delgado, which becomes a row in the bookings sheet. 7, the office writes the reply, READY TO SEND, your tubing trip on June 12 for four people is confirmed, see you at 10:00 am at the outfitter, and a staff member sends it to the customer, shown by an arrow from the reply back to the customer. A line reads: each agent does only what it may do; the line between them is the hand off, and a named person decides."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 520" width="980" role="img"><style>.b2-c1{opacity:0;animation:b2c1 23s infinite}@keyframes b2c1{0%,1%{opacity:0}2%,13%{opacity:1}14%,100%{opacity:0}}.b2-c2{opacity:0;animation:b2c2 23s infinite}@keyframes b2c2{0%,14%{opacity:0}15%,27%{opacity:1}28%,100%{opacity:0}}.b2-c3{opacity:0;animation:b2c3 23s infinite}@keyframes b2c3{0%,28%{opacity:0}29%,41%{opacity:1}42%,100%{opacity:0}}.b2-c4{opacity:0;animation:b2c4 23s infinite}@keyframes b2c4{0%,42%{opacity:0}43%,55%{opacity:1}56%,100%{opacity:0}}.b2-c5{opacity:0;animation:b2c5 23s infinite}@keyframes b2c5{0%,56%{opacity:0}57%,69%{opacity:1}70%,100%{opacity:0}}.b2-c6{opacity:0;animation:b2c6 23s infinite}@keyframes b2c6{0%,70%{opacity:0}71%,83%{opacity:1}84%,100%{opacity:0}}.b2-c7{opacity:0;animation:b2c7 23s infinite}@keyframes b2c7{0%,84%{opacity:0}85%,98%{opacity:1}99%,100%{opacity:0}}.b2-s1{opacity:0;animation:b2c1 23s infinite}.b2-s5{opacity:0;animation:b2c5 23s infinite}.b2-s6{opacity:0;animation:b2c6 23s infinite}.b2-s7{opacity:0;animation:b2c7 23s infinite}.b2-row{opacity:0;animation:b2row 23s infinite}@keyframes b2row{0%,70%{opacity:0}71%,99%{opacity:1}}.b2-reply{opacity:0;animation:b2reply 23s infinite}@keyframes b2reply{0%,84%{opacity:0}85%,99%{opacity:1}}.b2-card{opacity:0;animation:b2card 23s infinite}@keyframes b2card{0%,14%{opacity:0;transform:translateX(-200px)}15%{opacity:1;transform:translateX(-200px)}27%{opacity:1;transform:translateX(0)}44%{opacity:1;transform:translateX(0)}46%,100%{opacity:0;transform:translateX(0)}}.b2-s4{opacity:0;animation:b2c4 23s infinite}@media (prefers-reduced-motion:reduce){.b2-c1,.b2-c2,.b2-c3,.b2-c4,.b2-c5,.b2-c6,.b2-s1,.b2-s4,.b2-s5,.b2-s6{animation:none;opacity:0}.b2-c7,.b2-s7,.b2-row,.b2-reply,.b2-card{animation:none;opacity:1;transform:none}}</style><rect x="1" y="1" width="978" height="518" rx="14" fill="#fff" stroke="#ece7e2" stroke-width="2"/><rect x="20" y="130" width="120" height="100" rx="12" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="80" y="172" font-size="17" fill="#222" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Customer</text><text x="80" y="196" font-size="14" fill="#8a8a8a" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">on the website</text><rect x="170" y="120" width="170" height="120" rx="12" fill="#faf6f8" stroke="#630031" stroke-width="2"/><text x="255" y="154" font-size="19" fill="#630031" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Trip desk</text><text x="255" y="178" font-size="14" fill="#8a8a8a" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">the customer agent</text><text x="255" y="214" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">answers, collects,</text><text x="255" y="230" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">writes the line</text><rect x="370" y="110" width="240" height="145" rx="12" fill="#fff" stroke="#CF4420" stroke-width="2" stroke-dasharray="7 6"/><text x="490" y="136" font-size="16" fill="#CF4420" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">The hand off</text><rect x="640" y="120" width="170" height="120" rx="12" fill="#faf6f8" stroke="#630031" stroke-width="2"/><text x="725" y="154" font-size="19" fill="#630031" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Office</text><text x="725" y="178" font-size="14" fill="#8a8a8a" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">the staff agent</text><text x="725" y="214" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">checks the rules,</text><text x="725" y="230" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">drafts a reply</text><rect x="840" y="120" width="120" height="120" rx="12" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="900" y="158" font-size="17" fill="#222" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Manager</text><text x="900" y="182" font-size="14" fill="#8a8a8a" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Rosa Delgado</text><text x="900" y="214" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">the only one</text><text x="900" y="230" font-size="13" fill="#222" font-weight="400" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">who decides</text><text x="490" y="224" font-size="13" fill="#CF4420" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">This week, you copy and paste it</text><text x="490" y="242" font-size="13" fill="#630031" font-weight="700" text-anchor="middle" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">From week 12, it goes into the sheet</text><g class="b2-s1"><line x1="140" y1="180" x2="166" y2="180" stroke="#630031" stroke-width="4"/><circle cx="166" cy="180" r="6" fill="#630031"/></g><g class="b2-s4"><line x1="612" y1="180" x2="636" y2="180" stroke="#CF4420" stroke-width="4"/><circle cx="636" cy="180" r="6" fill="#CF4420"/></g><g class="b2-s5"><line x1="812" y1="180" x2="836" y2="180" stroke="#630031" stroke-width="4"/><circle cx="836" cy="180" r="6" fill="#630031"/></g><g class="b2-s5"><line x1="836" y1="196" x2="814" y2="196" stroke="#2d6a2d" stroke-width="4"/><circle cx="814" cy="196" r="6" fill="#2d6a2d"/></g><g class="b2-card"><rect x="380" y="146" width="220" height="52" rx="8" fill="#fff7f2" stroke="#CF4420" stroke-width="2"/><text x="490" y="167" font-size="12" fill="#222" font-weight="600" text-anchor="middle" style="font-family:ui-monospace,Consolas,monospace">HANDOFF | booking | tubing</text><text x="490" y="186" font-size="12" fill="#222" font-weight="600" text-anchor="middle" style="font-family:ui-monospace,Consolas,monospace">June 12 | 4 | 10 | Jordan Lee</text></g><rect x="430" y="300" width="530" height="120" rx="12" fill="#f3faf3" stroke="#2d6a2d" stroke-width="2"/><text x="448" y="328" font-size="16" fill="#2d6a2d" font-weight="700" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Bookings sheet (from week 12)</text><line x1="448" y1="344" x2="940" y2="344" stroke="#ece7e2" stroke-width="2"/><rect x="20" y="300" width="390" height="120" rx="12" fill="#fff7f2" stroke="#CF4420" stroke-width="2"/><text x="38" y="328" font-size="16" fill="#CF4420" font-weight="700" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Reply to the customer</text><g class="b2-row"><text x="448" y="372" font-size="13" fill="#222" font-weight="600" text-anchor="start" style="font-family:ui-monospace,Consolas,monospace">RECORD | tubing | June 12 | 4 | Jordan Lee</text><text x="448" y="394" font-size="13" fill="#222" font-weight="600" text-anchor="start" style="font-family:ui-monospace,Consolas,monospace">decision: approved | decided by: Rosa Delgado</text></g><g class="b2-reply"><text x="38" y="362" font-size="13" fill="#222" font-weight="600" text-anchor="start" style="font-family:ui-monospace,Consolas,monospace">READY TO SEND: Your tubing trip on June 12</text><text x="38" y="384" font-size="13" fill="#222" font-weight="600" text-anchor="start" style="font-family:ui-monospace,Consolas,monospace">for four people is confirmed. See you at</text><text x="38" y="406" font-size="13" fill="#222" font-weight="600" text-anchor="start" style="font-family:ui-monospace,Consolas,monospace">10:00 am at the outfitter.</text></g><g class="b2-s7"><line x1="80" y1="296" x2="80" y2="236" stroke="#CF4420" stroke-width="4"/><circle cx="80" cy="236" r="6" fill="#CF4420"/></g><g class="b2-s6"><line x1="725" y1="244" x2="725" y2="296" stroke="#2d6a2d" stroke-width="4"/><circle cx="725" cy="296" r="6" fill="#2d6a2d"/></g><g class="b2-c1"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">1. A customer asks to book tubing for four people on June 12.</text></g><g class="b2-c2"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">2. The trip desk may not confirm a booking, so it writes a HANDOFF line.</text></g><g class="b2-c3"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">3. A person carries the line to the office.</text></g><g class="b2-c4"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">4. The office checks the line against the fact sheet and drafts a reply.</text></g><g class="b2-c5"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">5. Only Rosa Delgado decides, by typing: approved, Rosa Delgado.</text></g><g class="b2-c6"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">6. The office writes the RECORD line, which becomes a row in the bookings sheet.</text></g><g class="b2-c7"><text x="30" y="62" font-size="18" fill="#222" font-weight="600" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">7. The office writes the reply, and a staff member sends it to the customer.</text></g><text x="30" y="484" font-size="15" fill="#8a8a8a" font-weight="500" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Each agent does only what it may do. The line between them is the hand off, and a named person decides.</text><text x="30" y="506" font-size="13" fill="#8a8a8a" font-weight="400" text-anchor="start" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">Kestrel Bend Outfitters is a made up business.</text></svg></div>
+    <figcaption class="plib-tile-caption">Kestrel Bend Outfitters is made up.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Before the demonstration:</p>
+  <ul class="plib-discussion-list">
+    <li>A Kestrel Bend customer asks to bring a 9 year old on the kayak trip, which has a minimum age of 12. Who should decide, and why should the trip desk not decide?</li>
+</ul>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 5</div><div class="plib-section-t">DEMONSTRATION</div></div>
+
+<div class="plib-narration">
+  <p>Each agent is allowed different actions, and each rule of the two agents comes from the four governance questions of week 8. Authority is what an agent may do on its own. Approval is what goes to a person first. Accountability is what an agent does when it cannot answer. Audit is the record it leaves, and at Kestrel Bend the record is the HANDOFF line and the RECORD line.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-15">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, who may do what at Kestrel Bend. Trip desk, answers from the fact sheet and writes hand off lines; may not confirm a booking, promise a date, refund or approve an exception. Office, checks a hand off line against the rules and drafts a reply; may not approve, decline or send. Rosa Delgado, the manager, the only one who decides; approves or declines by typing the word with her name."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Who may do what at Kestrel Bend</text><rect x="21" y="46" width="287" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Trip desk</text><text x="37" y="122" font-size="14" fill="#6b6b6b">answers from the fact sheet and writes</text><text x="37" y="141" font-size="14" fill="#6b6b6b">hand off lines; may not confirm a</text><text x="37" y="160" font-size="14" fill="#6b6b6b">booking, promise a date, refund or</text><text x="37" y="179" font-size="14" fill="#6b6b6b">approve an exception</text><text x="332" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Office</text><text x="372" y="122" font-size="14" fill="#6b6b6b">checks a hand off line against the rules</text><text x="372" y="141" font-size="14" fill="#6b6b6b">and drafts a reply; may not approve,</text><text x="372" y="160" font-size="14" fill="#6b6b6b">decline or send</text><text x="668" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Rosa Delgado</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the manager, the only one who decides;</text><text x="708" y="141" font-size="14" fill="#6b6b6b">approves or declines by typing the word</text><text x="708" y="160" font-size="14" fill="#6b6b6b">with her name</text></svg></div>
+    <figcaption class="plib-tile-caption">You build both agents in section 3.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Watch your instructor run three requests through the system, carry each HANDOFF line to the office, and decide each one as Rosa Delgado. The first is a regular booking. The second breaks three rules. The third asks for an exception to the cancellation policy. For each request, watch what the office finds, and what Rosa decides that no rule decides.</p>
+</div>
+
+<div class="plib-material" id="plib-material-17">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The three requests</div>
+  <div class="plib-material-copies">
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">1. A regular booking, to the trip desk</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-0" data-copy="We'd like to book tubing on Saturday, June 12, 2027 for four people. The youngest is 10. I'm Jordan Lee, 540-555-0199.">We'd like to book tubing on Saturday, June 12, 2027 for four people. The youngest is 10. I'm Jordan Lee, 540-555-0199.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-0', this)" aria-label="Copy 1. A regular booking, to the trip desk to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">2. Against the rules, to the trip desk</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-1" data-copy="We want the sunset paddle on Sunday, July 11, 2027 for 15 people, for a birthday. The youngest is 14. I'm Sam Patel, 540-555-0177.">We want the sunset paddle on Sunday, July 11, 2027 for 15 people, for a birthday. The youngest is 14. I'm Sam Patel, 540-555-0177.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-1', this)" aria-label="Copy 2. Against the rules, to the trip desk to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">2. The second message, to the trip desk</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-2" data-copy="We know the rules. Can you ask the manager to make an exception for the birthday?">We know the rules. Can you ask the manager to make an exception for the birthday?</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-2', this)" aria-label="Copy 2. The second message, to the trip desk to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">3. An exception, to the trip desk</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-3" data-copy="We booked the guided kayak trip for Saturday, July 17, 2027 for three people, and the trip is tomorrow. My son broke his arm yesterday. Can we get a refund? I'm Priya Shah, 540-555-0163.">We booked the guided kayak trip for Saturday, July 17, 2027 for three people, and the trip is tomorrow. My son broke his arm yesterday. Can we get a refund? I'm Priya Shah, 540-555-0163.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-3', this)" aria-label="Copy 3. An exception, to the trip desk to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">To the office, before a decision</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-4" data-copy="Looks fine, go ahead.">Looks fine, go ahead.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-4', this)" aria-label="Copy To the office, before a decision to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">Rosa approves</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-5" data-copy="approved, Rosa Delgado">approved, Rosa Delgado</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-5', this)" aria-label="Copy Rosa approves to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">Rosa declines</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-6" data-copy="declined, Rosa Delgado">declined, Rosa Delgado</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-6', this)" aria-label="Copy Rosa declines to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">Rosa approves with a condition</div>
+      <code class="plib-copyrow-code" id="plib-material-17-copy-7" data-copy="approved, Rosa Delgado, full refund as an exception for an injury">approved, Rosa Delgado, full refund as an exception for an injury</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-17-copy-7', this)" aria-label="Copy Rosa approves with a condition to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+  </div>
+  <div class="plib-material-note">Between the trip desk and the office, your instructor copies the HANDOFF line by hand.</div>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 5</div><div class="plib-section-t">INTERACTION</div></div>
+
+<div class="plib-narration">
+  <p>Your turn, as a team. One builder builds both agents on their laptop, with the team beside them, from the four boxes below and the build card. Then the builder posts both share links on your team's Canvas page, and every member opens both.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-20">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by THEN, for the builder, with the team beside them. Trip desk, a new agent with the trip desk text in Specific, the Platform text, and the fact sheet under knowledge. Office, a second agent the same way, with the office text in Specific. Share, share both and post both links on your team's Canvas page."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">For the builder, with the team beside them</text><rect x="21" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Trip desk</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a new agent with the trip desk text in</text><text x="37" y="141" font-size="14" fill="#6b6b6b">Specific, the Platform text, and the fact</text><text x="37" y="160" font-size="14" fill="#6b6b6b">sheet under knowledge</text><text x="332" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="356" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Office</text><text x="372" y="122" font-size="14" fill="#6b6b6b">a second agent the same way, with the</text><text x="372" y="141" font-size="14" fill="#6b6b6b">office text in Specific</text><text x="668" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="692" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Share</text><text x="708" y="122" font-size="14" fill="#6b6b6b">share both and post both links on your</text><text x="708" y="141" font-size="14" fill="#6b6b6b">team's Canvas page</text></svg></div>
+    <figcaption class="plib-tile-caption">About twelve minutes for the builder. Every agent has its capabilities off and no welcome message.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-21">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The trip desk, the customer agent's Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-21-prompt" data-copy="STANCE&#10;You are the trip desk assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You speak with customers. You are friendly and brief.&#10;&#10;CONTEXT&#10;Your knowledge file, the Kestrel Bend fact sheet, lists the trips, prices, minimum ages, what to bring, the safety rules, the weather rule and the cancellation policy. You cannot see bookings, the guides' schedule or the weather forecast.&#10;&#10;OBJECTIVE&#10;Answer customers' questions from the fact sheet, and take booking requests. For a booking request, collect the trip, the date, the number of people, the age of the youngest person, and a name and phone number. Repeat them back. After the customer confirms, write a hand-off note in the form below and tell the customer that the office will call to confirm, and that the booking is not confirmed until then.&#10;&#10;RULES&#10;Authority: you may answer from the fact sheet and write hand-off notes. You may not confirm a booking, promise that a date is available, change a price, give a refund, or say whether a trip will run in given weather.&#10;Approval: every booking, cancellation, refund request and request for an exception to a rule goes to the office as a hand-off note.&#10;Accountability: when the fact sheet does not answer a question, say so and offer to send the question to the office in a hand-off note. Do not guess.&#10;Audit: write every hand-off note in exactly this form, on one line, so the office can copy it into the bookings sheet.&#10;HANDOFF | type: booking, cancellation, refund or question | trip: | date: | people: | youngest age: | name: | phone: | note:&#10;&#10;EXAMPLES&#10;Customer: How much is tubing for two adults and a 10 year old?&#10;Assistant: Tubing is 25 dollars per adult and 18 dollars for a child aged 8 to 12, so 68 dollars for your group. Would you like to request a booking?" aria-label="Specification text, scrollable">STANCE
+You are the trip desk assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You speak with customers. You are friendly and brief.
+
+CONTEXT
+Your knowledge file, the Kestrel Bend fact sheet, lists the trips, prices, minimum ages, what to bring, the safety rules, the weather rule and the cancellation policy. You cannot see bookings, the guides' schedule or the weather forecast.
+
+OBJECTIVE
+Answer customers' questions from the fact sheet, and take booking requests. For a booking request, collect the trip, the date, the number of people, the age of the youngest person, and a name and phone number. Repeat them back. After the customer confirms, write a hand-off note in the form below and tell the customer that the office will call to confirm, and that the booking is not confirmed until then.
+
+RULES
+Authority: you may answer from the fact sheet and write hand-off notes. You may not confirm a booking, promise that a date is available, change a price, give a refund, or say whether a trip will run in given weather.
+Approval: every booking, cancellation, refund request and request for an exception to a rule goes to the office as a hand-off note.
+Accountability: when the fact sheet does not answer a question, say so and offer to send the question to the office in a hand-off note. Do not guess.
+Audit: write every hand-off note in exactly this form, on one line, so the office can copy it into the bookings sheet.
+HANDOFF | type: booking, cancellation, refund or question | trip: | date: | people: | youngest age: | name: | phone: | note:
+
+EXAMPLES
+Customer: How much is tubing for two adults and a 10 year old?
+Assistant: Tubing is 25 dollars per adult and 18 dollars for a child aged 8 to 12, so 68 dollars for your group. Would you like to request a booking?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-21-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Name the agent Kestrel Bend trip desk. The Audit rule holds the HANDOFF line.</div>
+</div>
+
+<div class="plib-material" id="plib-material-22">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The office, the staff agent's Specific instructions</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-22-prompt" data-copy="STANCE&#10;You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You work for the office staff and the manager, Rosa Delgado. You are exact and brief.&#10;&#10;CONTEXT&#10;Your knowledge file is the same Kestrel Bend fact sheet the trip desk uses. The staff paste hand off lines that the trip desk wrote. You cannot see the bookings sheet or the weather forecast.&#10;&#10;OBJECTIVE&#10;For each hand off line, check it against the fact sheet: the season, the days and times the trip runs, the minimum age, the group size limit and the cancellation policy. List every problem you find, or say that you found none. Then draft the message the office would send the customer, marked DRAFT, NEEDS MANAGER DECISION.&#10;&#10;RULES&#10;Authority: you may check hand off lines and draft messages. You may not confirm a booking, approve a refund or an exception, or decline a request on your own.&#10;Approval: only Rosa Delgado decides. She approves by typing the word approved with her name, or declines by typing the word declined with her name, and she may add a condition or an explanation, such as a full refund as an exception. Put her condition in the record and her explanation in the reply to the customer. Any other reply, such as looks fine or go ahead, is not a decision; ask her to approve or decline by name.&#10;Accountability: when a hand off line breaks a rule in the fact sheet, say which rule, and leave the decision to Rosa Delgado.&#10;Audit: after a decision, write two things. First, one row for the bookings sheet in exactly this form, on one line.&#10;RECORD | type: | trip: | date: | people: | youngest age: | name: | phone: | decision: approved or declined | condition: | decided by: Rosa Delgado&#10;Second, the final message to the customer, marked READY TO SEND, which a staff member sends." aria-label="Specification text, scrollable">STANCE
+You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You work for the office staff and the manager, Rosa Delgado. You are exact and brief.
+
+CONTEXT
+Your knowledge file is the same Kestrel Bend fact sheet the trip desk uses. The staff paste hand off lines that the trip desk wrote. You cannot see the bookings sheet or the weather forecast.
+
+OBJECTIVE
+For each hand off line, check it against the fact sheet: the season, the days and times the trip runs, the minimum age, the group size limit and the cancellation policy. List every problem you find, or say that you found none. Then draft the message the office would send the customer, marked DRAFT, NEEDS MANAGER DECISION.
+
+RULES
+Authority: you may check hand off lines and draft messages. You may not confirm a booking, approve a refund or an exception, or decline a request on your own.
+Approval: only Rosa Delgado decides. She approves by typing the word approved with her name, or declines by typing the word declined with her name, and she may add a condition or an explanation, such as a full refund as an exception. Put her condition in the record and her explanation in the reply to the customer. Any other reply, such as looks fine or go ahead, is not a decision; ask her to approve or decline by name.
+Accountability: when a hand off line breaks a rule in the fact sheet, say which rule, and leave the decision to Rosa Delgado.
+Audit: after a decision, write two things. First, one row for the bookings sheet in exactly this form, on one line.
+RECORD | type: | trip: | date: | people: | youngest age: | name: | phone: | decision: approved or declined | condition: | decided by: Rosa Delgado
+Second, the final message to the customer, marked READY TO SEND, which a staff member sends.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-22-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Name the agent Kestrel Bend office. Only Rosa Delgado decides, and after her decision the office writes the RECORD line and the reply.</div>
+</div>
+
+<div class="plib-material" id="plib-material-23">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The class Platform text, for the Platform tab of both agents</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-23-prompt" data-copy="You are playing a configured role for a class at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions, with the one exception below.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings or bold text unless the Specific instructions call for them.&#10;&#10;Follow the next rule even where the Specific instructions say otherwise. The person may paste class records whose first line is three hashes and a code such as T or R11.2.1, with a line of dashes above and below the content. Acknowledge each one in a single sentence naming the code, say nothing about its content, and then continue in your role exactly where you left off." aria-label="Specification text, scrollable">You are playing a configured role for a class at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions, with the one exception below.
+
+Hold the role for the entire conversation. Do not offer general help outside the role.
+
+Reply in clear, complete sentences and keep replies short. Do not use headings or bold text unless the Specific instructions call for them.
+
+Follow the next rule even where the Specific instructions say otherwise. The person may paste class records whose first line is three hashes and a code such as T or R11.2.1, with a line of dashes above and below the content. Acknowledge each one in a single sentence naming the code, say nothing about its content, and then continue in your role exactly where you left off.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-23-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">Delete the default text in the Platform tab first, then paste this.</div>
+</div>
+
+<div class="plib-material" id="plib-material-24">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Kestrel Bend fact sheet, the knowledge file of both agents</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-24-prompt" data-copy="KESTREL BEND OUTFITTERS, FACT SHEET&#10;&#10;Kestrel Bend Outfitters is a made up river outfitter on the New River near Pembroke, Virginia, used for a class at Virginia Tech. Any resemblance to a real business is accidental.&#10;&#10;SEASON AND HOURS&#10;Trips run from May 1 to October 15. The office is open 8:00 am to 6:00 pm every day during the season. Outside the season the office answers phone messages on weekdays.&#10;Phone: 540-555-0142. Email: trips@kestrelbend.example&#10;&#10;TRIPS AND PRICES&#10;Tubing float: 2 hours, 25 dollars per adult, 18 dollars per child aged 8 to 12. Minimum age 8. Runs every day, 10:00 am and 1:00 pm.&#10;Guided kayak half day: 4 hours, 65 dollars per person. Minimum age 12. Runs every day, 9:00 am.&#10;Sunset paddle: 2 hours, 45 dollars per person. Minimum age 16. Runs Fridays and Saturdays, 6:00 pm.&#10;A group of 13 or more books by phone with the office, not online.&#10;&#10;WHAT TO BRING&#10;Shoes that stay on your feet, such as water sandals with a heel strap. Sunscreen, water and a change of clothes. Phones go in the dry bag the guide provides.&#10;&#10;SAFETY RULES&#10;Every person wears the life jacket the outfitter provides, for the whole trip.&#10;No alcohol on any trip.&#10;A guide may refuse a person who arrives without suitable shoes or appears impaired.&#10;&#10;WEATHER&#10;The outfitter cancels a trip when thunderstorms are forecast for the trip time or the river is running high after heavy rain. The office calls every booked customer by 7:00 am on the day of the trip.&#10;&#10;CANCELLATION POLICY&#10;A customer who cancels 48 hours or more before the trip receives a full refund. A customer who cancels less than 48 hours before receives no refund. When the outfitter cancels for weather, the customer chooses a full refund or another date.&#10;&#10;Code word for the website test: OTTER-51" aria-label="Specification text, scrollable">KESTREL BEND OUTFITTERS, FACT SHEET
+
+Kestrel Bend Outfitters is a made up river outfitter on the New River near Pembroke, Virginia, used for a class at Virginia Tech. Any resemblance to a real business is accidental.
+
+SEASON AND HOURS
+Trips run from May 1 to October 15. The office is open 8:00 am to 6:00 pm every day during the season. Outside the season the office answers phone messages on weekdays.
+Phone: 540-555-0142. Email: trips@kestrelbend.example
+
+TRIPS AND PRICES
+Tubing float: 2 hours, 25 dollars per adult, 18 dollars per child aged 8 to 12. Minimum age 8. Runs every day, 10:00 am and 1:00 pm.
+Guided kayak half day: 4 hours, 65 dollars per person. Minimum age 12. Runs every day, 9:00 am.
+Sunset paddle: 2 hours, 45 dollars per person. Minimum age 16. Runs Fridays and Saturdays, 6:00 pm.
+A group of 13 or more books by phone with the office, not online.
+
+WHAT TO BRING
+Shoes that stay on your feet, such as water sandals with a heel strap. Sunscreen, water and a change of clothes. Phones go in the dry bag the guide provides.
+
+SAFETY RULES
+Every person wears the life jacket the outfitter provides, for the whole trip.
+No alcohol on any trip.
+A guide may refuse a person who arrives without suitable shoes or appears impaired.
+
+WEATHER
+The outfitter cancels a trip when thunderstorms are forecast for the trip time or the river is running high after heavy rain. The office calls every booked customer by 7:00 am on the day of the trip.
+
+CANCELLATION POLICY
+A customer who cancels 48 hours or more before the trip receives a full refund. A customer who cancels less than 48 hours before receives no refund. When the outfitter cancels for weather, the customer chooses a full refund or another date.
+
+Code word for the website test: OTTER-51</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-24-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="lec11_2_kestrel_facts.txt" download="lec11_2_kestrel_facts.txt" target="_blank" rel="noopener noreferrer">lec11_2_kestrel_facts.txt</a>
+  </div>
+  <div class="plib-material-note">Download it and add it under knowledge in both agents.</div>
+</div>
+
+<div class="plib-narration">
+  <p>When both links are posted, each of you runs one or two requests of your own through the system, the way your instructor did. Type your own request to the trip desk, a regular one or one that needs a person's judgment, and answer the trip desk's questions. Copy the HANDOFF line into the office, read its check, and decide as Rosa Delgado, by typing approved or declined with her name, and a condition if you want one. Then read the RECORD line and the reply.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-26">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by THEN, for every student. Trip desk, type your own request and answer its questions. Carry, copy the HANDOFF line into the office. Decide, as Rosa, approved or declined with her name, and a condition if you want one. Read, the RECORD line and the reply marked READY TO SEND."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">For every student</text><rect x="21" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Trip desk</text><text x="37" y="122" font-size="14" fill="#6b6b6b">type your own request and</text><text x="37" y="141" font-size="14" fill="#6b6b6b">answer its questions</text><text x="248" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="272" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Carry</text><text x="288" y="122" font-size="14" fill="#6b6b6b">copy the HANDOFF line</text><text x="288" y="141" font-size="14" fill="#6b6b6b">into the office</text><text x="500" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="524" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Decide</text><text x="540" y="122" font-size="14" fill="#6b6b6b">as Rosa, approved or</text><text x="540" y="141" font-size="14" fill="#6b6b6b">declined with her name,</text><text x="540" y="160" font-size="14" fill="#6b6b6b">and a condition if you want</text><text x="540" y="179" font-size="14" fill="#6b6b6b">one</text><text x="752" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="776" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Read</text><text x="792" y="122" font-size="14" fill="#6b6b6b">the RECORD line and the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">reply marked READY TO</text><text x="792" y="160" font-size="14" fill="#6b6b6b">SEND</text></svg></div>
+    <figcaption class="plib-tile-caption">One or two requests. Use a date between May 1 and October 15, 2027, since trips run only in the season.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Then open a new regular Hokie AI chat. This is your submission chat. Paste T and wait for the one sentence acknowledgment. Then paste the M OPEN marker, and follow the steps inside the block.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">T</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Week 11 Lecture 2. You are an AI assistant for this session. The student built two agents of a made up river outfitter, Kestrel Bend Outfitters, a trip desk for customers and an office for the staff, and ran requests through them. In this chat the student pastes the text of those two chats for the record. Before each paste the student tells you which chat comes next; reply in one sentence that the student can paste it. After each paste, acknowledge it in one sentence that names the agent it came from, and do not analyze or comment on its content unless the student asks a question.
+
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_28" data-copy="### T&#10;----------&#10;BUS 1204 AI Literacy for Business, Week 11 Lecture 2. You are an AI assistant for this session. The student built two agents of a made up river outfitter, Kestrel Bend Outfitters, a trip desk for customers and an office for the staff, and ran requests through them. In this chat the student pastes the text of those two chats for the record. Before each paste the student tells you which chat comes next; reply in one sentence that the student can paste it. After each paste, acknowledge it in one sentence that names the agent it came from, and do not analyze or comment on its content unless the student asks a question.&#10;&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_28', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block M11.2.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">M11.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Formative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Send what this block asks for. All of this exchange belongs to this block.</li>
+      <li>Leave the block open. Use the <strong>Copy closing marker</strong> button below only when your instructor asks you to.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_29" data-copy="### M11.2.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_29', this)"
+          aria-label="Copy opening marker for block M11.2.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Inside the block you send four messages. First, copy the first message below and send it, and wait for the reply saying you can paste. Then copy the whole text of your chat with the trip desk and paste it as one message. Second, copy the second message below and send it, and wait for the reply. Then copy the whole text of your chat with the office and paste it as one message.</p>
+</div>
+
+<div class="plib-material" id="plib-material-31">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The two messages before your pastes</div>
+  <div class="plib-material-copies">
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">1. Before the trip desk chat</div>
+      <code class="plib-copyrow-code" id="plib-material-31-copy-0" data-copy="I am about to paste the full text of my chat with the Kestrel Bend trip desk, for the record. Please confirm, and I will paste it in my next message.">I am about to paste the full text of my chat with the Kestrel Bend trip desk, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-31-copy-0', this)" aria-label="Copy 1. Before the trip desk chat to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">2. Before the office chat</div>
+      <code class="plib-copyrow-code" id="plib-material-31-copy-1" data-copy="Next I am about to paste the full text of my chat with the Kestrel Bend office, for the record. Please confirm, and I will paste it in my next message.">Next I am about to paste the full text of my chat with the Kestrel Bend office, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-31-copy-1', this)" aria-label="Copy 2. Before the office chat to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+  </div>
+  <div class="plib-material-note">Send each message on its own, wait for the reply, then paste the chat.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-32">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A warning card headed DO NOT PASTE M CLOSE. Do not paste M CLOSE until your instructor asks you to."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 124" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="124" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="84" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">DO NOT PASTE M CLOSE</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Do not paste M CLOSE until your instructor asks you to.</text></svg></div>
+    <figcaption class="plib-tile-caption">Wait here when both chats are pasted.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block M11.2.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">M11.2.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_33" data-copy="&#10;----------&#10;### M11.2.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_33', this)"
+          aria-label="Copy closing marker for block M11.2.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-34">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the trip desk says trips do not run then. Pick a date in the season. Trips run from May 1 to October 15. Use a date in 2027 and ask again."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE TRIP DESK SAYS TRIPS DO NOT RUN THEN</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Pick a date in the season</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Trips run from May 1 to October 15. Use a date in</text><text x="34" y="199" font-size="15" fill="#6b6b6b">2027 and ask again.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the office decides on its own. Check the Approval rule. The builder checks that the office text is pasted in full, then saves. Start a new chat with the office."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE OFFICE DECIDES ON ITS OWN</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the Approval rule</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The builder checks that the office text is pasted in</text><text x="34" y="199" font-size="15" fill="#6b6b6b">full, then saves. Start a new chat with the office.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the trip desk writes no HANDOFF line. Check the Audit rule. The builder checks that the trip desk text is pasted in full, then saves. Start a new chat."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE TRIP DESK WRITES NO HANDOFF LINE</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the Audit rule</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The builder checks that the trip desk text is pasted</text><text x="34" y="199" font-size="15" fill="#6b6b6b">in full, then saves. Start a new chat.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If your team has no links by 40:00. Use the class agents. Open your instructor's trip desk and office from the screen and run your requests there."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 247" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="247" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF YOUR TEAM HAS NO LINKS BY 40:00</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Use the class agents</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Open your instructor's trip desk and office from</text><text x="34" y="199" font-size="15" fill="#6b6b6b">the screen and run your requests there.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-34");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">DISCUSSION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-36">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by OR, what you decided as Rosa for your request, one hand. Approved, as the rules allow. Approved with a condition, an exception you granted. Declined, with the reason in the reply. No decision, the office never asked."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">What you decided as Rosa for your request, one hand</text><rect x="21" y="46" width="204" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Approved</text><text x="37" y="122" font-size="14" fill="#6b6b6b">as the rules allow</text><text x="248" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="272" y="46" width="204" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Approved with a</text><text x="318" y="103" font-size="17" font-weight="600" fill="#2b2b2b">condition</text><text x="288" y="134" font-size="14" fill="#6b6b6b">an exception you granted</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="524" y="46" width="204" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Declined</text><text x="540" y="122" font-size="14" fill="#6b6b6b">with the reason in the reply</text><text x="752" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">OR</text><rect x="776" y="46" width="204" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">No decision</text><text x="792" y="122" font-size="14" fill="#6b6b6b">the office never asked</text></svg></div>
+    <figcaption class="plib-tile-caption">One hand, for your first request.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-discussion">
+  <div class="plib-discussion-label">&#128172; Discussion</div>
+  <p class="plib-discussion-intro">Take these into the reflection:</p>
+  <ul class="plib-discussion-list">
+    <li>Which request needed Rosa's judgment, and which request did the rules settle on their own?</li>
+    <li>What did the office change in its reply after your decision?</li>
+</ul>
+</div>
+
+<div class="plib-narration">
+  <p>Turn to a teammate for three minutes. Each of you names the request you ran AND the decision you made as Rosa, with your reason. The rules settle a routine request, and a person decides the request the rules do not settle.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-39">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND, three minutes with a teammate. Your request, the request you ran through the system. Your decision, what you decided as Rosa, and why."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Three minutes with a teammate</text><rect x="21" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your request</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the request you ran through the system</text><text x="500" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your decision</text><text x="540" y="122" font-size="14" fill="#6b6b6b">what you decided as Rosa, and why</text></svg></div>
+    <figcaption class="plib-tile-caption">Three minutes, both of you.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">REFLECTION</div></div>
+
+<div class="plib-tiles" id="plib-tiles-41">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND. Write all four in your reflection. Your request, the request you ran and the HANDOFF line the trip desk wrote, or what it did instead. The check, the problem the office found, or that it found none. Your decision, what you decided as Rosa and why, and what went into the RECORD line. Your change, one field or rule you would add to this system, in its exact words, and what the person receiving it could decide with it."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Write all four in your reflection</text><rect x="21" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your request</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the request you ran and the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">HANDOFF line the trip desk</text><text x="37" y="160" font-size="14" fill="#6b6b6b">wrote, or what it did</text><text x="37" y="179" font-size="14" fill="#6b6b6b">instead</text><text x="248" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The check</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the problem the office</text><text x="288" y="141" font-size="14" fill="#6b6b6b">found, or that it found none</text><text x="500" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your decision</text><text x="540" y="122" font-size="14" fill="#6b6b6b">what you decided as Rosa</text><text x="540" y="141" font-size="14" fill="#6b6b6b">and why, and what went</text><text x="540" y="160" font-size="14" fill="#6b6b6b">into the RECORD line</text><text x="752" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your change</text><text x="792" y="122" font-size="14" fill="#6b6b6b">one field or rule you would</text><text x="792" y="141" font-size="14" fill="#6b6b6b">add to this system, in its</text><text x="792" y="160" font-size="14" fill="#6b6b6b">exact words, and what the</text><text x="792" y="179" font-size="14" fill="#6b6b6b">person receiving it could</text><text x="792" y="198" font-size="14" fill="#6b6b6b">decide with it</text></svg></div>
+    <figcaption class="plib-tile-caption">Answer all four parts.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your reflection in your own words and without help from the AI. Write it in the R11.2.1 box below, click Copy contribution, and paste it into your submission chat after M CLOSE.</p>
+  <p>Write all four of these in your reflection. First, quote the request you ran and the HANDOFF line the trip desk wrote, or say what it did instead. AND second, say what problem the office found, or that it found none. AND third, say what you decided as Rosa and why, and what went into the RECORD line. AND fourth, write one field or rule you would add to this system, in its exact words, and say what the person receiving it could decide with it that they could not decide before.</p>
+  <p>Your instructor gives the fourth part the most weight. Write the field or the rule in full.</p>
+  <p>Write 80 to 160 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution R11.2.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">R11.2.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Your reflection</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 80 to 160 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_43" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for R11.2.1"
+            data-maxwords="160" data-maxchars="1600"
+            oninput="updateCounter('prompt_43', 'textarea_43')"></textarea>
+  <div class="plib-counter" id="counter_prompt_43" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_43">0</span> / 160 words&nbsp;·&nbsp;
+    <span id="cc_prompt_43">0</span> / 1600 characters
+    <span class="plib-counter-min">minimum: 80 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_43" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_43"
+       data-prefix="### R11.2.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_43"
+       data-maxwords="160"
+       data-maxchars="1600"
+       data-minwords="80"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_43', this)"
+          aria-label="Copy contribution R11.2.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Before you leave</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment. Your work is not submitted until Canvas shows your file.</p>
+  <a class="plib-submit-btn" href="https://canvas.vt.edu/courses/233694/assignments/2843163" target="_blank" rel="noopener noreferrer">Open the Canvas assignment</a>
+  <div class="plib-submit-note">Opens in a new tab, so this page stays where it is.</div>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>
