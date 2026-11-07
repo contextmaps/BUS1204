@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deliverable 1, Progress Report, Team Submission</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 11 · Progress Report 1 · Part 1 of 2</div>
+  <div class="plib-meta-title">Deliverable 1, Progress Report, Team Submission</div>
+  <div class="plib-meta-details"><span><strong>Platform:</strong> Hokie AI (your team's two agents and a regular chat)</span>&ensp;·&ensp;<span><strong>Submission:</strong> One regular Hokie AI chat holding both sets of instructions, the links and the three requests, exported as a .zip and uploaded to Canvas by one team member</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this progress report, each team will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Write SCORE instructions for a customer agent and a staff agent of its own business, from the business's fact sheet.</li>
+    <li>Build, share and test both agents, and publish the business's facts on the team's Google Site.</li>
+    <li>Run a regular request, a request against the rules and a request for an exception through the two agents, with the manager deciding by name.</li>
+    <li>Explain what each agent did and what the manager decided, and judge whether the business's rules are right.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 4</div><div class="plib-section-t">ORIENTATION</div></div>
+
+<div class="plib-narration">
+  <p>Progress report 1 is your team's first deliverable for the team project. In lec11_2 your team built the two agents of Kestrel Bend Outfitters from instructions on the page and ran requests through them, with the HANDOFF line carried by hand and Rosa Delgado deciding by name. Your team now writes the instructions for the two agents of its own business, a customer agent and a staff agent, and runs three requests through them.</p>
+  <p>The report is worth 100 points. The whole submission goes into one regular Hokie AI chat. One team member starts that chat, pastes every part into it, and uploads it to Canvas for the team. Every member also submits a peer evaluation, a separate assignment with no points of its own, due with the team submission.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-5">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, the parts of progress report 1. Part A, the SCORE instructions of both agents, 20 points each, 40 in all. Part B, the share links of both agents, the address of your Google Site, and a rule check, 15 points. Part C, a regular request, run and explained, 15 points. Part D, a request against the rules, run and explained, 15 points. Part E, a request for an exception, run and explained, 15 points."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 250" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="250" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Progress report 1, five parts</text><rect x="21" y="46" width="153" height="182" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part A, 40</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">points</text><text x="37" y="134" font-size="14" fill="#6b6b6b">the SCORE</text><text x="37" y="153" font-size="14" fill="#6b6b6b">instructions of both</text><text x="37" y="172" font-size="14" fill="#6b6b6b">agents, 20 points</text><text x="37" y="191" font-size="14" fill="#6b6b6b">each</text><text x="198" y="142" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="182" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part B, 15</text><text x="267" y="103" font-size="17" font-weight="600" fill="#2b2b2b">points</text><text x="238" y="134" font-size="14" fill="#6b6b6b">the share links of</text><text x="238" y="153" font-size="14" fill="#6b6b6b">both agents, the</text><text x="238" y="172" font-size="14" fill="#6b6b6b">address of your</text><text x="238" y="191" font-size="14" fill="#6b6b6b">Google Site, and a</text><text x="238" y="210" font-size="14" fill="#6b6b6b">rule check</text><text x="399" y="142" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="182" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part C, 15</text><text x="468" y="103" font-size="17" font-weight="600" fill="#2b2b2b">points</text><text x="439" y="134" font-size="14" fill="#6b6b6b">a regular request,</text><text x="439" y="153" font-size="14" fill="#6b6b6b">run and explained</text><text x="601" y="142" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="182" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part D, 15</text><text x="670" y="103" font-size="17" font-weight="600" fill="#2b2b2b">points</text><text x="641" y="134" font-size="14" fill="#6b6b6b">a request against</text><text x="641" y="153" font-size="14" fill="#6b6b6b">the rules, run and</text><text x="641" y="172" font-size="14" fill="#6b6b6b">explained</text><text x="802" y="142" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="182" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part E, 15</text><text x="871" y="103" font-size="17" font-weight="600" fill="#2b2b2b">points</text><text x="842" y="134" font-size="14" fill="#6b6b6b">a request for an</text><text x="842" y="153" font-size="14" fill="#6b6b6b">exception, run and</text><text x="842" y="172" font-size="14" fill="#6b6b6b">explained</text></svg></div>
+    <figcaption class="plib-tile-caption">100 points, one chat, one upload for the team.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Download your team's fact sheet from the buttons below. Your instructor wrote it for your business, and it is the knowledge file of both agents. Read it together before you write anything. It lists what your business sells, its prices and hours, its rules and policies, and the manager who decides every exception to them.</p>
+</div>
+
+<div class="plib-material" id="plib-material-7">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Fact sheets, TEAM01 to TEAM14</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="TEAM01_wildbriar_pantry_facts.txt" download="TEAM01_wildbriar_pantry_facts.txt" target="_blank" rel="noopener noreferrer">TEAM01</a>
+    <a class="plib-material-btn" href="TEAM02_tinker_hollow_box_office_facts.txt" download="TEAM02_tinker_hollow_box_office_facts.txt" target="_blank" rel="noopener noreferrer">TEAM02</a>
+    <a class="plib-material-btn" href="TEAM03_copper_ladle_truck_facts.txt" download="TEAM03_copper_ladle_truck_facts.txt" target="_blank" rel="noopener noreferrer">TEAM03</a>
+    <a class="plib-material-btn" href="TEAM04_ashgrove_it_help_desk_facts.txt" download="TEAM04_ashgrove_it_help_desk_facts.txt" target="_blank" rel="noopener noreferrer">TEAM04</a>
+    <a class="plib-material-btn" href="TEAM05_bramblecrest_showings_facts.txt" download="TEAM05_bramblecrest_showings_facts.txt" target="_blank" rel="noopener noreferrer">TEAM05</a>
+    <a class="plib-material-btn" href="TEAM06_thornbury_roasters_facts.txt" download="TEAM06_thornbury_roasters_facts.txt" target="_blank" rel="noopener noreferrer">TEAM06</a>
+    <a class="plib-material-btn" href="TEAM07_larkspur_study_abroad_facts.txt" download="TEAM07_larkspur_study_abroad_facts.txt" target="_blank" rel="noopener noreferrer">TEAM07</a>
+    <a class="plib-material-btn" href="TEAM08_cardamom_corner_market_facts.txt" download="TEAM08_cardamom_corner_market_facts.txt" target="_blank" rel="noopener noreferrer">TEAM08</a>
+    <a class="plib-material-btn" href="TEAM09_hollowmere_farm_facts.txt" download="TEAM09_hollowmere_farm_facts.txt" target="_blank" rel="noopener noreferrer">TEAM09</a>
+    <a class="plib-material-btn" href="TEAM10_petalcrest_flowers_facts.txt" download="TEAM10_petalcrest_flowers_facts.txt" target="_blank" rel="noopener noreferrer">TEAM10</a>
+    <a class="plib-material-btn" href="TEAM11_lantern_loft_coworking_facts.txt" download="TEAM11_lantern_loft_coworking_facts.txt" target="_blank" rel="noopener noreferrer">TEAM11</a>
+    <a class="plib-material-btn" href="TEAM12_ivyhaven_maintenance_facts.txt" download="TEAM12_ivyhaven_maintenance_facts.txt" target="_blank" rel="noopener noreferrer">TEAM12</a>
+    <a class="plib-material-btn" href="TEAM13_maroon_hollow_goods_facts.txt" download="TEAM13_maroon_hollow_goods_facts.txt" target="_blank" rel="noopener noreferrer">TEAM13</a>
+    <a class="plib-material-btn" href="TEAM14_spokeline_cycles_facts.txt" download="TEAM14_spokeline_cycles_facts.txt" target="_blank" rel="noopener noreferrer">TEAM14</a>
+  </div>
+  <div class="plib-material-note">Download only your own team's fact sheet. The businesses, people and phone numbers are made up.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Your team writes both sets of instructions and every explanation in Parts C, D and E in its own words. You may use Hokie AI as a thinking partner, to discuss ideas or to check your understanding of the business. You may not use it to write these parts.</p>
+  <p>Work in the order of the card below. Your Google Site is covered in the next class, so your team adds the Site address to Part B after that class, and may paste Part B into the submission chat last. Everything else on this page uses what lec11_2 covered, so your team can start now.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-9">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by THEN, the order of the work. Read, the fact sheet, together. Write, the SCORE instructions of both agents. Build, both agents, then share them and test them. Run, the three requests through the two agents. Submit, paste each part into the submission chat, in the order of this page."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The order of the work</text><rect x="21" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Read</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the fact sheet,</text><text x="37" y="141" font-size="14" fill="#6b6b6b">together</text><text x="198" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="222" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Write</text><text x="238" y="122" font-size="14" fill="#6b6b6b">the SCORE</text><text x="238" y="141" font-size="14" fill="#6b6b6b">instructions of both</text><text x="238" y="160" font-size="14" fill="#6b6b6b">agents</text><text x="399" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="423" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Build</text><text x="439" y="122" font-size="14" fill="#6b6b6b">both agents, then</text><text x="439" y="141" font-size="14" fill="#6b6b6b">share them and</text><text x="439" y="160" font-size="14" fill="#6b6b6b">test them</text><text x="601" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="625" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Run</text><text x="641" y="122" font-size="14" fill="#6b6b6b">the three requests</text><text x="641" y="141" font-size="14" fill="#6b6b6b">through the two</text><text x="641" y="160" font-size="14" fill="#6b6b6b">agents</text><text x="802" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="826" y="46" width="153" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Submit</text><text x="842" y="122" font-size="14" fill="#6b6b6b">paste each part</text><text x="842" y="141" font-size="14" fill="#6b6b6b">into the submission</text><text x="842" y="160" font-size="14" fill="#6b6b6b">chat, in the order</text><text x="842" y="179" font-size="14" fill="#6b6b6b">of this page</text></svg></div>
+    <figcaption class="plib-tile-caption">The Site address joins Part B after the next class.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>One team member opens a new regular Hokie AI chat. This is your submission chat. Paste the block below as its first message and wait for the one sentence acknowledgment. Then paste each part of this page into the same chat as your team finishes it, in the order of the page, with Part B last if your Site is not up yet. Do not start a new submission chat.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">TP1.1</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Progress Report 1. You are an AI assistant for this session. The student's team built two agents for a made up business, a customer agent and a staff agent, and ran three requests through them. In this chat the student pastes the team's records: the instructions of both agents, the agents' links, and for each request the text of the team's chat with each agent, plus the team's own explanations. Before each pasted chat the student tells you which chat comes next; reply in one sentence that the student can paste it. Acknowledge every record and every paste in one sentence, and do not analyze, judge, correct or rewrite its content unless the student asks a question.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_11" data-copy="### TP1.1&#10;----------&#10;BUS 1204 AI Literacy for Business, Progress Report 1. You are an AI assistant for this session. The student's team built two agents for a made up business, a customer agent and a staff agent, and ran three requests through them. In this chat the student pastes the team's records: the instructions of both agents, the agents' links, and for each request the text of the team's chat with each agent, plus the team's own explanations. Before each pasted chat the student tells you which chat comes next; reply in one sentence that the student can paste it. Acknowledge every record and every paste in one sentence, and do not analyze, judge, correct or rewrite its content unless the student asks a question.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_11', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 4</div><div class="plib-section-t">THE AGENTS</div></div>
+
+<div class="plib-narration">
+  <p>Part A is worth 40 points, 20 for each agent. Write the Specific instructions of both agents in the five parts of SCORE, Stance, Context, Objective, Rules and Examples, from your fact sheet. The two Kestrel Bend texts from lec11_2 are below as an example of the form. Write your own, for your business, its rules and its manager.</p>
+  <p>The customer agent's instructions need all five parts. The Stance says who the agent is and how it speaks to customers AND the Context names the fact sheet as its knowledge and says what the agent cannot see AND the Objective says what it answers and what it collects for each kind of request, and that it writes a HANDOFF line and tells the customer the request is not final until the business confirms AND the Rules say what the agent may and may not do, what goes to the staff, what it does when the fact sheet does not answer a question, and the exact form of your HANDOFF line, with the fields your business needs AND the Examples give at least one customer question with the answer you want. Five parts.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-15">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, the customer agent. Stance, who it is and how it speaks to customers. Context, the fact sheet as knowledge, and what it cannot see. Objective, what it answers and collects, the HANDOFF line, and that the request is not final until the business confirms. Rules, what it may and may not do, what goes to the staff, what it does when the fact sheet is silent, and the exact HANDOFF line with your fields. Examples, at least one customer question with the answer you want."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 295" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="295" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The customer agent</text><rect x="21" y="46" width="153" height="227" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stance</text><text x="37" y="122" font-size="14" fill="#6b6b6b">who it is and how it</text><text x="37" y="141" font-size="14" fill="#6b6b6b">speaks to</text><text x="37" y="160" font-size="14" fill="#6b6b6b">customers</text><text x="198" y="164" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="227" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Context</text><text x="238" y="122" font-size="14" fill="#6b6b6b">the fact sheet as</text><text x="238" y="141" font-size="14" fill="#6b6b6b">knowledge, and</text><text x="238" y="160" font-size="14" fill="#6b6b6b">what it cannot see</text><text x="399" y="164" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="227" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Objective</text><text x="439" y="122" font-size="14" fill="#6b6b6b">what it answers</text><text x="439" y="141" font-size="14" fill="#6b6b6b">and collects, the</text><text x="439" y="160" font-size="14" fill="#6b6b6b">HANDOFF line, and</text><text x="439" y="179" font-size="14" fill="#6b6b6b">that the request is</text><text x="439" y="198" font-size="14" fill="#6b6b6b">not final until the</text><text x="439" y="217" font-size="14" fill="#6b6b6b">business confirms</text><text x="601" y="164" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="227" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Rules</text><text x="641" y="122" font-size="14" fill="#6b6b6b">what it may and</text><text x="641" y="141" font-size="14" fill="#6b6b6b">may not do, what</text><text x="641" y="160" font-size="14" fill="#6b6b6b">goes to the staff,</text><text x="641" y="179" font-size="14" fill="#6b6b6b">what it does when</text><text x="641" y="198" font-size="14" fill="#6b6b6b">the fact sheet is</text><text x="641" y="217" font-size="14" fill="#6b6b6b">silent, and the</text><text x="641" y="236" font-size="14" fill="#6b6b6b">exact HANDOFF</text><text x="641" y="255" font-size="14" fill="#6b6b6b">line with your fields</text><text x="802" y="164" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="227" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Examples</text><text x="842" y="122" font-size="14" fill="#6b6b6b">at least one</text><text x="842" y="141" font-size="14" fill="#6b6b6b">customer question</text><text x="842" y="160" font-size="14" fill="#6b6b6b">with the answer</text><text x="842" y="179" font-size="14" fill="#6b6b6b">you want</text></svg></div>
+    <figcaption class="plib-tile-caption">The HANDOFF line carries every field the staff agent needs to check the request.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-16">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Kestrel Bend trip desk, from lec11_2, an example of a customer agent</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-16-prompt" data-copy="STANCE&#10;You are the trip desk assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You speak with customers. You are friendly and brief.&#10;&#10;CONTEXT&#10;Your knowledge file, the Kestrel Bend fact sheet, lists the trips, prices, minimum ages, what to bring, the safety rules, the weather rule and the cancellation policy. You cannot see bookings, the guides' schedule or the weather forecast.&#10;&#10;OBJECTIVE&#10;Answer customers' questions from the fact sheet, and take booking requests. For a booking request, collect the trip, the date, the number of people, the age of the youngest person, and a name and phone number. Repeat them back. After the customer confirms, write a hand-off note in the form below and tell the customer that the office will call to confirm, and that the booking is not confirmed until then.&#10;&#10;RULES&#10;Authority: you may answer from the fact sheet and write hand-off notes. You may not confirm a booking, promise that a date is available, change a price, give a refund, or say whether a trip will run in given weather.&#10;Approval: every booking, cancellation, refund request and request for an exception to a rule goes to the office as a hand-off note.&#10;Accountability: when the fact sheet does not answer a question, say so and offer to send the question to the office in a hand-off note. Do not guess.&#10;Audit: write every hand-off note in exactly this form, on one line, so the office can copy it into the bookings sheet.&#10;HANDOFF | type: booking, cancellation, refund or question | trip: | date: | people: | youngest age: | name: | phone: | note:&#10;&#10;EXAMPLES&#10;Customer: How much is tubing for two adults and a 10 year old?&#10;Assistant: Tubing is 25 dollars per adult and 18 dollars for a child aged 8 to 12, so 68 dollars for your group. Would you like to request a booking?" aria-label="Specification text, scrollable">STANCE
+You are the trip desk assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You speak with customers. You are friendly and brief.
+
+CONTEXT
+Your knowledge file, the Kestrel Bend fact sheet, lists the trips, prices, minimum ages, what to bring, the safety rules, the weather rule and the cancellation policy. You cannot see bookings, the guides' schedule or the weather forecast.
+
+OBJECTIVE
+Answer customers' questions from the fact sheet, and take booking requests. For a booking request, collect the trip, the date, the number of people, the age of the youngest person, and a name and phone number. Repeat them back. After the customer confirms, write a hand-off note in the form below and tell the customer that the office will call to confirm, and that the booking is not confirmed until then.
+
+RULES
+Authority: you may answer from the fact sheet and write hand-off notes. You may not confirm a booking, promise that a date is available, change a price, give a refund, or say whether a trip will run in given weather.
+Approval: every booking, cancellation, refund request and request for an exception to a rule goes to the office as a hand-off note.
+Accountability: when the fact sheet does not answer a question, say so and offer to send the question to the office in a hand-off note. Do not guess.
+Audit: write every hand-off note in exactly this form, on one line, so the office can copy it into the bookings sheet.
+HANDOFF | type: booking, cancellation, refund or question | trip: | date: | people: | youngest age: | name: | phone: | note:
+
+EXAMPLES
+Customer: How much is tubing for two adults and a 10 year old?
+Assistant: Tubing is 25 dollars per adult and 18 dollars for a child aged 8 to 12, so 68 dollars for your group. Would you like to request a booking?</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-16-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">An example of the form. Your business, its requests and its fields are different.</div>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste your customer agent's full SCORE text, the same text that is in its Specific tab, and copy the box into the submission chat.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part A the customer agent's instructions</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 1500 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_18" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.1"
+            data-maxwords="1500" data-maxchars="15000"
+            oninput="updateCounter('prompt_18', 'textarea_18')"></textarea>
+  <div class="plib-counter" id="counter_prompt_18" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_18">0</span> / 1500 words&nbsp;·&nbsp;
+    <span id="cc_prompt_18">0</span> / 15000 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_18" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_18"
+       data-prefix="### RP1.1.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_18"
+       data-maxwords="1500"
+       data-maxchars="15000"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_18', this)"
+          aria-label="Copy contribution RP1.1.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>The staff agent's instructions need all five parts too. The Stance says who the agent is and that it works for the staff and the manager, by name AND the Context names the fact sheet and says that the staff paste HANDOFF lines AND the Objective says that the agent checks each HANDOFF line against the fact sheet, lists every problem or says it found none, and drafts the message to the customer marked DRAFT, NEEDS MANAGER DECISION AND the Rules say that only the manager decides, by typing approved or declined with the manager's name, what the agent does with any other reply, and the exact form of your RECORD line and of the final message marked READY TO SEND AND the Examples give at least one HANDOFF line with the check you want. Five parts.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-21">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, the staff agent. Stance, who it is, working for the staff and the manager by name. Context, the fact sheet as knowledge, and the HANDOFF lines the staff paste. Objective, check each HANDOFF line, list every problem or say none, draft the message marked DRAFT, NEEDS MANAGER DECISION. Rules, only the manager decides, approved or declined with the name, what to do with any other reply, the exact RECORD line and the READY TO SEND message. Examples, at least one HANDOFF line with the check you want."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 314" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="314" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The staff agent</text><rect x="21" y="46" width="153" height="246" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Stance</text><text x="37" y="122" font-size="14" fill="#6b6b6b">who it is, working</text><text x="37" y="141" font-size="14" fill="#6b6b6b">for the staff and</text><text x="37" y="160" font-size="14" fill="#6b6b6b">the manager by</text><text x="37" y="179" font-size="14" fill="#6b6b6b">name</text><text x="198" y="174" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="246" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Context</text><text x="238" y="122" font-size="14" fill="#6b6b6b">the fact sheet as</text><text x="238" y="141" font-size="14" fill="#6b6b6b">knowledge, and the</text><text x="238" y="160" font-size="14" fill="#6b6b6b">HANDOFF lines the</text><text x="238" y="179" font-size="14" fill="#6b6b6b">staff paste</text><text x="399" y="174" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="246" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Objective</text><text x="439" y="122" font-size="14" fill="#6b6b6b">check each</text><text x="439" y="141" font-size="14" fill="#6b6b6b">HANDOFF line, list</text><text x="439" y="160" font-size="14" fill="#6b6b6b">every problem or</text><text x="439" y="179" font-size="14" fill="#6b6b6b">say none, draft the</text><text x="439" y="198" font-size="14" fill="#6b6b6b">message marked</text><text x="439" y="217" font-size="14" fill="#6b6b6b">DRAFT, NEEDS</text><text x="439" y="236" font-size="14" fill="#6b6b6b">MANAGER</text><text x="439" y="255" font-size="14" fill="#6b6b6b">DECISION</text><text x="601" y="174" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="246" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Rules</text><text x="641" y="122" font-size="14" fill="#6b6b6b">only the manager</text><text x="641" y="141" font-size="14" fill="#6b6b6b">decides, approved</text><text x="641" y="160" font-size="14" fill="#6b6b6b">or declined with</text><text x="641" y="179" font-size="14" fill="#6b6b6b">the name, what to</text><text x="641" y="198" font-size="14" fill="#6b6b6b">do with any other</text><text x="641" y="217" font-size="14" fill="#6b6b6b">reply, the exact</text><text x="641" y="236" font-size="14" fill="#6b6b6b">RECORD line and</text><text x="641" y="255" font-size="14" fill="#6b6b6b">the READY TO</text><text x="641" y="274" font-size="14" fill="#6b6b6b">SEND message</text><text x="802" y="174" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="246" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Examples</text><text x="842" y="122" font-size="14" fill="#6b6b6b">at least one</text><text x="842" y="141" font-size="14" fill="#6b6b6b">HANDOFF line with</text><text x="842" y="160" font-size="14" fill="#6b6b6b">the check you want</text></svg></div>
+    <figcaption class="plib-tile-caption">The manager is named on your fact sheet.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-22">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Kestrel Bend office, from lec11_2, an example of a staff agent</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-22-prompt" data-copy="STANCE&#10;You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You work for the office staff and the manager, Rosa Delgado. You are exact and brief.&#10;&#10;CONTEXT&#10;Your knowledge file is the same Kestrel Bend fact sheet the trip desk uses. The staff paste hand off lines that the trip desk wrote. You cannot see the bookings sheet or the weather forecast.&#10;&#10;OBJECTIVE&#10;For each hand off line, check it against the fact sheet: the season, the days and times the trip runs, the minimum age, the group size limit and the cancellation policy. List every problem you find, or say that you found none. Then draft the message the office would send the customer, marked DRAFT, NEEDS MANAGER DECISION.&#10;&#10;RULES&#10;Authority: you may check hand off lines and draft messages. You may not confirm a booking, approve a refund or an exception, or decline a request on your own.&#10;Approval: only Rosa Delgado decides. She approves by typing the word approved with her name, or declines by typing the word declined with her name, and she may add a condition or an explanation, such as a full refund as an exception. Put her condition in the record and her explanation in the reply to the customer. Any other reply, such as looks fine or go ahead, is not a decision; ask her to approve or decline by name.&#10;Accountability: when a hand off line breaks a rule in the fact sheet, say which rule, and leave the decision to Rosa Delgado.&#10;Audit: after a decision, write two things. First, one row for the bookings sheet in exactly this form, on one line.&#10;RECORD | type: | trip: | date: | people: | youngest age: | name: | phone: | decision: approved or declined | condition: | decided by: Rosa Delgado&#10;Second, the final message to the customer, marked READY TO SEND, which a staff member sends." aria-label="Specification text, scrollable">STANCE
+You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River near Pembroke, Virginia. You work for the office staff and the manager, Rosa Delgado. You are exact and brief.
+
+CONTEXT
+Your knowledge file is the same Kestrel Bend fact sheet the trip desk uses. The staff paste hand off lines that the trip desk wrote. You cannot see the bookings sheet or the weather forecast.
+
+OBJECTIVE
+For each hand off line, check it against the fact sheet: the season, the days and times the trip runs, the minimum age, the group size limit and the cancellation policy. List every problem you find, or say that you found none. Then draft the message the office would send the customer, marked DRAFT, NEEDS MANAGER DECISION.
+
+RULES
+Authority: you may check hand off lines and draft messages. You may not confirm a booking, approve a refund or an exception, or decline a request on your own.
+Approval: only Rosa Delgado decides. She approves by typing the word approved with her name, or declines by typing the word declined with her name, and she may add a condition or an explanation, such as a full refund as an exception. Put her condition in the record and her explanation in the reply to the customer. Any other reply, such as looks fine or go ahead, is not a decision; ask her to approve or decline by name.
+Accountability: when a hand off line breaks a rule in the fact sheet, say which rule, and leave the decision to Rosa Delgado.
+Audit: after a decision, write two things. First, one row for the bookings sheet in exactly this form, on one line.
+RECORD | type: | trip: | date: | people: | youngest age: | name: | phone: | decision: approved or declined | condition: | decided by: Rosa Delgado
+Second, the final message to the customer, marked READY TO SEND, which a staff member sends.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-22-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">An example of the form. It has no Examples part, and yours needs one, with a HANDOFF line and the check you want. Your business, its checks and its manager are different.</div>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste your staff agent's full SCORE text, the same text that is in its Specific tab, and copy the box into the submission chat.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.2</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part A the staff agent's instructions</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 1500 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_24" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.2"
+            data-maxwords="1500" data-maxchars="15000"
+            oninput="updateCounter('prompt_24', 'textarea_24')"></textarea>
+  <div class="plib-counter" id="counter_prompt_24" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_24">0</span> / 1500 words&nbsp;·&nbsp;
+    <span id="cc_prompt_24">0</span> / 15000 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_24" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_24"
+       data-prefix="### RP1.1.2&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_24"
+       data-maxwords="1500"
+       data-maxchars="15000"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_24', this)"
+          aria-label="Copy contribution RP1.1.2 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part B is worth 15 points. Build both agents from the card below, the way your team did in lec11_2, with your fact sheet as the knowledge file of both. Share both agents and test both share links from another member's account. Your team also publishes its fact sheet on its Google Site with the customer agent embedded, which is covered in the next class.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-27">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, the build card for each agent. Specific, your team's SCORE text for that agent. Platform, delete the default and paste the class text. Knowledge, your team's fact sheet. Capabilities, all off, and no welcome message. Share, save the agent, press Share and post the link on your team's Canvas page."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The build card, for each agent</text><rect x="21" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Specific</text><text x="37" y="122" font-size="14" fill="#6b6b6b">your team's SCORE</text><text x="37" y="141" font-size="14" fill="#6b6b6b">text for that agent</text><text x="198" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Platform</text><text x="238" y="122" font-size="14" fill="#6b6b6b">delete the default</text><text x="238" y="141" font-size="14" fill="#6b6b6b">and paste the class</text><text x="238" y="160" font-size="14" fill="#6b6b6b">text</text><text x="399" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Knowledge</text><text x="439" y="122" font-size="14" fill="#6b6b6b">your team's fact</text><text x="439" y="141" font-size="14" fill="#6b6b6b">sheet</text><text x="601" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Capabilities</text><text x="641" y="122" font-size="14" fill="#6b6b6b">all off, and no</text><text x="641" y="141" font-size="14" fill="#6b6b6b">welcome message</text><text x="802" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Share</text><text x="842" y="122" font-size="14" fill="#6b6b6b">save the agent,</text><text x="842" y="141" font-size="14" fill="#6b6b6b">press Share and</text><text x="842" y="160" font-size="14" fill="#6b6b6b">post the link on</text><text x="842" y="179" font-size="14" fill="#6b6b6b">your team's Canvas</text><text x="842" y="198" font-size="14" fill="#6b6b6b">page</text></svg></div>
+    <figcaption class="plib-tile-caption">Name the agents with your business's name, such as Wildbriar customer desk and Wildbriar staff desk.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-material" id="plib-material-28">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The class Platform text, for the Platform tab of both agents</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-28-prompt" data-copy="You are playing a configured role for a class at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions, with the one exception below.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings or bold text unless the Specific instructions call for them.&#10;&#10;Follow the next rule even where the Specific instructions say otherwise. The person may paste class records whose first line is three hashes and a code such as T or R11.2.1, with a line of dashes above and below the content. Acknowledge each one in a single sentence naming the code, say nothing about its content, and then continue in your role exactly where you left off." aria-label="Specification text, scrollable">You are playing a configured role for a class at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions, with the one exception below.
+
+Hold the role for the entire conversation. Do not offer general help outside the role.
+
+Reply in clear, complete sentences and keep replies short. Do not use headings or bold text unless the Specific instructions call for them.
+
+Follow the next rule even where the Specific instructions say otherwise. The person may paste class records whose first line is three hashes and a code such as T or R11.2.1, with a line of dashes above and below the content. Acknowledge each one in a single sentence naming the code, say nothing about its content, and then continue in your role exactly where you left off.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-28-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">The same text as in lec11_2. Delete the default text in the Platform tab first, then paste this.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Then check one rule. Open either agent and ask it a question your fact sheet leaves out, such as parking, gift cards or a product your business does not list. Under your Rules the agent should say that the fact sheet does not answer it, and the customer agent should offer to send the question to the staff. Read the reply.</p>
+  <p>In the box below, paste the customer agent's share link on the first line, the staff agent's share link on the second line, and your Google Site's address on the third line. Below them, write one or two sentences with the question you asked, the agent you asked, and what it did. If it answered with a guess, say which rule your team would change. Copy the box into the submission chat.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.3">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.3</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part B the links and the rule check</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 120 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_30" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.3"
+            data-maxwords="120" data-maxchars="1200"
+            oninput="updateCounter('prompt_30', 'textarea_30')"></textarea>
+  <div class="plib-counter" id="counter_prompt_30" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_30">0</span> / 120 words&nbsp;·&nbsp;
+    <span id="cc_prompt_30">0</span> / 1200 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_30" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_30"
+       data-prefix="### RP1.1.3&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_30"
+       data-maxwords="120"
+       data-maxchars="1200"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_30', this)"
+          aria-label="Copy contribution RP1.1.3 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 4</div><div class="plib-section-t">THE REQUESTS</div></div>
+
+<div class="plib-narration">
+  <p>Parts C, D and E are worth 15 points each, 7 for the run and 8 for your team's explanation. Your team runs three requests through its two agents, one at a time, the way it did in lec11_2. Make up each request as a customer of your business would, with every detail the customer agent asks for. A regular request is one the rules of your fact sheet allow as written. A request against the rules breaks one of them. A request for an exception asks the business to bend a rule for a reason, and the manager decides whether it does.</p>
+  <p>For each request, type it to your customer agent and answer its questions. Copy the HANDOFF line into your staff agent and read its check. Decide as your manager, by typing approved or declined with the manager's name, and a condition or an explanation if you want one. Then read the RECORD line and the message marked READY TO SEND.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-34">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by THEN, every request. Customer agent, type the request and answer its questions. Carry, copy the HANDOFF line into the staff agent. Decide, as your manager, approved or declined with the manager's name, and a condition or an explanation if you want one. Read, the RECORD line and the message marked READY TO SEND."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Every request</text><rect x="21" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Customer agent</text><text x="37" y="122" font-size="14" fill="#6b6b6b">type the request and</text><text x="37" y="141" font-size="14" fill="#6b6b6b">answer its questions</text><text x="248" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="272" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Carry</text><text x="288" y="122" font-size="14" fill="#6b6b6b">copy the HANDOFF line</text><text x="288" y="141" font-size="14" fill="#6b6b6b">into the staff agent</text><text x="500" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="524" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Decide</text><text x="540" y="122" font-size="14" fill="#6b6b6b">as your manager, approved</text><text x="540" y="141" font-size="14" fill="#6b6b6b">or declined with the</text><text x="540" y="160" font-size="14" fill="#6b6b6b">manager's name, and a</text><text x="540" y="179" font-size="14" fill="#6b6b6b">condition or an explanation</text><text x="540" y="198" font-size="14" fill="#6b6b6b">if you want one</text><text x="752" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="776" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Read</text><text x="792" y="122" font-size="14" fill="#6b6b6b">the RECORD line and the</text><text x="792" y="141" font-size="14" fill="#6b6b6b">message marked READY</text><text x="792" y="160" font-size="14" fill="#6b6b6b">TO SEND</text></svg></div>
+    <figcaption class="plib-tile-caption">Start a new chat with each agent for each request.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Part C, the regular request. In the submission chat, paste the M OPEN marker below. Inside the block you send four messages. First, copy the first message below and send it, and wait for the reply. Then copy the whole text of your chat with the customer agent for this request and paste it as one message. Second, copy the second message and send it, and wait for the reply. Then copy the whole text of your chat with the staff agent for this request and paste it as one message. Then paste the M CLOSE marker.</p>
+</div>
+
+<div class="plib-material" id="plib-material-36">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The two messages before your pastes</div>
+  <div class="plib-material-copies">
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">1. Before the customer agent chat</div>
+      <code class="plib-copyrow-code" id="plib-material-36-copy-0" data-copy="I am about to paste the full text of our chat with our customer agent for this request, for the record. Please confirm, and I will paste it in my next message.">I am about to paste the full text of our chat with our customer agent for this request, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-36-copy-0', this)" aria-label="Copy 1. Before the customer agent chat to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">2. Before the staff agent chat</div>
+      <code class="plib-copyrow-code" id="plib-material-36-copy-1" data-copy="Next I am about to paste the full text of our chat with our staff agent for this request, for the record. Please confirm, and I will paste it in my next message.">Next I am about to paste the full text of our chat with our staff agent for this request, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-36-copy-1', this)" aria-label="Copy 2. Before the staff agent chat to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+  </div>
+  <div class="plib-material-note">Use the same two messages in Parts C, D and E. Send each message on its own, wait for the reply, then paste the chat.</div>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MP1.1.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MP1.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_37" data-copy="### MP1.1.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_37', this)"
+          aria-label="Copy opening marker for block MP1.1.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MP1.1.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MP1.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_38" data-copy="&#10;----------&#10;### MP1.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_38', this)"
+          aria-label="Copy closing marker for block MP1.1.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-40">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND, every explanation. The customer agent, what it did with the request, and what it put in the HANDOFF line. The staff agent, what its check found, a rule or no problem. The decision, what your team decided as the manager, and why. Your rule, one rule of your business your team would keep or change after this request, and why, for your customers and your business."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 257" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="257" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Every explanation, all four parts</text><rect x="21" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The customer</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">agent</text><text x="37" y="134" font-size="14" fill="#6b6b6b">what it did with the</text><text x="37" y="153" font-size="14" fill="#6b6b6b">request, and what it put in</text><text x="37" y="172" font-size="14" fill="#6b6b6b">the HANDOFF line</text><text x="248" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The staff agent</text><text x="288" y="122" font-size="14" fill="#6b6b6b">what its check found, a rule</text><text x="288" y="141" font-size="14" fill="#6b6b6b">or no problem</text><text x="500" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The decision</text><text x="540" y="122" font-size="14" fill="#6b6b6b">what your team decided as</text><text x="540" y="141" font-size="14" fill="#6b6b6b">the manager, and why</text><text x="752" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your rule</text><text x="792" y="122" font-size="14" fill="#6b6b6b">one rule of your business</text><text x="792" y="141" font-size="14" fill="#6b6b6b">your team would keep or</text><text x="792" y="160" font-size="14" fill="#6b6b6b">change after this request,</text><text x="792" y="179" font-size="14" fill="#6b6b6b">and why, for your</text><text x="792" y="198" font-size="14" fill="#6b6b6b">customers and your</text><text x="792" y="217" font-size="14" fill="#6b6b6b">business</text></svg></div>
+    <figcaption class="plib-tile-caption">All four parts in each of the three explanations. The fourth part counts most.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your team's explanation of the regular request, in your own words and without help from the AI, and copy it into the submission chat. It needs all four parts. First, say what the customer agent did with the request and what it put in the HANDOFF line AND second, say what the staff agent's check found AND third, say what your team decided as the manager, and why AND fourth, name one rule of your business your team would keep or change after this request, and say why, for your customers and for your business. Four parts.</p>
+  <p>Your instructor gives the fourth part the most weight. Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.4">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.4</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part C the regular request explained</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_42" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.4"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_42', 'textarea_42')"></textarea>
+  <div class="plib-counter" id="counter_prompt_42" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_42">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_42">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_42" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_42"
+       data-prefix="### RP1.1.4&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_42"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_42', this)"
+          aria-label="Copy contribution RP1.1.4 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part D, the request against the rules. Make up a request that breaks one rule of your fact sheet, and run it through both agents in new chats. Then, in the submission chat, paste the M OPEN marker below, send the two messages from Part C with a paste after each, and paste the M CLOSE marker.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MP1.1.2, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MP1.1.2</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_45" data-copy="### MP1.1.2 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_45', this)"
+          aria-label="Copy opening marker for block MP1.1.2">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MP1.1.2, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MP1.1.2</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_46" data-copy="&#10;----------&#10;### MP1.1.2 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_46', this)"
+          aria-label="Copy closing marker for block MP1.1.2">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your team's explanation of the request against the rules, with the same four parts, what the customer agent did and what it put in the HANDOFF line AND what the staff agent's check found AND what your team decided as the manager, and why AND one rule your team would keep or change after this request, and why, for your customers and for your business. Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.5">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.5</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part D the request against the rules explained</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_49" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.5"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_49', 'textarea_49')"></textarea>
+  <div class="plib-counter" id="counter_prompt_49" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_49">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_49">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_49" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_49"
+       data-prefix="### RP1.1.5&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_49"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_49', this)"
+          aria-label="Copy contribution RP1.1.5 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part E, the request for an exception. Make up a request that asks your business to bend one of its rules for a reason, the kind of request the fact sheet leaves to the manager, and run it through both agents in new chats. Then, in the submission chat, paste the M OPEN marker below, send the two messages from Part C with a paste after each, and paste the M CLOSE marker.</p>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MP1.1.3, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MP1.1.3</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_52" data-copy="### MP1.1.3 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_52', this)"
+          aria-label="Copy opening marker for block MP1.1.3">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MP1.1.3, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MP1.1.3</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_53" data-copy="&#10;----------&#10;### MP1.1.3 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_53', this)"
+          aria-label="Copy closing marker for block MP1.1.3">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your team's explanation of the request for an exception, with the same four parts, what the customer agent did and what it put in the HANDOFF line AND what the staff agent's check found AND what your team decided as the manager, and why AND one rule your team would keep or change after this request, and why, for your customers and for your business. Write 100 to 200 words.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP1.1.6">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP1.1.6</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part E the request for an exception explained</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_56" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP1.1.6"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_56', 'textarea_56')"></textarea>
+  <div class="plib-counter" id="counter_prompt_56" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_56">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_56">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_56" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_56"
+       data-prefix="### RP1.1.6&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_56"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_56', this)"
+          aria-label="Copy contribution RP1.1.6 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 4</div><div class="plib-section-t">SUBMISSION</div></div>
+
+<div class="plib-narration">
+  <p>You are done with progress report 1 when the submission chat has the opener, both sets of instructions, the links and the rule check, and the three requests with their explanations. Export the whole submission chat from Hokie AI as a .zip. One team member uploads the .zip to the Progress Report 1 assignment in Canvas for the whole team.</p>
+  <p>Leave the turns where something went wrong. How your team recovered is part of what your instructor reads. Then every member submits the peer evaluation on its own assignment, due with the team submission.</p>
+</div>
+
+<div class="plib-material" id="plib-material-60">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Progress Report 1 on Canvas</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://canvas.vt.edu/courses/233694/assignments/2887937" target="_blank" rel="noopener noreferrer">Open the Progress Report 1 assignment</a>
+  </div>
+  <div class="plib-material-note">One upload per team. The peer evaluation has its own assignment, so check the title on the page before you upload.</div>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Turn it in</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment for this part. Leave the file as it came out. Your work is not submitted until Canvas shows your file.</p>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>

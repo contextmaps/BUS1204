@@ -1,0 +1,28 @@
+ASHGROVE ACCOUNTING GROUP, IT HELP DESK, FACT SHEET
+Ashgrove Accounting Group is a made up accounting company with 40 employees in Christiansburg, Virginia, used for a class at Virginia Tech. Its IT help desk serves only Ashgrove employees. Any resemblance to a real company is accidental.
+
+SERVICE HOURS
+Monday to Friday, 8:00 am to 5:30 pm. During tax season, February 1 to April 15, Saturday 9:00 am to 1:00 pm as well. Outside these hours an urgent problem goes to the on call phone, 540-555-0144.
+Email: helpdesk@ashgrove.example
+
+PRIORITY LEVELS
+Urgent: a whole department cannot work, a suspected virus or phishing attack, or a client deadline today. Response within 30 minutes.
+High: one employee cannot work. Response within 2 hours.
+Normal: something is slow or inconvenient. Response within 1 business day.
+Request: new equipment, software or access. Response within 3 business days.
+
+TRY THESE FIRST
+Printer jam or offline: turn the printer off for 30 seconds and back on.
+Wi-Fi drops: forget the network AshgroveStaff and rejoin it.
+Forgotten password: use the reset link on the sign in page. The help desk cannot read a password to an employee.
+Outlook will not open: restart the computer before opening a ticket.
+
+RULES
+The help desk never asks for a password and never sends a link to reset one by email. An employee who receives such a message reports it as urgent and does not click it.
+Software is installed only from the approved list. A request for other software needs the IT manager's approval.
+New equipment over 300 dollars needs the employee's department head and the IT manager.
+Client files stay on company computers. The help desk does not set up client files on a personal device.
+An employee who loses a laptop or phone with company email reports it within 1 hour.
+
+DECISIONS BY THE IT MANAGER
+Priya Natarajan, the IT manager, decides every exception to these rules, such as software outside the approved list, a personal device for work, or moving a ticket ahead of its priority level.
