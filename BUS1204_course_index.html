@@ -500,7 +500,7 @@
     <div>
       <p class="mast-eyebrow">Pamplin College of Business · Virginia Tech</p>
       <h1>BUS 1204<br><span style="font-style:normal; font-weight:400;">AI Literacy <span class="ampersand">for</span> Business</span></h1>
-      <p class="mast-sub">A thread-centered, fifteen-week course on reading, governing, and deploying AI for business judgment, from first prompt to capstone agent.</p>
+      <p class="mast-sub">A thread-centered, fifteen-week course on reading, governing, and deploying AI for business judgment, from first prompt to a team-built agent system.</p>
     </div>
     <div class="mast-meta">
       <span class="pill">Course Index</span>
@@ -523,8 +523,8 @@
     </a>
     <a class="macro-card" data-phase="3" href="#phase-3" style="text-decoration:none;">
       <p class="macro-eyebrow">Phase III</p>
-      <p class="macro-title">Agents &amp; Capstones</p>
-      <p class="macro-desc">Real tools, planning, hand offs and grounding, carried into team-built capstone agents.</p>
+      <p class="macro-title">Agents &amp; the Team Project</p>
+      <p class="macro-desc">How models and agents work, then each team builds a business's agents, site and sheet.</p>
       <p class="macro-weeks">Weeks 11–15 · 9 lectures</p>
     </a>
   </nav>
@@ -534,7 +534,7 @@
     <span class="legend-item"><span class="lec-mode-tag mode-orientation">orientation</span></span>
     <span class="legend-item"><span class="lec-mode-tag mode-exploratory">exploratory</span></span>
     <span class="legend-item"><span class="lec-mode-tag mode-consolidation">consolidation</span></span>
-    <span class="legend-item"><span class="lec-mode-tag mode-capstone_demonstration">capstone demo</span></span>
+    <span class="legend-item"><span class="lec-mode-tag mode-capstone_demonstration">demonstration</span></span>
     <span class="legend-item"><span class="lec-agentic">agentic thread</span> student deploys or observes a custom agent</span>
   </div>
 
@@ -577,8 +577,8 @@ const PHASES = [
   {
     n: 3,
     kicker: "Phase III · Weeks 11–15",
-    title: "Agents & Capstones",
-    sub: "An agent with a real tool that reads and writes data, agents that plan several steps and hand work to one another, and grounding in a page the team publishes, carried into team-built capstone agents for authentic Pamplin freshman use cases and tested by other teams.",
+    title: "Agents & the Team Project",
+    sub: "How a language model and an agent work, then each team builds one made up business's AI system: a customer agent and a staff agent, a Google Site with the agent embedded, a Google Sheet the agents read and write, a hand off between the agents with a person's approval, and tests run by another team.",
     weeks: [11, 12, 13, 14, 15],
   },
 ];
@@ -637,25 +637,25 @@ const LECTURES = [
     business: "A skill set against a typed request, a shared inn agent's instructions and a second skill, to see which instruction shapes the reply and where a business rule must live to hold every time." },
 
   // Week 11
-  { id: "lec11_1",  week: 11, phase: 3, mode: "exploratory",        title: "An Agent with a Real Tool",
-    business: "" },
-  { id: "lec11_2",  week: 11, phase: 3, mode: "consolidation",      title: "Reading and Writing Real Data Through an Agent",
-    business: "" },
+  { id: "lec11_1", week: 11, phase: 3, mode: "exploratory", title: "How a Language Model and an Agent Work, and the Team Project",
+    business: "Tokens, sampling and the context window, the agent loop and its iterations, the platform, an agent and a skill, and MCP, then twenty businesses to choose from for the team project." },
+  { id: "lec11_2", week: 11, phase: 3, mode: "consolidation", title: "Designing the Team's Agents",
+    business: "Each team designs its business's customer agent and staff agent, their instructions and the governance questions of week 8, from its own project." },
   // Week 12
-  { id: "lec12_1",  week: 12, phase: 3, mode: "exploratory",        title: "Agents That Plan Several Steps",
-    business: "" },
-  { id: "lec12_2",  week: 12, phase: 3, mode: "consolidation",      title: "Hand Offs Between Agents and Limits on Autonomy",
-    business: "" },
+  { id: "lec12_1", week: 12, phase: 3, mode: "exploratory", title: "The Team Website and the Embedded Agent",
+    business: "A Google Site for the business, with its facts published and the customer agent embedded on the page." },
+  { id: "lec12_2", week: 12, phase: 3, mode: "consolidation", title: "An Agent That Reads and Writes the Team's Sheet",
+    business: "The agent records orders or bookings in the team's Google Sheet and reads them back, and checks one live public value before a decision." },
   // Week 13
-  { id: "lec13_1",  week: 13, phase: 3, mode: "exploratory",        title: "Grounding a Capstone Agent in a Page You Publish",
-    business: "" },
-  { id: "lec13_2",  week: 13, phase: 3, mode: "consolidation",      title: "Test Suites and Peer Review for Capstone Agents",
-    business: "" },
+  { id: "lec13_1", week: 13, phase: 3, mode: "exploratory", title: "Hand Offs Between Agents",
+    business: "The customer agent writes a request to the sheet, the staff agent reads it and responds, and a person approves before anything final." },
+  { id: "lec13_2", week: 13, phase: 3, mode: "consolidation", title: "Testing Agents Across Teams",
+    business: "A test suite for the team's agents, run by another team, and the story of the team's demonstration." },
   // Week 14
-  { id: "lec14_1",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Capstone Demonstrations: Session 1",
-    business: "Five teams: course selection, financial literacy, first-gen wellness, internship pipeline, campus navigation." },
-  { id: "lec14_2",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Capstone Demonstrations: Session 2",
-    business: "Five teams: business-case research, student-org events, peer tutoring, alumni networking, career navigation." },
+  { id: "lec14_1",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Demonstrations: Session 1",
+    business: "Teams demonstrate their business's agents, site and sheet, and every student evaluates the other teams' demonstrations." },
+  { id: "lec14_2",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Demonstrations: Session 2",
+    business: "Teams demonstrate their business's agents, site and sheet, and every student evaluates the other teams' demonstrations." },
   // Week 15
   { id: "lec15_1",  week: 15, phase: 3, mode: "consolidation",      title: "Course Wrap-Up and Closing Reflections",
     business: "What the semester established, and where the habit goes after this course." },
@@ -680,10 +680,10 @@ const WEEKS = {
   8:  { title: "Agents That Act, Tools and Governance",          dates: "10/13, 10/15", due: "HW 7" },
   9:  { title: "Agents on Live Data and Scripts",        dates: "10/20, 10/22", due: "HW 8" },
   10: { title: "Skills, Rules Across Every Conversation",    dates: "10/27, 10/29", due: "HW 9, teams form" },
-  11: { title: "An Agent with a Real Tool",                     dates: "11/03, 11/05", due: "Teams finalized" },
-  12: { title: "Planning and Hand Offs", dates: "11/10, 11/12", due: "Deliverable 1" },
-  13: { title: "Grounding and Testing a Capstone Agent",                               dates: "11/17, 11/19", due: "Deliverable 2" },
-  14: { title: "Team Capstone Demonstrations",            dates: "12/01, 12/03", due: "Presentations" },
+  11: { title: "How Models and Agents Work, and Team Design", dates: "11/03, 11/05", due: "Project choices" },
+  12: { title: "The Team Site and Sheet",                dates: "11/10, 11/12", due: "Deliverable 1, Fri 11/13" },
+  13: { title: "Hand Offs and Testing",                  dates: "11/17, 11/19", due: "Deliverable 2, Fri 11/20" },
+  14: { title: "Team Demonstrations",                    dates: "12/01, 12/03", due: "Deliverable 3, Mon 11/30, and presentations" },
   15: { title: "Course Wrap-Up",                          dates: "12/08",        due: "Not graded" },
 };
 
@@ -699,6 +699,10 @@ const WEEKS = {
    ============================================================ */
 
 const HOMEWORK_WEEKS = { 2:1, 3:2, 4:3, 5:4, 6:5, 7:6, 8:7, 9:8, 10:9 };
+/* Project weeks carry two tiles in place of homework: the team's submission,
+   one per team, and the peer evaluation, one per student. Ids are pr<n>_<part>. */
+const PROJECT_WEEKS = { 11: "pr1", 12: "pr2", 13: "pr3" };
+
 
 const HOMEWORK = [
   { id: "hw1_1", week: 2, part: 1, title: "Who Decides: What Changes When the Evidence Runs Out",
@@ -737,15 +741,24 @@ const HOMEWORK = [
     business: "A produce distributor's confirmation skill tested for where its description loads it, then checked line by line against quantities worked out by hand from its own rules." },
   { id: "hw9_2", week: 10, part: 2, title: "A Produce Distributor's Rules in an Agent, a Skill and a Price Sheet",
     business: "One restaurant order run through a shared order desk agent with and without a company skill, every dollar traced to its source, then the owner's rules placed and the skill fixed." },
+  { id: "pr1_1", week: 11, part: 1, title: "Deliverable 1, Progress Report, Team Submission",
+    business: "One chat per team, due Friday 11/13: the SCORE instructions of the customer and staff agents for the team's business, both share links with the team's Google Site and a check of one rule, and three requests run through both agents and explained." },
+  { id: "pr1_2", week: 11, part: 2, title: "Deliverable 1, Progress Report, Peer Evaluation",
+    business: "Every student submits individually, due with the team's submission: your name and team, how the team worked, your own contribution, and any teammate who contributed beyond or below the others." },
+  { id: "pr2_1", week: 12, part: 1, title: "Deliverable 2, Progress Report, Team Submission",
+    business: "One submission per team, due Friday 11/20: the sheet the agents read and write with its live data connection, and the team's test suite." },
+  { id: "pr2_2", week: 12, part: 2, title: "Deliverable 2, Progress Report, Peer Evaluation",
+    business: "Every student submits individually, due with the team's submission: how the team worked, your own contribution, anyone who went above and beyond the others, and anyone who contributed less." },
+  { id: "pr3_1", week: 13, part: 1, title: "Deliverable 3, the Agent System, Team Submission",
+    business: "One submission per team, due Monday 11/30: both agents, the site and the sheet as the team will demonstrate them, with the results of the other team's tests." },
+  { id: "pr3_2", week: 13, part: 2, title: "Deliverable 3, the Agent System, Peer Evaluation",
+    business: "Every student submits individually, due with the team's submission: how the team worked, your own contribution, anyone who went above and beyond the others, and anyone who contributed less." },
 ];
 
 /* Weeks with no homework show what the outline says is due instead. */
 const NO_HOMEWORK_NOTE = {
   1:  "No homework this week. Week 1 is not graded.",
-  11: "No homework. Teams are finalized this week.",
-  12: "No homework. Project deliverable 1 is due.",
-  13: "No homework. Project deliverable 2 is due, and deliverable 3 follows on Monday 11/30.",
-  14: "No homework. Team presentations run in both sessions.",
+  14: "No homework. Team demonstrations run in both sessions, and every student evaluates the other teams' demonstrations.",
   15: "No homework. The last meeting is not graded.",
 };
 
@@ -824,6 +837,8 @@ const HOMEWORK_LINKS = {
   "hw8_2":     "https://canvas.vt.edu/courses/233694/assignments/2881018",
   "hw9_1":     "https://canvas.vt.edu/courses/233694/assignments/2883528",
   "hw9_2":     "https://canvas.vt.edu/courses/233694/assignments/2883529",
+  "pr1_1":     "https://canvas.vt.edu/courses/233694/assignments/2887937",
+  "pr1_2":     "https://canvas.vt.edu/courses/233694/assignments/2887938",
 };
 
 /* ============ Render ============ */
@@ -915,7 +930,7 @@ PHASES.forEach(phase => {
       const row = document.createElement("div");
       row.className = "lec-row";
       group.forEach(l => {
-        const modeLabel = l.mode === "capstone_demonstration" ? "capstone demo"
+        const modeLabel = l.mode === "capstone_demonstration" ? "demonstration"
                          : l.mode === "structured_walk" ? "structured walk"
                          : l.mode;
         const tags = `<span class="lec-mode-tag mode-${l.mode}">${modeLabel}</span>`
@@ -935,11 +950,12 @@ PHASES.forEach(phase => {
 
     /* ---- right column: two homework parts, or what the outline says is due ---- */
     const hwNum = HOMEWORK_WEEKS[weekNum];
-    if (hwNum) {
+    const prKey = PROJECT_WEEKS[weekNum];
+    if (hwNum || prKey) {
       const stack = document.createElement("div");
       stack.className = "hw-stack";
       [1, 2].forEach(partNum => {
-        const id = `hw${hwNum}_${partNum}`;
+        const id = hwNum ? `hw${hwNum}_${partNum}` : `${prKey}_${partNum}`;
         const rec = HOMEWORK.find(h => h.id === id);
         const url = HOMEWORK_LINKS[id] || "";
         stack.appendChild(tile({
@@ -947,7 +963,7 @@ PHASES.forEach(phase => {
           cls: rec ? "lec hw" : "lec hw hw-pending",
           attr: ["data-hw", id],
           label: id,
-          tags: `<span class="hw-part">part ${partNum}</span>`,
+          tags: `<span class="hw-part">${hwNum ? "part " + partNum : (partNum === 1 ? "team submission" : "peer evaluation")}</span>`,
           title: rec ? rec.title : "Not released yet",
           business: rec ? rec.business : "",
         }));
