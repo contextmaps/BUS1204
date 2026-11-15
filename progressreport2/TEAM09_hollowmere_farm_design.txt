@@ -1,0 +1,240 @@
+HOLLOWMERE FARM, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM09. Hollowmere Farm is made up, and so are the visitors, groups and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Hollowmere Farm in Floyd runs a pumpkin patch in the fall and sells Christmas trees in December. On weekends, visitors reserve a one hour time slot, up to 120 visitors per slot, and groups of 20 or more book a weekday visit at least 7 days ahead. Your customer agent takes two kinds of request: a weekend visit, and a group visit. Your staff agent works with June Caldwell, the farm manager, who decides every request. Visits rise on clear weekends and the farm closes in heavy rain, snow or ice, so your staff agent checks the weekend forecast, and the manager uses it to schedule staff and to close a day.
+
+The system has five parts:
+Slots tab: the weekend time slots of the pumpkin patch and how many visitors each can still take. Both agents read it.
+Requests tab: one row per request, with its status and the farm manager's note. Only the staff agent reads it.
+Customer agent: reads the Slots tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Slots tab and the forecast, and records the farm manager's decision after the manager confirms.
+June Caldwell: decides every request and updates the Slots tab by hand.
+
+
+2. THE SLOTS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Slots and paste the rows below into cell A1. They go into A1 to F8.
+
+The columns:
+slot_id         The slot's code. HF means Hollowmere Farm, then a number.
+date            The date of the visit, as text.
+day             The day of the week.
+start_time      When the one hour slot starts.
+visitors_left   How many more visitors the slot can take, out of 120.
+status          open, full at 0, or closed when the manager closes the farm for the weather.
+
+COPY, the Slots tab, starter rows for A1:
+slot_id	date	day	start_time	visitors_left	status
+HF-01	October 9, 2027	Saturday	10:00 am	64	open
+HF-02	October 9, 2027	Saturday	12:00 pm	0	full
+HF-03	October 9, 2027	Saturday	2:00 pm	18	open
+HF-04	October 9, 2027	Saturday	4:00 pm	90	open
+HF-05	October 10, 2027	Sunday	10:00 am	110	open
+HF-06	October 10, 2027	Sunday	1:00 pm	35	open
+HF-07	October 10, 2027	Sunday	3:00 pm	72	open
+
+Publish the Slots tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Slots tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_slots.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to K1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     H and a number, such as H101, made by the script.
+time           When the request came in, written by the script.
+request_type   visit or group.
+name           The visitor's full name, or the group leader's name.
+slot_id        For a weekend visit, the slot the visitor chose.
+visitors       How many visitors, counting everyone aged 3 and over.
+group_name     For a group, the group, such as a school or a club.
+group_date     For a group, the weekday of the visit, a Friday in the pumpkin season.
+phone          The visitor's phone number.
+status         pending when the request comes in, then reserved, booked or declined.
+manager_note   The farm manager's note on the decision, or the word none.
+
+In a weekend visit row group_name and group_date stay empty, and in a group row slot_id stays empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	slot_id	visitors	group_name	group_date	phone	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=visit&name=Test&slot_id=HF-01&visitors=2&phone=540-555-0100
+The right answer is ok true and request_id H101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is H101 again.
+
+This prompt is for your sheet only, with your office key, field-gate-1957, and the letter H.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value field-gate-1957.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter H in front of that number. A tab with three rows gives H103, never H3100, H1003 or H3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_slots
+Name: read_slots
+Description, COPY: Use when someone asks about weekend visit times or how many visitors a slot can still take. Returns every weekend slot in the Slots tab as comma separated text, one slot per row.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Slots link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the visitor has confirmed the details of a weekend visit or a group visit. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["visit","group"],"description":"visit for a weekend time slot, group for a weekday group of 20 or more."},"name":{"type":"string","description":"The visitor's or the group leader's full name."},"slot_id":{"type":"string","description":"For a weekend visit only. The slot_id from read_slots, such as HF-03."},"visitors":{"type":"integer","description":"How many visitors aged 3 and over."},"group_name":{"type":"string","description":"For a group only. The school, club or other group."},"group_date":{"type":"string","description":"For a group only. The date of the weekday visit, with the year."},"phone":{"type":"string","description":"The visitor's phone number."}},"required":["action","request_type","name","visitors","phone"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Hollowmere Farm, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, slot_id, visitors, group_name, group_date, phone, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are visit and group, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The visitor's or the group leader's full name.
+- slot_id: text (type string). For a weekend visit only. The slot_id from read_slots, such as HF-03.
+- visitors: a whole number (integer). How many visitors aged 3 and over.
+- group_name: text (type string). For a group only. The school, club or other group.
+- group_date: text (type string). For a group only. The date of the weekday visit, with the year.
+- phone: text (type string). The visitor's phone number.
+
+List these properties in required: action, request_type, name, visitors, phone. Leave slot_id, group_name and group_date out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   visit or group. The enum allows only these two words.
+name           The visitor's or the leader's name.
+slot_id        For a weekend visit, the slot from read_slots.
+visitors       A whole number of visitors.
+group_name     For a group, the group in words.
+group_date     For a group, the date with the year.
+phone          The visitor's phone number.
+required       The agent must send action, request_type, name, visitors and phone. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_slots
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Slots link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the farm manager asks about visit or group requests. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["field-gate-1957"],"description":"The office key. Always field-gate-1957."},"status":{"type":"string","enum":["pending","reserved","booked","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the farm manager has named a request_id, said reserve, book or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["field-gate-1957"],"description":"The office key. Always field-gate-1957."},"request_id":{"type":"string","description":"The request_id the farm manager decided, such as H103."},"status":{"type":"string","enum":["reserved","booked","declined"],"description":"The farm manager's decision: reserved for a weekend visit, booked for a group, declined for either."},"manager_note":{"type":"string","description":"The farm manager's note for this request. If the farm manager gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_forecast
+Name: get_forecast
+Description, COPY: Use when the farm manager asks about the weather for a visit day or the weekend. Returns the daily forecast for Floyd, Virginia, for the next 16 days: weather code, high temperature in Fahrenheit, chance of rain, rain in inches and snowfall in inches.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.open-meteo.com/v1/forecast?latitude=36.91&longitude=-80.32&daily=weather_code,temperature_2m_max,precipitation_probability_max,precipitation_sum,snowfall_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=16
+The forecast comes from Open-Meteo, a free public weather service with no account or key. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, reserved, booked or declined, when the farm manager asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the farm manager decided, such as H103.
+status         reserved for a weekend visit, booked for a group, declined for either.
+manager_note   The farm manager's note. When the farm manager gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE FARM MANAGER'S DECISIONS
+
+June Caldwell decides every request. Before each decision, the staff agent checks what the fact sheet and the Slots tab say, and the manager decides.
+
+A weekend visit. The staff agent checks that the slot is open and has room for the visitors, and works out the admission at 8 dollars per visitor aged 3 and over. The manager reserves or declines. A weekend slot above capacity is an exception, and the manager decides it with a note.
+After a reserved visit: the manager lowers visitors_left for that slot by the number of visitors on the Slots tab, and writes full in status when it reaches 0.
+
+A group visit. The staff agent checks that the group has 20 or more visitors, that the date is a Friday in the pumpkin season, at least 7 days away, and works out the price at 6 dollars per person. The manager books or declines. A group visit on less than 7 days' notice is an exception, and the manager decides it with a note.
+
+A weekend forecast. When the manager asks about the weather, the staff agent calls get_forecast and reports the chance of rain, the rain and snow in inches, and the high temperature for each day. The forecast covers the next 16 days, so the manager looks at the coming weekends. On a clear, mild weekend the manager schedules more staff. On a day with heavy rain, snow or ice, the manager closes the farm, writing closed in the status of that day's slots on the Slots tab by hand, and the staff agent drafts a message to the visitors with a reservation.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Slots tab after each step.
+
+To the customer agent: Hi, we would like to visit the pumpkin patch on Saturday, October 9 at 2:00 pm, 2 adults and 3 children aged 4, 7 and 10. I am Grace Lin, 540-555-0119.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: I teach second grade at Floyd Elementary. Could 24 students and 4 adults visit on Friday, October 15, 2027? I am Mark Ellis, 540-555-0133.
+
+To the staff agent, as the farm manager, one message at a time:
+What requests are waiting for me?
+Is there room for the Lin visit in its slot?
+What does the weekend forecast look like?
+Reserve request H101. Note: pay 40 dollars at the gate.
+Reply yes when the agent asks you to confirm. If the Lin request has another request_id, use it in place of H101. Then book or decline the Floyd Elementary group the same way, by its request_id.
+
+Then, as the manager, lower visitors_left for HF-03 from 18 to 13 on the Slots tab, and ask the customer agent how many visitors the Saturday 2:00 pm slot can still take. The right answer is 13.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_slots before answering any question about weekend visit times or room in a slot, and answer only from the rows it receives.
+For a weekend visit, collect the visitor's name, the slot_id, the number of visitors aged 3 and over and a phone number. For a group, collect the leader's name, the group, the date, the number of visitors and a phone number. Repeat the details back.
+When the visitor says yes, call add_request in the same reply, once, give the request_id and say that the farm confirms every reservation. Never say that a visit is reserved.
+The agent cannot see other requests, and says it can help only with the visitor's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the manager asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_slots when the manager asks whether a visit fits, and get_forecast for the weather.
+Record a decision only when the manager names a request_id and says reserve, book or decline. Repeat it, ask the manager to confirm, then call decide_request once.
+After a reserved visit, remind the manager to lower visitors_left on the Slots tab.

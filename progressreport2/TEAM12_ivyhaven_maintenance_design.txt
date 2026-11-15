@@ -1,0 +1,248 @@
+IVYHAVEN PROPERTY MANAGEMENT, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM12. Ivyhaven Property Management is made up, and so are the buildings, tenants and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Ivyhaven Property Management runs apartment buildings in Blacksburg. Tenants report maintenance problems, and technicians visit Monday to Friday, within 1 business day for an urgent problem and 5 for a routine one. An emergency goes to the emergency line, never to the agent. Your customer agent takes two kinds of request: a repair, and a change to the time of a repair visit. Your staff agent works with Calvin Mercer, the maintenance manager, who decides every request. A hard freeze can burst pipes, so your staff agent checks the freeze and storm forecast, and the manager uses it to move heating and plumbing repairs to the front of the queue.
+
+The system has five parts:
+Visits tab: the technicians' visit times of the week and whether each is open. Both agents read it.
+Requests tab: one row per request, with its status and the maintenance manager's note. Only the staff agent reads it.
+Customer agent: reads the Visits tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Visits tab and the freeze and storm forecast, and records the maintenance manager's decision after the manager confirms.
+Calvin Mercer: decides every request and updates the Visits tab by hand.
+
+
+2. THE VISITS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Visits and paste the rows below into cell A1. They go into A1 to F8.
+
+The columns:
+visit_id     The visit time's code. IV means Ivyhaven visit, then a number.
+date         The date, as text.
+day          The day of the week.
+window       The two hour window when the technician arrives.
+technician   The technician, a made up name.
+status       open or booked.
+
+COPY, the Visits tab, starter rows for A1:
+visit_id	date	day	window	technician	status
+IV-01	January 18, 2027	Monday	8:00 am to 10:00 am	Rafael Ortiz	booked
+IV-02	January 18, 2027	Monday	1:00 pm to 3:00 pm	Rafael Ortiz	open
+IV-03	January 19, 2027	Tuesday	8:00 am to 10:00 am	Dana Cole	open
+IV-04	January 19, 2027	Tuesday	10:00 am to 12:00 pm	Dana Cole	open
+IV-05	January 20, 2027	Wednesday	1:00 pm to 3:00 pm	Rafael Ortiz	open
+IV-06	January 21, 2027	Thursday	8:00 am to 10:00 am	Dana Cole	open
+IV-07	January 22, 2027	Friday	3:00 pm to 5:00 pm	Rafael Ortiz	open
+
+Publish the Visits tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Visits tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_visits.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to M1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     I and a number, such as I101, made by the script.
+time           When the request came in, written by the script.
+request_type   repair or reschedule.
+name           The tenant's full name.
+apartment      The building and the apartment number.
+category       For a repair, urgent or routine, from the fact sheet.
+problem        For a repair, what is wrong and where.
+enter_empty    For a repair, yes or no: whether a technician may enter while the apartment is empty.
+visit_id       The visit time the tenant chose, or for a reschedule, the new time.
+repair_ref     For a reschedule, the request_id of the repair, or its current visit_id.
+phone          The tenant's phone number.
+status         pending when the request comes in, then scheduled, moved or declined.
+manager_note   The maintenance manager's note on the decision, or the word none.
+
+In a repair row repair_ref stays empty, and in a reschedule row category, problem and enter_empty stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	apartment	category	problem	enter_empty	visit_id	repair_ref	phone	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=repair&name=Test&apartment=Test%201&category=routine&problem=test&enter_empty=no&visit_id=IV-02&phone=540-555-0100
+The right answer is ok true and request_id I101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is I101 again.
+
+This prompt is for your sheet only, with your office key, ivy-wrench-4720, and the letter I.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value ivy-wrench-4720.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter I in front of that number. A tab with three rows gives I103, never I3100, I1003 or I3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_visits
+Name: read_visits
+Description, COPY: Use when a tenant asks when a technician can come. Returns every visit time in the Visits tab as comma separated text, one time per row, with whether it is open.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Visits link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the tenant has confirmed the details of a repair or a reschedule, and never for an emergency. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["repair","reschedule"],"description":"repair for a new problem, reschedule to move the visit of a repair."},"name":{"type":"string","description":"The tenant's full name."},"apartment":{"type":"string","description":"The building and the apartment number."},"category":{"type":"string","enum":["urgent","routine"],"description":"For a repair only. urgent or routine, from the fact sheet."},"problem":{"type":"string","description":"For a repair only. What is wrong and where."},"enter_empty":{"type":"string","enum":["yes","no"],"description":"For a repair only. yes if a technician may enter while the apartment is empty."},"visit_id":{"type":"string","description":"The visit_id from read_visits, such as IV-03."},"repair_ref":{"type":"string","description":"For a reschedule only. The request_id of the repair, such as I104, or its current visit_id."},"phone":{"type":"string","description":"The tenant's phone number."}},"required":["action","request_type","name","apartment","visit_id","phone"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Ivyhaven Property Management, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, apartment, category, problem, enter_empty, visit_id, repair_ref, phone, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are repair and reschedule, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The tenant's full name.
+- apartment: text (type string). The building and the apartment number.
+- category: text (type string), with only these allowed values, set with enum: urgent, routine. For a repair only. urgent or routine, from the fact sheet.
+- problem: text (type string). For a repair only. What is wrong and where.
+- enter_empty: text (type string), with only these allowed values, set with enum: yes, no. For a repair only. yes if a technician may enter while the apartment is empty.
+- visit_id: text (type string). The visit_id from read_visits, such as IV-03.
+- repair_ref: text (type string). For a reschedule only. The request_id of the repair, such as I104, or its current visit_id.
+- phone: text (type string). The tenant's phone number.
+
+List these properties in required: action, request_type, name, apartment, visit_id, phone. Leave category, problem, enter_empty and repair_ref out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   repair or reschedule. The enum allows only these two words.
+name           The tenant's name.
+apartment      The building and the number.
+category       For a repair, urgent or routine.
+problem        For a repair, the problem in words.
+enter_empty    For a repair, yes or no.
+visit_id       The visit time, from read_visits.
+repair_ref     For a reschedule, the request_id of the repair, or its current visit_id.
+phone          The tenant's phone number.
+required       The agent must send action, request_type, name, apartment, visit_id and phone. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_visits
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Visits link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the maintenance manager asks about repair or reschedule requests. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["ivy-wrench-4720"],"description":"The office key. Always ivy-wrench-4720."},"status":{"type":"string","enum":["pending","scheduled","moved","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the maintenance manager has named a request_id, said schedule, move or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["ivy-wrench-4720"],"description":"The office key. Always ivy-wrench-4720."},"request_id":{"type":"string","description":"The request_id the maintenance manager decided, such as I103."},"status":{"type":"string","enum":["scheduled","moved","declined"],"description":"The maintenance manager's decision: scheduled for a repair, moved for a reschedule, declined for either."},"manager_note":{"type":"string","description":"The maintenance manager's note for this request. If the maintenance manager gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_forecast
+Name: get_forecast
+Description, COPY: Use when the maintenance manager asks about freezes, storms or the weather ahead. Returns the daily forecast for Blacksburg, Virginia, for the next 16 days: weather code, low and high temperature in Fahrenheit, strongest wind gust in miles per hour, rain in inches and snowfall in inches.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.open-meteo.com/v1/forecast?latitude=37.23&longitude=-80.41&daily=weather_code,temperature_2m_min,temperature_2m_max,wind_gusts_10m_max,precipitation_sum,snowfall_sum&temperature_unit=fahrenheit&precipitation_unit=inch&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=16
+The forecast comes from Open-Meteo, a free public weather service with no account or key. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, scheduled, moved or declined, when the maintenance manager asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the maintenance manager decided, such as I103.
+status         scheduled for a repair, moved for a reschedule, declined for either.
+manager_note   The maintenance manager's note. When the maintenance manager gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE MAINTENANCE MANAGER'S DECISIONS
+
+Calvin Mercer decides every request. Before each decision, the staff agent checks what the fact sheet and the Visits tab say, and the manager decides.
+
+A repair. The staff agent checks the category against the fact sheet (urgent for no hot water, a refrigerator that stops cooling, a stove that does not work or a dripping leak; routine for everything else), that the problem is not one tenants fix themselves, such as a light bulb or a smoke detector battery, and that the visit time is open and falls within 1 business day for urgent or 5 for routine. If the problem sounds like an emergency, the staff agent says so at once, and the manager calls the tenant. The manager schedules or declines. A routine repair moved ahead of others, weekend work that is not an emergency, or waiving a charge for damage is an exception, and the manager decides it with a note.
+After a scheduled repair: the manager writes booked in that visit's status on the Visits tab.
+
+A reschedule. The staff agent finds the repair by its request_id or its current visit, and checks that the new time is open. The manager marks it moved or declines it.
+After a moved visit: the manager writes open in the old time's status and booked in the new time's status.
+
+A hard freeze. When the manager asks about the weather, the staff agent calls get_forecast and reports the low temperature, the wind gusts, and the rain and snow for each day. The forecast covers the next 16 days, so the manager looks at the coming days. When a low of 28 degrees or below is forecast, the manager moves heating and plumbing repairs to the earliest open visits, and marks the routine repairs that were in those times moved, with a note.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Visits tab after each step.
+
+To the customer agent: Hi, the kitchen faucet in apartment 3B at Laurel Court has been dripping for two days. A technician may come in while I am at class. Could someone come Tuesday morning? I am Hannah Price, 540-555-0158.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: I am Marcus Lee in Oak Hall 4D, 540-555-0131. My repair visit is on Monday, January 18 from 8:00 am to 10:00 am. Please move it to Friday afternoon.
+
+To the staff agent, as the maintenance manager, one message at a time:
+What requests are waiting for me?
+Is the Price repair urgent or routine, and is its visit time open?
+Is a hard freeze in the forecast for the coming week?
+Schedule request I101. Note: Dana Cole, check the shutoff valve too.
+Reply yes when the agent asks you to confirm. If the Price repair has another request_id, use it in place of I101. Then mark the Lee reschedule moved or decline it the same way, by its request_id.
+
+Then, as the manager, write booked in the status of IV-03 on the Visits tab, and ask the customer agent whether a technician can come on Tuesday, January 19 from 8:00 am to 10:00 am. The right answer is no.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_visits before answering any question about when a technician can come, and answer only from the rows it receives.
+For an emergency on the fact sheet, give the emergency line, 540-555-0233, and 911 first for fire, smoke or a gas smell, and never call add_request.
+For a repair, collect the tenant's name, the apartment, the category, the problem, whether a technician may enter while the apartment is empty, the visit time and a phone number. For a reschedule, collect the name, apartment, the request_id or the current time of the repair, the new time and a phone number. Repeat the details back.
+When the tenant says yes, call add_request in the same reply, once, give the request_id and say that the maintenance office confirms every visit. Never say that a visit is scheduled.
+The agent cannot see other requests, and says it can help only with the tenant's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the manager asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_visits when the manager asks whether a visit time is open, and get_forecast for freezes and storms.
+Record a decision only when the manager names a request_id and says schedule, move or decline. Repeat it, ask the manager to confirm, then call decide_request once.
+After a scheduled repair or a moved visit, remind the manager to update the Visits tab.

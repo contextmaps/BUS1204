@@ -1,0 +1,242 @@
+LANTERN LOFT COWORKING, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM11. Lantern Loft Coworking is made up, and so are the members, companies and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Lantern Loft Coworking is a coworking space in Blacksburg with desks, private offices and two meeting rooms, the Ridge room for 4 and the Valley room for 10. Members book meeting rooms in hours, and memberships run month to month. Your customer agent takes two kinds of request: a meeting room booking, and a membership change, which starts or cancels a membership. Your staff agent works with Owen Stratton, the manager, who decides every request. The space closes on public holidays, so your staff agent checks the public holiday calendar, and the manager uses it to block bookings on those days and to adjust monthly fees.
+
+The system has five parts:
+Rooms tab: the meeting room times of the week and whether each is open. Both agents read it.
+Requests tab: one row per request, with its status and the manager's note. Only the staff agent reads it.
+Customer agent: reads the Rooms tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Rooms tab and the holiday calendar, and records the manager's decision after the manager confirms.
+Owen Stratton: decides every request and updates the Rooms tab by hand.
+
+
+2. THE ROOMS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Rooms and paste the rows below into cell A1. They go into A1 to G9.
+
+The columns:
+slot_id   The room time's code. LL means Lantern Loft, then a number.
+room      Ridge or Valley.
+seats     How many people the room seats.
+date      The date, as text.
+day       The day of the week.
+hours     The two hour block, between 8:00 am and 8:00 pm.
+status    open, booked, or closed when the space is closed.
+
+COPY, the Rooms tab, starter rows for A1:
+slot_id	room	seats	date	day	hours	status
+LL-01	Ridge	4	December 28, 2026	Monday	9:00 am to 11:00 am	open
+LL-02	Valley	10	December 28, 2026	Monday	1:00 pm to 3:00 pm	booked
+LL-03	Ridge	4	December 30, 2026	Wednesday	10:00 am to 12:00 pm	open
+LL-04	Valley	10	December 30, 2026	Wednesday	2:00 pm to 4:00 pm	open
+LL-05	Ridge	4	December 31, 2026	Thursday	9:00 am to 11:00 am	open
+LL-06	Valley	10	December 31, 2026	Thursday	1:00 pm to 3:00 pm	open
+LL-07	Ridge	4	January 1, 2027	Friday	10:00 am to 12:00 pm	open
+LL-08	Valley	10	January 1, 2027	Friday	3:00 pm to 5:00 pm	open
+
+Publish the Rooms tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Rooms tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_rooms.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to K1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     N and a number, such as N101, made by the script.
+time           When the request came in, written by the script.
+request_type   room or membership.
+name           The member's full name, or the name of a new member.
+plan           The member's plan: day pass, flex desk, dedicated desk or private office.
+slot_id        For a room, the room time from read_rooms.
+people         For a room, how many people will meet.
+change         For a membership, start or cancel, with the month.
+email          The member's email.
+status         pending when the request comes in, then booked, updated or declined.
+manager_note   The manager's note on the decision, or the word none.
+
+In a room row change stays empty, and in a membership row slot_id and people stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	plan	slot_id	people	change	email	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=room&name=Test&plan=flex%20desk&slot_id=LL-01&people=2&email=test%40example.com
+The right answer is ok true and request_id N101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is N101 again.
+
+This prompt is for your sheet only, with your office key, loft-lamp-5520, and the letter N.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value loft-lamp-5520.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter N in front of that number. A tab with three rows gives N103, never N3100, N1003 or N3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_rooms
+Name: read_rooms
+Description, COPY: Use when someone asks about meeting rooms, room times or whether a room is open. Returns every room time in the Rooms tab as comma separated text, one time per row.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Rooms link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the member has confirmed the details of a room booking or a membership change. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["room","membership"],"description":"room for a meeting room booking, membership to start or cancel a membership."},"name":{"type":"string","description":"The member's full name."},"plan":{"type":"string","enum":["day pass","flex desk","dedicated desk","private office"],"description":"The member's plan, or the plan a new member wants."},"slot_id":{"type":"string","description":"For a room only. The slot_id from read_rooms, such as LL-03."},"people":{"type":"integer","description":"For a room only. How many people will meet."},"change":{"type":"string","description":"For a membership only. start or cancel, and the month, such as cancel from January."},"email":{"type":"string","description":"The member's email."}},"required":["action","request_type","name","plan","email"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Lantern Loft Coworking, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, plan, slot_id, people, change, email, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are room and membership, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The member's full name.
+- plan: text (type string), with only these allowed values, set with enum: day pass, flex desk, dedicated desk, private office. The member's plan, or the plan a new member wants.
+- slot_id: text (type string). For a room only. The slot_id from read_rooms, such as LL-03.
+- people: a whole number (integer). For a room only. How many people will meet.
+- change: text (type string). For a membership only. start or cancel, and the month, such as cancel from January.
+- email: text (type string). The member's email.
+
+List these properties in required: action, request_type, name, plan, email. Leave slot_id, people and change out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   room or membership. The enum allows only these two words.
+name           The member's name.
+plan           One of the four plans on the fact sheet.
+slot_id        For a room, the time from read_rooms.
+people         For a room, a whole number of people.
+change         For a membership, start or cancel with the month.
+email          The member's email.
+required       The agent must send action, request_type, name, plan and email. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_rooms
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Rooms link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the manager asks about room bookings or membership changes. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["loft-lamp-5520"],"description":"The office key. Always loft-lamp-5520."},"status":{"type":"string","enum":["pending","booked","updated","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the manager has named a request_id, said book, update or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["loft-lamp-5520"],"description":"The office key. Always loft-lamp-5520."},"request_id":{"type":"string","description":"The request_id the manager decided, such as N103."},"status":{"type":"string","enum":["booked","updated","declined"],"description":"The manager's decision: booked for a room, updated for a membership change, declined for either."},"manager_note":{"type":"string","description":"The manager's note for this request. If the manager gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_holidays
+Name: get_holidays
+Description, COPY: Use when the manager asks about holidays or closing days ahead. Returns the United States public holidays of the next 12 months, each with its date and name. A holiday marked global false applies only in the states listed under counties, such as US-VA for Virginia.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://date.nager.at/api/v3/NextPublicHolidays/US
+The holidays come from Nager.Date, a free public holiday service with no account or key. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, booked, updated or declined, when the manager asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the manager decided, such as N103.
+status         booked for a room, updated for a membership change, declined for either.
+manager_note   The manager's note. When the manager gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE MANAGER'S DECISIONS
+
+Owen Stratton decides every request. Before each decision, the staff agent checks what the fact sheet and the Rooms tab say, and the manager decides.
+
+A room. The staff agent checks that the time is open, that the room seats the people (Ridge 4, Valley 10), that the booking is at most 30 days ahead and keeps the member at 4 hours a day or fewer, and works out how many of the member's monthly hours it uses (flex desk 4, dedicated desk 8, private office 15) and the charge after them (Ridge 20 dollars an hour, Valley 40). A day pass holder has no monthly hours. The manager books or declines. A room for more than 4 hours, a booking more than 30 days ahead, or key card access on an unpaid account is an exception, and the manager decides it with a note.
+After a booked room: the manager writes booked in that time's status on the Rooms tab.
+
+A membership change. The staff agent checks the plan and its price, and for a cancellation whether it came by the 20th, which stops the next month's charge. The manager marks it updated or declines it.
+
+A holiday. When the manager asks about holidays, the staff agent calls get_holidays and reports the holidays of the coming months. The space closes on New Year's Day, Thanksgiving and Christmas Day. The manager writes closed in the status of every room time on those days on the Rooms tab, by hand, and may adjust the monthly fees for a month with a closed day.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Rooms tab after each step.
+
+To the customer agent: Hi, I have a dedicated desk and would like the Valley room on Wednesday, December 30 from 2:00 pm to 4:00 pm for 7 people. I am Lucia Moreno, lucia.moreno@example.com.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: I would like to cancel my flex desk from next month. I am Tom Becker, tom.becker@example.com.
+
+To the staff agent, as the manager, one message at a time:
+What requests are waiting for me?
+Does the Moreno booking fit, and how many of her monthly hours does it use?
+Which public holidays are coming up in the next few months?
+Book request N101. Note: screen ready at 1:45 pm.
+Reply yes when the agent asks you to confirm. If the Moreno request has another request_id, use it in place of N101. Then mark the Becker change updated or decline it the same way, by its request_id.
+
+Then, as the manager, write booked in the status of LL-04 and closed in the status of LL-07 and LL-08, the New Year's Day times, on the Rooms tab. Ask the customer agent whether the Ridge room is open on Friday, January 1. The right answer is no, the space is closed.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_rooms before answering any question about meeting rooms or room times, and answer only from the rows it receives.
+For a room, collect the member's name, plan, the room time, the number of people and an email. For a membership change, collect the name, the plan, start or cancel with the month, and an email. Repeat the details back.
+When the member says yes, call add_request in the same reply, once, give the request_id and say that the front desk confirms every request. Never say that a room is booked.
+The agent cannot see other requests or other members' accounts, and says it can help only with the member's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the manager asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_rooms when the manager asks whether a booking fits, and get_holidays for holidays and closing days.
+Record a decision only when the manager names a request_id and says book, update or decline. Repeat it, ask the manager to confirm, then call decide_request once.
+After a booked room, remind the manager to write booked on the Rooms tab.

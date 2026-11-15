@@ -1,0 +1,247 @@
+PETALCREST FLOWERS, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM10. Petalcrest Flowers is made up, and so are the customers, couples and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Petalcrest Flowers is a florist in Radford that delivers arrangements in Radford, Christiansburg, Fairlawn, Blacksburg and Pulaski, and designs flowers for weddings. Orders placed by 12:00 pm are delivered the same day, and holiday orders close 3 days before the holiday. Your customer agent takes two kinds of request: a delivery order, and a wedding or event inquiry. Your staff agent works with Grace Okafor, the owner, who decides every request. Snow, ice and heat change how many deliveries the drivers can make, so your staff agent checks the forecast, and the owner uses it to plan drivers and to close deliveries on a day with ice or heavy snow.
+
+The system has five parts:
+Deliveries tab: the delivery days of the week, how many more deliveries each can take, and the order cutoff. Both agents read it.
+Requests tab: one row per request, with its status and the owner's note. Only the staff agent reads it.
+Customer agent: reads the Deliveries tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Deliveries tab and the forecast, and records the owner's decision after the owner confirms.
+Grace Okafor: decides every request and updates the Deliveries tab by hand.
+
+
+2. THE DELIVERIES TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Deliveries and paste the rows below into cell A1. They go into A1 to G8.
+
+The columns:
+day_id            The delivery day's code. PF means Petalcrest Flowers, then a number.
+date              The delivery date, as text.
+day               The day of the week.
+deliveries_left   How many more deliveries the drivers can make that day. The owner sets it.
+order_cutoff      The last time to order for that day.
+price_note        Any change to the prices, such as holiday prices.
+status            open, full at 0, or closed when orders have closed or the owner closes deliveries for the weather.
+
+COPY, the Deliveries tab, starter rows for A1:
+day_id	date	day	deliveries_left	order_cutoff	price_note	status
+PF-01	February 8, 2027	Monday	14	12:00 pm on February 8	regular prices	open
+PF-02	February 9, 2027	Tuesday	9	12:00 pm on February 9	regular prices	open
+PF-03	February 10, 2027	Wednesday	0	12:00 pm on February 10	regular prices	full
+PF-04	February 11, 2027	Thursday	12	12:00 pm on February 11	regular prices	open
+PF-05	February 12, 2027	Friday	16	12:00 pm on February 12	regular prices	open
+PF-06	February 13, 2027	Saturday	40	February 11, the Valentine's Day cutoff	holiday prices, 20 percent higher	open
+PF-07	February 14, 2027	Sunday, Valentine's Day	40	February 11, the Valentine's Day cutoff	holiday prices, 20 percent higher	open
+
+Publish the Deliveries tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Deliveries tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_deliveries.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to M1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     P and a number, such as P101, made by the script.
+time           When the request came in, written by the script.
+request_type   order or wedding.
+name           The customer's full name, or the couple's names for a wedding.
+day_id         For an order, the delivery day from read_deliveries.
+arrangement    For an order, the arrangement from the fact sheet, such as a medium vase arrangement.
+town           For an order, the delivery town.
+recipient      For an order, who receives the flowers, with the address.
+card_message   For an order, the message on the card, or none.
+event_date     For a wedding, the date of the event.
+phone          The customer's phone number.
+status         pending when the request comes in, then confirmed, consult or declined.
+manager_note   The owner's note on the decision, or the word none.
+
+In an order row event_date stays empty, and in a wedding row day_id, arrangement, town, recipient and card_message stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	day_id	arrangement	town	recipient	card_message	event_date	phone	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=order&name=Test&day_id=PF-01&arrangement=small%20vase&town=Radford&recipient=Test&card_message=none&phone=540-555-0100
+The right answer is ok true and request_id P101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is P101 again.
+
+This prompt is for your sheet only, with your office key, petal-van-3372, and the letter P.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value petal-van-3372.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter P in front of that number. A tab with three rows gives P103, never P3100, P1003 or P3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_deliveries
+Name: read_deliveries
+Description, COPY: Use when someone asks about delivery days, order cutoffs, holiday prices or whether a day is open. Returns every delivery day in the Deliveries tab as comma separated text, one day per row.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Deliveries link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the customer has confirmed the details of a delivery order or a wedding inquiry. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["order","wedding"],"description":"order for a delivery, wedding for a wedding or event inquiry."},"name":{"type":"string","description":"The customer's full name, or the couple's names."},"day_id":{"type":"string","description":"For an order only. The day_id from read_deliveries, such as PF-04."},"arrangement":{"type":"string","description":"For an order only. The arrangement from the fact sheet."},"town":{"type":"string","enum":["Radford","Christiansburg","Fairlawn","Blacksburg","Pulaski"],"description":"For an order only. The delivery town."},"recipient":{"type":"string","description":"For an order only. Who receives the flowers, with the address."},"card_message":{"type":"string","description":"For an order only. The card message, or none."},"event_date":{"type":"string","description":"For a wedding only. The date of the event, with the year."},"phone":{"type":"string","description":"The customer's phone number."}},"required":["action","request_type","name","phone"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Petalcrest Flowers, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, day_id, arrangement, town, recipient, card_message, event_date, phone, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are order and wedding, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The customer's full name, or the couple's names.
+- day_id: text (type string). For an order only. The day_id from read_deliveries, such as PF-04.
+- arrangement: text (type string). For an order only. The arrangement from the fact sheet.
+- town: text (type string), with only these allowed values, set with enum: Radford, Christiansburg, Fairlawn, Blacksburg, Pulaski. For an order only. The delivery town.
+- recipient: text (type string). For an order only. Who receives the flowers, with the address.
+- card_message: text (type string). For an order only. The card message, or none.
+- event_date: text (type string). For a wedding only. The date of the event, with the year.
+- phone: text (type string). The customer's phone number.
+
+List these properties in required: action, request_type, name, phone. Leave day_id, arrangement, town, recipient, card_message and event_date out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   order or wedding. The enum allows only these two words.
+name           The customer's or the couple's names.
+day_id         For an order, the day from read_deliveries.
+arrangement    For an order, the arrangement in words.
+town           For an order, one of the five delivery towns.
+recipient      For an order, a name and an address.
+card_message   For an order, the message or none.
+event_date     For a wedding, the date with the year.
+phone          The customer's phone number.
+required       The agent must send action, request_type, name and phone. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_deliveries
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Deliveries link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the owner asks about delivery orders or wedding inquiries. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["petal-van-3372"],"description":"The office key. Always petal-van-3372."},"status":{"type":"string","enum":["pending","confirmed","consult","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the owner has named a request_id, said confirm, consult or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["petal-van-3372"],"description":"The office key. Always petal-van-3372."},"request_id":{"type":"string","description":"The request_id the owner decided, such as P103."},"status":{"type":"string","enum":["confirmed","consult","declined"],"description":"The owner's decision: confirmed for an order, consult for a wedding, with the meeting with the designer in the note, declined for either."},"manager_note":{"type":"string","description":"The owner's note for this request. If the owner gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_forecast
+Name: get_forecast
+Description, COPY: Use when the owner asks about the weather for delivery days. Returns the daily forecast for Radford, Virginia, for the next 16 days: weather code, low and high temperature in Fahrenheit, chance of rain or snow, and snowfall in inches. Weather codes 56, 57, 66 and 67 are freezing drizzle and freezing rain, and 71 to 77 are snow.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.open-meteo.com/v1/forecast?latitude=37.13&longitude=-80.58&daily=weather_code,temperature_2m_min,temperature_2m_max,precipitation_probability_max,snowfall_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=16
+The forecast comes from Open-Meteo, a free public weather service with no account or key. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, confirmed, consult or declined, when the owner asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the owner decided, such as P103.
+status         confirmed for an order, consult for a wedding, with the meeting with the designer in the note, declined for either.
+manager_note   The owner's note. When the owner gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE OWNER'S DECISIONS
+
+Grace Okafor decides every request. Before each decision, the staff agent checks what the fact sheet and the Deliveries tab say, and the owner decides.
+
+An order. The staff agent checks that the day is open and has deliveries left, that the order came in before the day's cutoff, that the town is one the shop delivers to, that the recipient is not in a hospital's intensive care unit, and works out the price with the delivery fee (12 dollars in Radford, Christiansburg and Fairlawn, 20 dollars in Blacksburg and Pulaski) and any holiday price. The owner confirms or declines. A same day order after 12:00 pm or a holiday order after the cutoff is an exception, and the owner decides it with a note.
+After a confirmed order: the owner lowers deliveries_left for that day by 1 on the Deliveries tab, and writes full in status when it reaches 0.
+
+A wedding. The staff agent checks that the date is at least 8 weeks away, and notes the starting price of 1,200 dollars and the 50 percent deposit. The owner sets a meeting with the designer, named with the time in the note, or declines. A wedding on less than 8 weeks' notice is an exception, and the owner decides it with a note.
+
+A snowy or icy week. When the owner asks about the weather, the staff agent calls get_forecast and reports the low temperature, the chance of snow, the snowfall and any freezing rain code for each day. The forecast covers the next 16 days, so the owner looks at the coming delivery days. On a day with ice or heavy snow, the owner closes deliveries, writing closed in that day's status on the Deliveries tab by hand, and the staff agent drafts a message to the customers with a confirmed order for that day.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Deliveries tab after each step.
+
+To the customer agent: Hi, I would like a medium vase arrangement delivered on Thursday, February 11, to my grandmother, Rose Patel, 214 Wadsworth Street, Radford. The card should say Happy birthday, Grandma. I am Jordan Patel, 540-555-0146.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: We are getting married on Saturday, September 18, 2027 and would like to talk about flowers. We are Kim Nguyen and Alex Ford, 540-555-0192.
+
+To the staff agent, as the owner, one message at a time:
+What requests are waiting for me?
+Does the Patel order fit on its delivery day, and what does it cost?
+Is any snow or ice in the forecast for the coming days?
+Confirm request P101. Note: deliver after 2:00 pm.
+Reply yes when the agent asks you to confirm. If the Patel request has another request_id, use it in place of P101. Then set a consult for the Nguyen and Ford wedding, with the designer and a time in the note, or decline it, the same way, by its request_id.
+
+Then, as the owner, lower deliveries_left for PF-04 from 12 to 11 on the Deliveries tab, and ask the customer agent how many deliveries are still open for Thursday, February 11. The right answer is 11.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_deliveries before answering any question about delivery days, cutoffs or holiday prices, and answer only from the rows it receives.
+For an order, collect the customer's name, the delivery day, the arrangement, the town, the recipient with the address, the card message and a phone number. For a wedding, collect the couple's names, the date and a phone number. Repeat the details back.
+When the customer says yes, call add_request in the same reply, once, give the request_id and say that the shop confirms every order. Never say that an order is confirmed.
+The agent cannot see other requests, and says it can help only with the customer's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the owner asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_deliveries when the owner asks whether an order fits, and get_forecast for the weather.
+Record a decision only when the owner names a request_id and says confirm, consult or decline. Repeat it, ask the owner to confirm, then call decide_request once.
+After a confirmed order, remind the owner to lower deliveries_left on the Deliveries tab.

@@ -1,0 +1,241 @@
+CARDAMOM CORNER MARKET, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM08. Cardamom Corner Market is made up, and so are the items, suppliers, customers and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Cardamom Corner Market is an international grocery in Christiansburg. Customers special order shelf stable items the store does not stock, from its suppliers in Mexico, India, South Korea and Lebanon, with a 20 percent deposit, and may cancel before the supplier order goes out. Your customer agent takes two kinds of request: a special order, and a cancellation of a special order. Your staff agent works with Yusuf Haddad, the owner, who decides every request. The store pays its suppliers in Mexican pesos, Indian rupees and Korean won, so your staff agent checks the exchange rates, and the owner uses them to set the dollar price of each special order item.
+
+The system has five parts:
+Items tab: the items customers may special order, their supplier prices and their dollar prices. Both agents read it.
+Requests tab: one row per request, with its status and the owner's note. Only the staff agent reads it.
+Customer agent: reads the Items tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Items tab and the exchange rates, and records the owner's decision after the owner confirms.
+Yusuf Haddad: decides every request and updates the Items tab by hand.
+
+
+2. THE ITEMS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Items and paste the rows below into cell A1. They go into A1 to H8.
+
+The columns:
+item_id          The item's code. CC means Cardamom Corner, then a number.
+item             The item and its size.
+supplier         The supplier's country.
+unit             What one unit is, such as a bag or a case.
+supplier_price   The supplier's price for one unit, in the supplier's currency.
+currency         MXN for Mexican pesos, INR for Indian rupees, KRW for Korean won, USD for the Lebanese supplier, which bills in dollars.
+price_usd        The store's price for one unit in dollars, set by the owner: the supplier price in dollars plus 40 percent, rounded to the nearest 50 cents.
+status           orderable, or not orderable for fresh and frozen items.
+
+COPY, the Items tab, starter rows for A1:
+item_id	item	supplier	unit	supplier_price	currency	price_usd	status
+CC-01	Dried guajillo chiles, 1 kg bag	Mexico	bag	210	MXN	16.00	orderable
+CC-02	Masa harina, case of 10 bags of 2 kg	Mexico	case	520	MXN	39.50	orderable
+CC-03	Basmati rice, 10 kg bag	India	bag	1450	INR	23.00	orderable
+CC-04	Kashmiri chili powder, 500 g	India	jar	380	INR	6.00	orderable
+CC-05	Gochujang, 3 kg tub	South Korea	tub	21000	KRW	21.00	orderable
+CC-06	Frozen dumplings, case	South Korea	case	35000	KRW		not orderable
+CC-07	Za'atar, 1 kg bag	Lebanon	bag	11	USD	15.50	orderable
+
+Publish the Items tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Items tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_items.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to K1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     M and a number, such as M101, made by the script.
+time           When the request came in, written by the script.
+request_type   special_order or cancellation.
+name           The customer's full name.
+phone          The customer's phone number, for the call when the order arrives.
+item_id        For a special order, the item from read_items.
+units          For a special order, how many units, from 1 to 10.
+quoted_usd     For a special order, the price_usd of one unit when the customer ordered.
+order_ref      For a cancellation, the request_id of the special order.
+status         pending when the request comes in, then ordered, refunded or declined.
+manager_note   The owner's note on the decision, or the word none.
+
+In a special order row order_ref stays empty, and in a cancellation row item_id, units and quoted_usd stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	phone	item_id	units	quoted_usd	order_ref	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=special_order&name=Test&phone=540-555-0100&item_id=CC-03&units=1&quoted_usd=23.00
+The right answer is ok true and request_id M101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is M101 again.
+
+This prompt is for your sheet only, with your office key, spice-shelf-8406, and the letter M.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value spice-shelf-8406.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter M in front of that number. A tab with three rows gives M103, never M3100, M1003 or M3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_items
+Name: read_items
+Description, COPY: Use when someone asks about special order items, their prices or whether an item can be special ordered. Returns every item in the Items tab as comma separated text, one item per row, with its dollar price.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Items link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the customer has confirmed the details of a special order or a cancellation. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["special_order","cancellation"],"description":"special_order for a new special order, cancellation to cancel one."},"name":{"type":"string","description":"The customer's full name."},"phone":{"type":"string","description":"The customer's phone number."},"item_id":{"type":"string","description":"For a special order only. The item_id from read_items, such as CC-03."},"units":{"type":"integer","description":"For a special order only. How many units, from 1 to 10."},"quoted_usd":{"type":"number","description":"For a special order only. The price_usd of one unit from read_items."},"order_ref":{"type":"string","description":"For a cancellation only. The request_id of the special order, such as M104."}},"required":["action","request_type","name","phone"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Cardamom Corner Market, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, phone, item_id, units, quoted_usd, order_ref, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are special_order and cancellation, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The customer's full name.
+- phone: text (type string). The customer's phone number.
+- item_id: text (type string). For a special order only. The item_id from read_items, such as CC-03.
+- units: a whole number (integer). For a special order only. How many units, from 1 to 10.
+- quoted_usd: a number that may have decimals (number). For a special order only. The price_usd of one unit from read_items.
+- order_ref: text (type string). For a cancellation only. The request_id of the special order, such as M104.
+
+List these properties in required: action, request_type, name, phone. Leave item_id, units, quoted_usd and order_ref out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   special_order or cancellation. The enum allows only these two words.
+name           The customer's name.
+phone          The customer's phone number.
+item_id        For a special order, the item from read_items.
+units          For a special order, a whole number of units.
+quoted_usd     For a special order, the dollar price of one unit.
+order_ref      For a cancellation, the request_id of the order.
+required       The agent must send action, request_type, name and phone. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_items
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Items link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the owner asks about special orders or cancellations. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["spice-shelf-8406"],"description":"The office key. Always spice-shelf-8406."},"status":{"type":"string","enum":["pending","ordered","refunded","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the owner has named a request_id, said order, refund or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["spice-shelf-8406"],"description":"The office key. Always spice-shelf-8406."},"request_id":{"type":"string","description":"The request_id the owner decided, such as M103."},"status":{"type":"string","enum":["ordered","refunded","declined"],"description":"The owner's decision: ordered for a special order, refunded for a cancellation, declined for either."},"manager_note":{"type":"string","description":"The owner's note for this request. If the owner gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_rates
+Name: get_rates
+Description, COPY: Use when the owner asks about exchange rates or the dollar price of a special order item. Returns today's exchange rates from one US dollar to the Mexican peso, the Indian rupee and the Korean won, published on working days.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.frankfurter.dev/v1/latest?base=USD&symbols=MXN,INR,KRW
+The rates come from Frankfurter, a free public service with no account or key that publishes the European Central Bank's rates on working days. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, ordered, refunded or declined, when the owner asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the owner decided, such as M103.
+status         ordered for a special order, refunded for a cancellation, declined for either.
+manager_note   The owner's note. When the owner gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE OWNER'S DECISIONS
+
+Yusuf Haddad decides every request. Before each decision, the staff agent checks what the fact sheet and the Items tab say, and the owner decides.
+
+A special order. The staff agent checks that the item is orderable, that the order holds 10 units or fewer, and works out the total and the 20 percent deposit from quoted_usd. The owner marks the request ordered or declines it. More than 10 units, or a fresh or frozen item, is an exception, and the owner decides it with a note. The price is final once the customer pays the deposit.
+
+A cancellation. The staff agent finds the special order by its request_id and checks whether the supplier order has gone out (orders go to the suppliers every other Monday). Before it goes out, the customer receives the full deposit back. The owner marks the cancellation refunded or declines it. A refund of the deposit after the supplier order went out is an exception, and the owner decides it with a note.
+
+The exchange rates. When the owner asks about the rates, the staff agent calls get_rates, reports how many pesos, rupees and won one dollar buys today, and works out each item's supplier price in dollars. The owner sets price_usd on the Items tab by hand: the supplier price in dollars plus 40 percent, rounded to the nearest 50 cents. Orders already placed keep their quoted price.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Items tab after each step.
+
+To the customer agent: Hi, can I special order 3 bags of basmati rice, the 10 kg bags? I am Fatima Noor, 540-555-0164.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: I need to cancel my special order M101. I am Fatima Noor, 540-555-0164.
+
+To the staff agent, as the owner, one message at a time:
+What requests are waiting for me?
+What are the total and the deposit for the Noor special order?
+How many pesos, rupees and won does one dollar buy today, and what is the basmati rice in dollars before the markup?
+Order request M101. Note: deposit paid, supplier order on Monday.
+Reply yes when the agent asks you to confirm. If the Noor special order has another request_id, use it in place of M101. Then mark the cancellation refunded or decline it the same way, by its request_id.
+
+Then, as the owner, change price_usd for CC-03 from 23.00 to 24.00 on the Items tab, and ask the customer agent what a 10 kg bag of basmati rice costs as a special order. The right answer is 24 dollars.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_items before answering any question about special order items or their prices, and answer only from the rows it receives.
+For a special order, collect the customer's name, phone number, the item, the number of units, and the price_usd of one unit. For a cancellation, collect the name, phone number and the request_id of the order. Repeat the details back.
+When the customer says yes, call add_request in the same reply, once, give the request_id and say that the store confirms every order and calls when it arrives. Never say that an item is ordered or a deposit refunded.
+The agent cannot see other requests, and says it can help only with the customer's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the owner asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_items when the owner asks about an item, and get_rates for the exchange rates.
+Record a decision only when the owner names a request_id and says order, refund or decline. Repeat it, ask the owner to confirm, then call decide_request once.
+After the owner asks about the rates, remind the owner which prices on the Items tab may need updating.

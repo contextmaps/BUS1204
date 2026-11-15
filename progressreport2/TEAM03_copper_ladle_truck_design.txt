@@ -1,0 +1,244 @@
+COPPER LADLE FOOD TRUCK, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM03. Copper Ladle Food Truck is made up, and so are the customers, events and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Copper Ladle Food Truck parks at a different stop in Blacksburg or Christiansburg each weekday and caters events on weekends. Customers preorder meals for pickup at a stop, and groups book catering at least 14 days ahead. Your customer agent takes two kinds of request: a preorder for a stop, and a catering request. Your staff agent works with Tomas Reyes, the owner, who decides every request. The truck does not open when thunderstorms or snow are forecast during service, so your staff agent checks the forecast, and the owner uses it to close a stop and to plan how much food to prepare.
+
+The system has five parts:
+Stops tab: this week's stops and how many more preorder meals the kitchen can prepare for each. Both agents read it.
+Requests tab: one row per request, with its status and the owner's note. Only the staff agent reads it.
+Customer agent: reads the Stops tab and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Stops tab and the forecast, and records the owner's decision after the owner confirms.
+Tomas Reyes: decides every request and updates the Stops tab by hand.
+
+
+2. THE STOPS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Stops and paste the rows below into cell A1. They go into A1 to H7.
+
+The columns:
+stop_id      The stop's code. CL means Copper Ladle, then a number.
+date         The date of the stop, as text.
+day          The day of the week.
+place        Where the truck parks.
+service      lunch or dinner.
+hours        When the window is open.
+meals_left   How many more preorder meals the owner will prepare for that service. The owner sets it each week.
+status       open, full at 0 meals, or closed when the owner closes the stop for the weather.
+
+COPY, the Stops tab, starter rows for A1:
+stop_id	date	day	place	service	hours	meals_left	status
+CL-01	April 12, 2027	Monday	Drillfield	lunch	11:00 am to 2:00 pm	30	open
+CL-02	April 13, 2027	Tuesday	Corporate Research Center	lunch	11:00 am to 2:00 pm	18	open
+CL-03	April 14, 2027	Wednesday	Downtown Blacksburg	lunch	11:00 am to 2:00 pm	25	open
+CL-04	April 15, 2027	Thursday	Christiansburg Huckleberry Park	dinner	5:00 pm to 8:00 pm	0	full
+CL-05	April 16, 2027	Friday	Downtown Blacksburg	lunch	11:00 am to 2:00 pm	22	open
+CL-06	April 16, 2027	Friday	Downtown Blacksburg	dinner	5:00 pm to 9:00 pm	35	open
+
+Publish the Stops tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Stops tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_stops.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to L1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id     C and a number, such as C101, made by the script.
+time           When the request came in, written by the script.
+request_type   preorder or catering.
+name           The customer's name, or the name of the group for catering.
+stop_id        For a preorder, the stop the customer chose.
+items          For a preorder, the meals and how many of each, such as 2 smoked chicken bowls and 1 lemonade.
+meals          For a preorder, the number of meals, from 1 to 10.
+event_date     For catering, the date of the event, a Saturday or Sunday.
+guests         For catering, how many people, from 25 to 150.
+phone          The customer's phone number.
+status         pending when the request comes in, then confirmed, booked or declined.
+manager_note   The owner's note on the decision, or the word none.
+
+In a preorder row event_date and guests stay empty, and in a catering row stop_id, items and meals stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	stop_id	items	meals	event_date	guests	phone	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=preorder&name=Test&stop_id=CL-01&items=1%20black%20bean%20bowl&meals=1&phone=540-555-0100
+The right answer is ok true and request_id C101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is C101 again.
+
+This prompt is for your sheet only, with your office key, ladle-truck-3608, and the letter C.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value ladle-truck-3608.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter C in front of that number. A tab with three rows gives C103, never C3100, C1003 or C3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add two API Call sources to your customer agent, both with the Method GET.
+
+read_stops
+Name: read_stops
+Description, COPY: Use when someone asks where the truck is, its hours or whether preorders are open for a stop. Returns every stop in the Stops tab as comma separated text, one stop per row, with the preorder meals left.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Stops link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the customer has confirmed the details of a preorder or a catering request. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["preorder","catering"],"description":"preorder for meals picked up at a stop, catering for a weekend event."},"name":{"type":"string","description":"The customer's name, or the group's name for catering."},"stop_id":{"type":"string","description":"For a preorder only. The stop_id from read_stops, such as CL-03."},"items":{"type":"string","description":"For a preorder only. The meals and how many of each."},"meals":{"type":"integer","description":"For a preorder only. The number of meals, from 1 to 10."},"event_date":{"type":"string","description":"For catering only. The date of the event, with the year."},"guests":{"type":"integer","description":"For catering only. How many people."},"phone":{"type":"string","description":"The customer's phone number."}},"required":["action","request_type","name","phone"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Copper Ladle Food Truck, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, stop_id, items, meals, event_date, guests, phone, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are preorder and catering, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The customer's name, or the group's name for catering.
+- stop_id: text (type string). For a preorder only. The stop_id from read_stops, such as CL-03.
+- items: text (type string). For a preorder only. The meals and how many of each.
+- meals: a whole number (integer). For a preorder only. The number of meals, from 1 to 10.
+- event_date: text (type string). For catering only. The date of the event, with the year.
+- guests: a whole number (integer). For catering only. How many people.
+- phone: text (type string). The customer's phone number.
+
+List these properties in required: action, request_type, name, phone. Leave stop_id, items, meals, event_date and guests out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+What add_request sends, field by field:
+action         Always add. The script adds a row.
+request_type   preorder or catering. The enum allows only these two words.
+name           The customer's or the group's name.
+stop_id        For a preorder, the stop from read_stops.
+items          For a preorder, the meals in words.
+meals          For a preorder, a whole number of meals.
+event_date     For catering, the date with the year.
+guests         For catering, a whole number of people.
+phone          The customer's phone number.
+required       The agent must send action, request_type, name and phone. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_stops
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Stops link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the owner asks about preorders or catering requests. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["ladle-truck-3608"],"description":"The office key. Always ladle-truck-3608."},"status":{"type":"string","enum":["pending","confirmed","booked","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the owner has named a request_id, said confirm, book or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["ladle-truck-3608"],"description":"The office key. Always ladle-truck-3608."},"request_id":{"type":"string","description":"The request_id the owner decided, such as C103."},"status":{"type":"string","enum":["confirmed","booked","declined"],"description":"The owner's decision: confirmed for a preorder, booked for catering, declined for either."},"manager_note":{"type":"string","description":"The owner's note for this request. If the owner gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_forecast
+Name: get_forecast
+Description, COPY: Use when the owner asks about the weather for a stop or an event. Returns the daily forecast for Blacksburg, Virginia, for the next 16 days: weather code, high temperature in Fahrenheit, chance of rain and snowfall in inches. Weather codes 95 to 99 are thunderstorms and 71 to 77 are snow.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.open-meteo.com/v1/forecast?latitude=37.23&longitude=-80.41&daily=weather_code,temperature_2m_max,precipitation_probability_max,snowfall_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=America%2FNew_York&forecast_days=16
+The forecast comes from Open-Meteo, a free public weather service with no account or key. Open the Endpoint in a browser to see what the agent receives.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, confirmed, booked or declined, when the owner asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the owner decided, such as C103.
+status         confirmed for a preorder, booked for catering, declined for either.
+manager_note   The owner's note. When the owner gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE OWNER'S DECISIONS
+
+Tomas Reyes decides every request. Before each decision, the staff agent checks what the fact sheet and the Stops tab say, and the owner decides.
+
+A preorder. The staff agent checks that the stop is open, that it has enough meals left, that the preorder holds 10 meals or fewer, and that it came in by 9:00 am for lunch or 2:00 pm for dinner on the day of the stop. The owner confirms or declines. A preorder after the cutoff or of more than 10 meals is an exception, and the owner decides it with a note.
+After a confirmed preorder: the owner lowers meals_left for that stop by the number of meals on the Stops tab, and writes full in status when it reaches 0.
+
+A catering request. The staff agent checks that the event is on a Saturday or Sunday, for 25 to 150 people, at least 14 days away, and works out the price at 14 dollars per person and the 100 dollar deposit. The owner books or declines. Catering on less than 14 days' notice is an exception, and the owner decides it with a note.
+
+A stormy day. When the owner asks about the weather, the staff agent calls get_forecast and reports the chance of rain, any thunderstorm or snow code, and the high temperature for each day. The forecast covers the next 16 days, so the owner looks at the coming stops. On a day with thunderstorms or snow forecast, the owner closes the stop by hand, writing closed in its status on the Stops tab, and the staff agent drafts a message to the customers with a confirmed preorder for that stop.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Stops tab after each step.
+
+To the customer agent: Hi, I would like to preorder 2 smoked chicken bowls and 1 grilled cheese with tomato soup for the Wednesday, April 14 lunch downtown. My name is Jamal Hill, 540-555-0161.
+Reply yes when the agent repeats the request. The agent gives a request_id and a pending row appears.
+
+To the customer agent, in a new thread: We would like catering for 60 people at our club picnic on Saturday, May 8, 2027. I am Erin Cole for the Pandapas Trail Club, 540-555-0177.
+
+To the staff agent, as the owner, one message at a time:
+What requests are waiting for me?
+Does the Hill preorder fit at its stop?
+What does the forecast say about thunderstorms in the next week?
+Confirm request C101. Note: pay at the window.
+Reply yes when the agent asks you to confirm. If the Hill request has another request_id, use it in place of C101. Then book or decline the Cole catering request the same way, by its request_id.
+
+Then, as the owner, lower meals_left for CL-03 from 25 to 22 on the Stops tab, and ask the customer agent how many preorder meals are left for the Wednesday lunch downtown. The right answer is 22.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_stops before answering any question about where the truck is, its hours or open preorders, and answer only from the rows it receives.
+For a preorder, collect the customer's name, the stop_id, the meals and how many, and a phone number. For catering, collect the group's name, the event date, the number of guests and a phone number. Repeat the details back.
+When the customer says yes, call add_request in the same reply, once, give the request_id and say that the owner confirms every request. Never say that a preorder or an event is confirmed.
+The agent cannot see other requests, and says it can help only with the customer's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the owner asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_stops when the owner asks whether a preorder fits, and get_forecast for the weather.
+Record a decision only when the owner names a request_id and says confirm, book or decline. Repeat it, ask the owner to confirm, then call decide_request once.
+After a confirmed preorder, remind the owner to lower meals_left on the Stops tab.

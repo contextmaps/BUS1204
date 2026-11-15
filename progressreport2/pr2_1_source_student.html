@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deliverable 2, Progress Report, Team Submission</title>
+<style>
+:root {
+  --c-text:#1a1a1a; --c-muted:#4a4a4a;
+  --c-meta-bg:#f4f6f9; --c-meta-border:#d0d7e2;
+  --c-obj-bg:#eef4fb; --c-obj-accent:#1a5da0;
+  --c-ctx-bg:#fffbf0; --c-ctx-border:#e8d8a0; --c-ctx-label:#5c4400;
+  --c-ctx-s-bg:#f0f7ff; --c-ctx-s-border:#a0c8f0; --c-ctx-s-label:#1a4a80;
+  --c-nar-bg:#f9f9f9; --c-nar-border:#bbb;
+  --c-dis-bg:#f0f4ff; --c-dis-border:#8090cc; --c-dis-label:#1e2e80;
+  --c-sys-bg:#f3f0ff; --c-sys-border:#9080d0; --c-sys-label:#3a2090;
+  --c-scr-bg:#fff8e8; --c-scr-border:#d0a030; --c-scr-label:#6b4a00;
+  --c-s-bg:#f0faf4; --c-s-border:#70c090; --c-s-id:#14552f;
+  --c-r-bg:#fff8f0; --c-r-border:#d0a040; --c-r-id:#6b3e00;
+  --c-mk-bg:#f0f0ff; --c-mk-border:#8080c8; --c-mk-id:#2a2a80;
+  --c-m-bg:#f0f8ff; --c-m-border:#70a8d0; --c-m-id:#0a4a70;
+  --c-mc-bg:#f8f8ff; --c-mc-border:#a0a0d0;
+  --c-btn:#14552f; --c-btn-r:#6b3e00; --c-btn-mk:#2a2a80;
+  --c-btn-mo:#0a4a70; --c-btn-mc:#3a3a6a;
+  --c-q-bg:#f0fafd; --c-q-border:#70b8d0; --c-q-id:#0a5070;
+  --c-btn-q:#0a5070;
+  --c-o-bg:#fef6f0; --c-o-border:#e89870; --c-o-id:#a04510;
+  --c-btn-o:#a04510;
+  --radius:8px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --page:1100px;
+}
+/* Two layers. The wrapper takes the width Canvas gives it, up to --page, so it
+   never overflows a narrow frame and never needs a per-machine number. Everything
+   inside fills the block it sits in. */
+.plib-wrap{font-family:var(--font);color:var(--c-text);max-width:min(var(--page),100% - 2rem);margin:0 auto;padding:1rem 0}
+/* Every block spans the page so their left and right edges line up down the
+   column, and the text inside fills the block.
+
+   There is no reading column. D-032 put prose in a 720px column inside a 1100px
+   wrapper, and on 2026-09-02 the instructor read the rendered result and rejected
+   it: every text block stopped two thirds of the way across its own card and
+   stranded the rest, and a bordered box that stops short of the card it sits in
+   reads as broken rather than as typography. The wrapper's own
+   min(1100px, 100% - 2rem) is now the only bound, so a line never exceeds about
+   1055px. The cost is real and is worth stating. A long paragraph at 1055px reads
+   worse than the same paragraph at 800, and what pays for it is the writing
+   standard's rule on paragraph length, which now carries the load the column used
+   to carry. Recorded as D-043, amending D-032. */
+.plib-wrap > *{max-width:100%}
+.plib-submit{margin:2rem 0 1rem;padding:1.4rem 1.6rem;border-radius:var(--radius);background:var(--c-obj-bg);border:2px solid var(--c-obj-accent)}
+.plib-submit-title{font-size:13px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-obj-accent)}
+.plib-submit-p{margin:.5rem 0 1rem;font-size:15px;line-height:1.65}
+.plib-submit-btn{display:inline-block;background:var(--c-obj-accent);color:#fff;text-decoration:none;font-size:16px;font-weight:600;padding:.7rem 1.4rem;border-radius:var(--radius)}
+.plib-submit-btn:hover{filter:brightness(1.12)}
+.plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
+.plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-material-tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--c-s-id)}
+.plib-material-title{margin-top:.3rem;font-size:17px;font-weight:600;color:var(--c-text)}
+.plib-material-box{margin:.9rem 0 1.1rem;padding:.9rem 1rem;max-height:22rem;overflow:auto;background:#fff;border:1px solid var(--c-s-border);border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--c-text)}
+.plib-material-box:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-material-btns{display:flex;flex-wrap:wrap;gap:.6rem}
+.plib-material-copies{margin:.9rem 0 0;display:flex;flex-wrap:wrap;gap:.8rem}
+.plib-copyrow{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .7rem;background:#fff;border:1px solid var(--c-s-border);border-radius:6px}
+.plib-copyrow-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-s-id)}
+.plib-copyrow-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--c-text)}
+.plib-copy-btn-row{padding:.3rem .6rem;font-size:12px}
+.plib-material-btn{display:inline-block;background:var(--c-s-id);color:#fff;text-decoration:none;font-size:15px;font-weight:600;padding:.6rem 1.2rem;border-radius:var(--radius)}
+.plib-material-btn:hover{filter:brightness(1.25)}
+.plib-material-btn:focus{outline:3px solid var(--c-s-id);outline-offset:3px}
+.plib-material-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
+.plib-section{margin:2.25rem 0 1.1rem;padding-top:.9rem;border-top:3px solid var(--c-obj-accent)}
+.plib-section-n{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--c-muted)}
+.plib-section-t{font-size:23px;font-weight:700;letter-spacing:.04em;color:var(--c-obj-accent);margin-top:2px}
+.plib-wrap > .plib-section:first-child{margin-top:.5rem}
+.plib-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-bottom:1.25rem}
+.plib-tile{background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:.9rem;display:flex;flex-direction:column}
+.plib-tile img{width:100%;height:auto;border-radius:4px;background:#faf7f8}
+.plib-tile figure,.plib-tile{margin:0}
+/* A drawing narrower than its grid cell is centred in it. render_tiles caps the
+   wrapper at the SVG's own viewBox width so a 400px card is not blown up to the
+   full row, and without this the drawing sat against the left edge with the slack
+   stranded on the right, which is the same fault D-043 removed from the prose. */
+.plib-tile-svg{width:100%;margin-left:auto;margin-right:auto}
+.plib-tile-svg svg{width:100%;height:auto;display:block}
+.plib-tile-caption{font-size:13px;line-height:1.55;color:var(--c-text);margin-top:auto;padding-top:.6rem}
+.plib-meta{background:var(--c-meta-bg);border:1px solid var(--c-meta-border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.plib-meta-course{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--c-muted);margin-bottom:4px}
+.plib-meta-title{font-size:20px;font-weight:600;margin:4px 0 8px}
+.plib-meta-week{font-size:13px;color:var(--c-muted);margin-bottom:2px}
+.plib-meta-details{font-size:12px;color:var(--c-muted);margin-top:8px}
+.plib-objectives{background:var(--c-obj-bg);border-left:4px solid var(--c-obj-accent);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.5rem}
+.plib-objectives-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-obj-accent);font-weight:700;margin-bottom:8px}
+.plib-objectives-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-muted)}
+.plib-objectives-list{margin:0;padding-left:1.25rem}
+.plib-objectives-list li{margin-bottom:6px;font-size:14px;line-height:1.6}
+.plib-context{background:var(--c-ctx-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-context-student{background:var(--c-ctx-s-bg);border-color:var(--c-ctx-s-border)}
+.plib-context-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-ctx-label);font-weight:700;margin-bottom:8px}
+.plib-context-student .plib-context-label{color:var(--c-ctx-s-label)}
+.plib-context-body p{margin:4px 0;font-size:13px;line-height:1.6;color:var(--c-muted)}
+.plib-formula{margin:1rem 0;padding:1rem 1.25rem;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:var(--radius);text-align:center}
+.plib-formula-body{overflow-x:auto;color:var(--c-text);padding:2px 0}
+.plib-formula-svg{max-width:100%;height:auto}
+.plib-formula-caption{margin-top:.85rem;font-size:13px;line-height:1.6;color:var(--c-muted);text-align:left}
+.plib-formula-missing{font-size:13px;color:var(--c-muted);text-align:left}
+.plib-formula-note{font-size:12px;margin-top:6px}
+.plib-formula-source{margin-top:.85rem;text-align:left}
+.plib-formula-source summary{font-size:12px;color:var(--c-muted);cursor:pointer}
+.plib-formula-latex{margin:6px 0 0;padding:8px 10px;background:var(--c-ctx-bg);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;color:var(--c-muted)}
+.plib-context-pre{margin:8px 0;padding:10px 12px;background:var(--c-meta-bg);border:1px solid var(--c-ctx-border);border-radius:4px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;line-height:1.55;color:var(--c-text);white-space:pre;overflow-x:auto}
+.plib-context-bullet{font-size:13px;color:var(--c-muted);padding-left:1rem;position:relative;margin-bottom:3px}
+.plib-context-bullet::before{content:"\2022";position:absolute;left:0}
+.plib-script{background:var(--c-scr-bg);border:1px solid var(--c-scr-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-script-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-scr-label);font-weight:700;margin-bottom:10px}
+.plib-script-list{margin:0;padding-left:1.25rem}
+.plib-script-list li{font-size:14px;line-height:1.6;margin-bottom:8px}
+.plib-script-time{font-weight:700;color:var(--c-scr-label);font-family:monospace;background:rgba(208,160,48,.15);padding:1px 6px;border-radius:3px}
+.plib-narration{background:var(--c-nar-bg);border-left:3px solid var(--c-nar-border);padding:.9rem 1.25rem;margin-bottom:1rem;border-radius:0 var(--radius) var(--radius) 0}
+.plib-narration p{margin:0 0 8px;font-size:14px;line-height:1.7}
+.plib-narration p:last-child{margin-bottom:0}
+.plib-narration-list{margin:4px 0;padding-left:1.25rem}
+.plib-narration-list li{font-size:14px;line-height:1.6;margin-bottom:4px}
+.plib-discussion{background:var(--c-dis-bg);border:1px solid var(--c-dis-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-slide{margin:0 0 1.25rem;text-align:center}
+.plib-slide-img{max-width:100%;height:auto;border:1px solid var(--c-dis-border);border-radius:var(--radius);box-shadow:0 1px 4px rgba(0,0,0,.08);background:#faf7f8;min-height:60px}
+.plib-slide-caption{font-size:13px;color:var(--c-muted);margin-top:.4rem}
+.plib-slide-script{margin-top:.6rem;text-align:left;font-size:13px;color:var(--c-muted)}
+.plib-slide-script summary{cursor:pointer;font-weight:600}
+.plib-slide-script-body{white-space:pre-wrap;background:rgba(0,0,0,.04);border-radius:var(--radius);padding:.6rem .8rem;margin-top:.4rem}
+.plib-discussion-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-dis-label);font-weight:700;margin-bottom:8px}
+.plib-discussion-intro{margin:0 0 8px;font-size:14px;line-height:1.6;font-style:italic;color:var(--c-dis-label)}
+.plib-discussion-list{margin:0;padding-left:1.25rem}
+.plib-discussion-list li{font-size:14px;line-height:1.6;margin-bottom:6px;color:var(--c-dis-label)}
+.plib-scenarios{margin-bottom:1rem}
+.plib-scenarios-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:#630031;font-weight:700;margin-bottom:8px}
+.plib-scenario-card{background:var(--c-ctx-s-bg);border:1px solid var(--c-ctx-s-border);border-left:4px solid #630031;border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:.6rem}
+.plib-scenario-title{font-weight:700;font-size:14px;color:#630031;margin-bottom:4px}
+.plib-scenario-body{margin:0 0 4px;font-size:14px;line-height:1.6}
+.plib-scenario-line{font-size:13px;line-height:1.55;margin:2px 0 0;padding-left:1rem;position:relative}
+.plib-scenario-line::before{content:"›";position:absolute;left:.2rem;color:#CF4420;font-weight:700}
+.plib-system{background:var(--c-sys-bg);border:1px solid var(--c-sys-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem}
+.plib-system-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-sys-label);font-weight:700;margin-bottom:8px}
+.plib-system-note{font-weight:400;text-transform:none;letter-spacing:0;font-style:italic}
+.plib-prompt-s-ref{opacity:.92;border-style:dashed}
+.plib-ref-note{font-size:12px;color:var(--c-muted);font-style:italic;margin-top:6px}
+.plib-prompt-text{display:none}
+.plib-prompt-display{font-size:14px;line-height:1.7;white-space:pre-wrap;background:rgba(255,255,255,.6);border-radius:4px;padding:.6rem .8rem;margin-bottom:10px}
+.plib-prompt-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.plib-prompt-id{font-size:12px;font-weight:700;font-family:monospace;padding:2px 7px;border-radius:4px}
+.plib-prompt-type-label{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--c-muted);font-weight:600}
+.plib-prompt-s{background:var(--c-s-bg);border:1px solid var(--c-s-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-prompt-s .plib-prompt-id{color:var(--c-s-id);background:rgba(20,85,47,.1)}
+.plib-prompt-r{background:var(--c-r-bg);border:1px solid var(--c-r-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-r-id{color:var(--c-r-id)!important;background:rgba(107,62,0,.1)!important}
+.plib-reflect-label{color:var(--c-r-id)!important}
+.plib-reflect-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-prompt-marker{background:var(--c-mk-bg);border:2px solid var(--c-mk-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-marker-id{color:var(--c-mk-id)!important;background:rgba(42,42,128,.1)!important}
+.plib-marker-label{color:var(--c-mk-id)!important}
+.plib-marker-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-marker-display{border-left:3px solid var(--c-mk-border);max-height:18em;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;box-shadow:inset 0 -10px 10px -10px rgba(0,0,0,.18)}
+.plib-prompt-m{background:var(--c-m-bg);border:1.5px solid var(--c-m-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:.5rem}
+.plib-m-id{color:var(--c-m-id)!important;background:rgba(10,74,112,.1)!important}
+.plib-m-label{color:var(--c-m-id)!important}
+.plib-m-badge{font-size:11px;background:var(--c-m-id);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.plib-m-instructions{background:rgba(255,255,255,.7);border-radius:6px;padding:10px 14px;margin-bottom:12px}
+.plib-m-instructions-label{font-size:12px;font-weight:700;color:var(--c-m-id);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.plib-m-steps{margin:0;padding-left:1.25rem}
+.plib-m-steps li{font-size:13px;line-height:1.6;margin-bottom:4px}
+.plib-m-seed{background:rgba(255,255,255,.5);border-left:3px solid var(--c-m-border);padding:8px 12px;margin-bottom:12px;border-radius:0 4px 4px 0}
+.plib-m-seed-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--c-m-id);margin-bottom:4px}
+.plib-m-seed-text{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.plib-prompt-m-close{background:var(--c-mc-bg);border:1px dashed var(--c-mc-border);border-radius:var(--radius);padding:.75rem 1.25rem;margin-bottom:1.25rem}
+.plib-m-close-label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.plib-m-close-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-copy-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;font-size:13px;font-weight:500;border:1.5px solid var(--c-btn);background:transparent;color:var(--c-btn);border-radius:6px;cursor:pointer;transition:background .15s,color .15s}
+.plib-copy-btn:hover{background:var(--c-btn);color:#fff}
+.plib-copy-btn:focus-visible{outline:3px solid #005fcc;outline-offset:2px}
+.plib-copy-btn.copied{background:#333;color:#fff;border-color:#333}
+.plib-copy-btn-reflect{border-color:var(--c-btn-r);color:var(--c-btn-r)}
+.plib-copy-btn-reflect:hover{background:var(--c-btn-r);color:#fff}
+.plib-copy-btn-marker{border-color:var(--c-btn-mk);color:var(--c-btn-mk)}
+.plib-copy-btn-marker:hover{background:var(--c-btn-mk);color:#fff}
+.plib-copy-btn-m-open{border-color:var(--c-btn-mo);color:var(--c-btn-mo)}
+.plib-copy-btn-m-open:hover{background:var(--c-btn-mo);color:#fff}
+.plib-copy-btn-m-close{border-color:var(--c-btn-mc);color:var(--c-btn-mc)}
+.plib-copy-btn-m-close:hover{background:var(--c-btn-mc);color:#fff}
+.plib-textarea{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;font-family:var(--font);line-height:1.6;border:1.5px solid var(--c-r-border);border-radius:6px;margin-bottom:10px;background:#fff;color:var(--c-text);resize:vertical;min-height:120px}
+.plib-prompt-input{min-height:0;margin:10px 0 6px}
+.plib-textarea:focus{outline:3px solid #005fcc;outline-offset:2px;border-color:#005fcc}
+.plib-counter{font-size:13px;color:var(--c-muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.plib-counter.at-limit{color:#b00020;font-weight:600}
+.plib-counter .plib-count-ok{color:#14552f}
+.plib-counter .plib-count-warn{color:#8a4a00}
+.plib-counter .plib-count-bad{color:#b00020;font-weight:600}
+.plib-counter-min{font-size:12px;color:var(--c-muted);margin-left:8px}
+.plib-warn{font-size:13px;color:#b00020;font-weight:600;margin-bottom:8px;min-height:20px}
+.plib-prompt-q{background:var(--c-q-bg);border:1px solid var(--c-q-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-q-id{color:var(--c-q-id)!important;background:rgba(10,80,112,.1)!important}
+.plib-q-label{color:var(--c-q-id)!important}
+.plib-q-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-q-items{display:flex;flex-direction:column;gap:14px;margin-bottom:10px}
+.plib-q-item{background:rgba(255,255,255,.6);border-radius:6px;padding:10px 12px}
+.plib-q-question{font-size:14px;font-weight:500;display:block;margin-bottom:8px;line-height:1.5}
+.plib-q-item-num{font-family:monospace;font-weight:700;color:var(--c-q-id);margin-right:6px}
+.plib-q-cap-note{font-weight:400;font-style:italic;color:var(--c-muted);margin-left:6px;font-size:13px}
+.plib-q-select{width:100%;padding:6px 8px;font-size:14px;border:1px solid var(--c-q-border);border-radius:4px;background:#fff}
+.plib-q-likert{display:flex;flex-wrap:wrap;gap:10px}
+.plib-q-likert-opt{display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer}
+.plib-q-checkboxes{display:flex;flex-direction:column;gap:6px}
+.plib-q-check-opt{display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+.plib-q-check-opt input[disabled] + span{opacity:.5}
+.plib-copy-btn-q{border-color:var(--c-btn-q);color:var(--c-btn-q)}
+.plib-copy-btn-q:hover{background:var(--c-btn-q);color:#fff}
+.plib-prompt-o{background:var(--c-o-bg);border:1px solid var(--c-o-border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.plib-o-id{color:var(--c-o-id)!important;background:rgba(160,69,16,.1)!important}
+.plib-o-label{color:var(--c-o-id)!important}
+.plib-o-instruction{font-size:13px;color:var(--c-muted);font-style:italic;margin-bottom:10px}
+.plib-o-question{font-size:14px;font-weight:500;margin-bottom:10px;line-height:1.5}
+.plib-o-list{list-style:none;padding:0;margin:0 0 10px 0;display:flex;flex-direction:column;gap:6px}
+.plib-o-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:14px}
+.plib-o-rank{font-family:monospace;font-weight:700;color:var(--c-o-id);min-width:1.5em;text-align:right}
+.plib-o-item-text{flex:1}
+.plib-o-controls{display:flex;flex-direction:column;gap:2px}
+.plib-o-arrow{background:transparent;border:1px solid var(--c-o-border);color:var(--c-o-id);width:28px;height:22px;font-size:14px;line-height:1;cursor:pointer;border-radius:3px;padding:0}
+.plib-o-arrow:hover:not([disabled]){background:var(--c-o-border);color:#fff}
+.plib-o-arrow[disabled]{opacity:.25;cursor:default}
+.plib-copy-btn-o{border-color:var(--c-btn-o);color:var(--c-btn-o)}
+.plib-copy-btn-o:hover{background:var(--c-btn-o);color:#fff}
+.plib-demo-badge{font-size:11px;color:var(--c-muted);background:rgba(0,0,0,.05);padding:2px 8px;border-radius:3px;font-style:italic;margin-left:8px}
+.plib-ai-badge{font-size:11px;padding:2px 8px;border-radius:3px;font-family:monospace;margin-left:8px}
+.plib-ai-respond{background:#e8f5e8;color:#2c5e2c}
+.plib-ai-acknowledge{background:#fef0e6;color:#8c4a1a}
+.plib-ai-archive{background:#f0e8f5;color:#5a2c8c}
+</style>
+</head>
+<body>
+<a href="#main-content" class="plib-skip-link">Skip to main content</a>
+<style>.plib-skip-link{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}.plib-skip-link:focus{position:static;width:auto;height:auto;background:#005fcc;color:#fff;padding:8px 16px;font-size:14px;font-weight:600;border-radius:4px;text-decoration:none;display:inline-block;margin:8px;}</style>
+<main id="main-content">
+<div class="plib-wrap">
+<div class="plib-meta">
+  <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
+  <div class="plib-meta-week">Week 13 · Progress Report 2 · Part 1 of 3</div>
+  <div class="plib-meta-title">Deliverable 2, Progress Report, Team Submission</div>
+  <div class="plib-meta-details"><span><strong>Platform:</strong> Hokie AI (your team's two agents and regular threads), Google Sheets, Google Apps Script and Google Sites</span>&ensp;·&ensp;<span><strong>Submission:</strong> One regular Hokie AI thread holding every part of this page, exported as a .zip and uploaded to Canvas by one team member</span></div>
+</div>
+
+<div class="plib-objectives">
+  <div class="plib-objectives-label">Learning Objectives</div>
+  <p class="plib-objectives-intro">By the end of this progress report, each team will be able to:</p>
+  <ol class="plib-objectives-list">
+    <li>Build its business's two agent system on one Google Sheet from a design file: a state tab both agents read, a Requests tab, and a script from a Hokie AI prompt.</li>
+    <li>Read the comments of the script and explain what its lines do with the sheet, and judge a schema Hokie AI writes against a tested one.</li>
+    <li>Give the customer agent a tool that adds requests and the staff agent tools that list them, check live data and record the manager's decisions after the manager confirms.</li>
+    <li>Run a full loop from a customer's request to the manager's decision and the change in the sheet, and judge what to change.</li>
+  </ol>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 1 of 5</div><div class="plib-section-t">ORIENTATION</div></div>
+
+<div class="plib-narration">
+  <p>Progress report 2 is your team's second deliverable for the team project. In lec13_1 you built the Kestrel Bend system on your own sheet, with a trip desk that adds requests, an office agent that lists them and records the manager's decisions, and a script that Hokie AI wrote. Your team now builds the same kind of system for its own business, with the two agents your team made for progress report 1.</p>
+  <p>This team thread is worth 90 points. One team member starts it, pastes every part into it, and uploads it to Canvas for the team. Every member also submits Stress Test 2, three stress tests of the team's system in a thread of their own, worth 10 points, and Peer Evaluation 2, with no points of its own. Both have their own assignments.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-6">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Seven boxes joined by AND, the parts of progress report 2. Part A, the sheet, 10 points. Part B, the script and the schema, 15 points. Part C, the customer agent, 15 points. Part D, the staff agent, 15 points. Part E, the staff site, 5 points. Part F, the full loop, 20 points. Part G, the loop explained, 10 points."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 231" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="231" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The parts of progress report 2</text><rect x="21" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">A</text><text x="37" y="134" font-size="14" fill="#6b6b6b">the sheet,</text><text x="37" y="153" font-size="14" fill="#6b6b6b">10 points</text><text x="141" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="165" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="189" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="189" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="210" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="210" y="103" font-size="17" font-weight="600" fill="#2b2b2b">B</text><text x="181" y="134" font-size="14" fill="#6b6b6b">the script</text><text x="181" y="153" font-size="14" fill="#6b6b6b">and the</text><text x="181" y="172" font-size="14" fill="#6b6b6b">schema,</text><text x="181" y="191" font-size="14" fill="#6b6b6b">15 points</text><text x="284" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="308" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="332" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="332" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="353" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="353" y="103" font-size="17" font-weight="600" fill="#2b2b2b">C</text><text x="324" y="134" font-size="14" fill="#6b6b6b">the</text><text x="324" y="153" font-size="14" fill="#6b6b6b">customer</text><text x="324" y="172" font-size="14" fill="#6b6b6b">agent, 15</text><text x="324" y="191" font-size="14" fill="#6b6b6b">points</text><text x="428" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="452" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="476" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="476" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="497" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="497" y="103" font-size="17" font-weight="600" fill="#2b2b2b">D</text><text x="468" y="134" font-size="14" fill="#6b6b6b">the staff</text><text x="468" y="153" font-size="14" fill="#6b6b6b">agent, 15</text><text x="468" y="172" font-size="14" fill="#6b6b6b">points</text><text x="572" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="596" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="620" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="620" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="641" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="641" y="103" font-size="17" font-weight="600" fill="#2b2b2b">E</text><text x="612" y="134" font-size="14" fill="#6b6b6b">the staff</text><text x="612" y="153" font-size="14" fill="#6b6b6b">site, 5</text><text x="612" y="172" font-size="14" fill="#6b6b6b">points</text><text x="716" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="740" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="764" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="764" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">6</text><text x="785" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="785" y="103" font-size="17" font-weight="600" fill="#2b2b2b">F</text><text x="756" y="134" font-size="14" fill="#6b6b6b">the full</text><text x="756" y="153" font-size="14" fill="#6b6b6b">loop, 20</text><text x="756" y="172" font-size="14" fill="#6b6b6b">points</text><text x="859" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="883" y="46" width="96" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="907" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="907" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">7</text><text x="928" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Part</text><text x="928" y="103" font-size="17" font-weight="600" fill="#2b2b2b">G</text><text x="899" y="134" font-size="14" fill="#6b6b6b">the loop</text><text x="899" y="153" font-size="14" fill="#6b6b6b">explained,</text><text x="899" y="172" font-size="14" fill="#6b6b6b">10 points</text></svg></div>
+    <figcaption class="plib-tile-caption">90 points, one thread, one upload for the team.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Your instructor wrote a design file for each team. Download your team's file from the buttons below and open it next to your fact sheet from progress report 1. The design file is your plan. Its nine sections give your sheet's tabs with their columns and starting rows, your script prompt, every tool your agents need with text to copy, the decisions your manager makes, a sample loop to practice, and what your instructions need to say. Every box in it marked COPY is pasted exactly as it is.</p>
+</div>
+
+<div class="plib-material" id="plib-material-8">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Design files, TEAM01 to TEAM14</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="TEAM01_wildbriar_pantry_design.txt" download="TEAM01_wildbriar_pantry_design.txt" target="_blank" rel="noopener noreferrer">TEAM01</a>
+    <a class="plib-material-btn" href="TEAM02_tinker_hollow_box_office_design.txt" download="TEAM02_tinker_hollow_box_office_design.txt" target="_blank" rel="noopener noreferrer">TEAM02</a>
+    <a class="plib-material-btn" href="TEAM03_copper_ladle_truck_design.txt" download="TEAM03_copper_ladle_truck_design.txt" target="_blank" rel="noopener noreferrer">TEAM03</a>
+    <a class="plib-material-btn" href="TEAM04_ashgrove_it_help_desk_design.txt" download="TEAM04_ashgrove_it_help_desk_design.txt" target="_blank" rel="noopener noreferrer">TEAM04</a>
+    <a class="plib-material-btn" href="TEAM05_bramblecrest_showings_design.txt" download="TEAM05_bramblecrest_showings_design.txt" target="_blank" rel="noopener noreferrer">TEAM05</a>
+    <a class="plib-material-btn" href="TEAM06_thornbury_roasters_design.txt" download="TEAM06_thornbury_roasters_design.txt" target="_blank" rel="noopener noreferrer">TEAM06</a>
+    <a class="plib-material-btn" href="TEAM07_larkspur_study_abroad_design.txt" download="TEAM07_larkspur_study_abroad_design.txt" target="_blank" rel="noopener noreferrer">TEAM07</a>
+    <a class="plib-material-btn" href="TEAM08_cardamom_corner_market_design.txt" download="TEAM08_cardamom_corner_market_design.txt" target="_blank" rel="noopener noreferrer">TEAM08</a>
+    <a class="plib-material-btn" href="TEAM09_hollowmere_farm_design.txt" download="TEAM09_hollowmere_farm_design.txt" target="_blank" rel="noopener noreferrer">TEAM09</a>
+    <a class="plib-material-btn" href="TEAM10_petalcrest_flowers_design.txt" download="TEAM10_petalcrest_flowers_design.txt" target="_blank" rel="noopener noreferrer">TEAM10</a>
+    <a class="plib-material-btn" href="TEAM11_lantern_loft_coworking_design.txt" download="TEAM11_lantern_loft_coworking_design.txt" target="_blank" rel="noopener noreferrer">TEAM11</a>
+    <a class="plib-material-btn" href="TEAM12_ivyhaven_maintenance_design.txt" download="TEAM12_ivyhaven_maintenance_design.txt" target="_blank" rel="noopener noreferrer">TEAM12</a>
+    <a class="plib-material-btn" href="TEAM13_maroon_hollow_goods_design.txt" download="TEAM13_maroon_hollow_goods_design.txt" target="_blank" rel="noopener noreferrer">TEAM13</a>
+    <a class="plib-material-btn" href="TEAM14_spokeline_cycles_design.txt" download="TEAM14_spokeline_cycles_design.txt" target="_blank" rel="noopener noreferrer">TEAM14</a>
+  </div>
+  <div class="plib-material-note">Download only your own team's file. The businesses, people and data in it are made up.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Hokie AI writes two things for your team, the script and a schema to compare. Your team writes everything else on this page in its own words: the instructions of both agents and every explanation. You may use Hokie AI as a thinking partner, to discuss an idea or to check your understanding, and not to write these parts.</p>
+  <p>Your team does not need to know how to code. Every line of the script that Hokie AI writes ends with a comment in plain English that says what the line does, and section 5 and section 6 of your design file explain every field your agents send. Read them with your sheet open, and the system makes sense one line at a time.</p>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 2 of 5</div><div class="plib-section-t">THE PLAN</div></div>
+
+<div class="plib-narration">
+  <p>Everything in your system sits on one Google Sheet, so some of the work has to happen in order. The script lives inside the sheet, so the sheet comes first. Both agents need two addresses that appear only after the sheet and the script exist: the published link of your state tab, and the web app address of your script, which ends in /exec. The instructions of both agents, the staff site's page and the test plan can start at the same time as the sheet. Read this section together before anyone builds anything.</p>
+  <p>Your team has five members and five roles. Each member owns one part of the work and can finish it without waiting for the others, except for the two addresses. Every member still reads the whole design file, because every member runs stress tests of the whole system.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-12">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by AND, five roles for five members. Sheet owner, makes the sheet and the state tab, publishes it, then builds the staff site. Script builder, adds the Requests tab, gets the script from Hokie AI, deploys and tests it. Customer agent owner, rewrites the customer agent's instructions and adds its two tools. Staff agent owner, rewrites the staff agent's instructions and adds its four tools. Test lead, compares the schema, plans the loop and the stress tests, and keeps the submission thread."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 257" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="257" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Five roles for five members</text><rect x="21" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Sheet</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">owner</text><text x="37" y="134" font-size="14" fill="#6b6b6b">makes the sheet</text><text x="37" y="153" font-size="14" fill="#6b6b6b">and the state tab,</text><text x="37" y="172" font-size="14" fill="#6b6b6b">publishes it, then</text><text x="37" y="191" font-size="14" fill="#6b6b6b">builds the staff site</text><text x="198" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="222" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Script</text><text x="267" y="103" font-size="17" font-weight="600" fill="#2b2b2b">builder</text><text x="238" y="134" font-size="14" fill="#6b6b6b">adds the Requests</text><text x="238" y="153" font-size="14" fill="#6b6b6b">tab, gets the script</text><text x="238" y="172" font-size="14" fill="#6b6b6b">from Hokie AI,</text><text x="238" y="191" font-size="14" fill="#6b6b6b">deploys and tests it</text><text x="399" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="423" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Customer</text><text x="468" y="103" font-size="17" font-weight="600" fill="#2b2b2b">agent</text><text x="468" y="124" font-size="17" font-weight="600" fill="#2b2b2b">owner</text><text x="439" y="155" font-size="14" fill="#6b6b6b">rewrites the</text><text x="439" y="174" font-size="14" fill="#6b6b6b">customer agent's</text><text x="439" y="193" font-size="14" fill="#6b6b6b">instructions and</text><text x="439" y="212" font-size="14" fill="#6b6b6b">adds its two tools</text><text x="601" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="625" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Staff agent</text><text x="670" y="103" font-size="17" font-weight="600" fill="#2b2b2b">owner</text><text x="641" y="134" font-size="14" fill="#6b6b6b">rewrites the staff</text><text x="641" y="153" font-size="14" fill="#6b6b6b">agent's instructions</text><text x="641" y="172" font-size="14" fill="#6b6b6b">and adds its four</text><text x="641" y="191" font-size="14" fill="#6b6b6b">tools</text><text x="802" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="826" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Test lead</text><text x="842" y="122" font-size="14" fill="#6b6b6b">compares the</text><text x="842" y="141" font-size="14" fill="#6b6b6b">schema, plans the</text><text x="842" y="160" font-size="14" fill="#6b6b6b">loop and the stress</text><text x="842" y="179" font-size="14" fill="#6b6b6b">tests, and keeps</text><text x="842" y="198" font-size="14" fill="#6b6b6b">the submission</text><text x="842" y="217" font-size="14" fill="#6b6b6b">thread</text></svg></div>
+    <figcaption class="plib-tile-caption">Every member reads the whole design file. Each member owns one part of the work.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>The five roles fit together like this. The sheet owner makes the sheet and its state tab, publishes the state tab, and then builds the staff site AND the script builder adds the Requests tab, gets the script from Hokie AI, deploys it and tests it AND the customer agent owner rewrites the customer agent's instructions and adds its two tools AND the staff agent owner rewrites the staff agent's instructions and adds its four tools AND the test lead compares the schema for Part B, plans your loop and your stress tests, and keeps the submission thread. Five roles.</p>
+  <p>Give the two agent roles to the members who created the agents for progress report 1, because only the member who created an agent can edit it. If a member cannot contribute, for an emergency or any other reason, the sheet owner also takes the test lead's tasks. The boxes below list every task of each role, in order, with what the member waits for and what the member hands over.</p>
+</div>
+
+<div class="plib-material" id="plib-material-14">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Role 1, the sheet owner</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-14-prompt" data-copy="ROLE 1, THE SHEET OWNER&#10;&#10;You start: right away, during the first meeting.&#10;You wait for: nothing for the sheet. The staff agent's share link, from the staff agent owner, for the staff site.&#10;You hand over: the shared sheet, to everyone, and the published link of the state tab, on your team's Canvas page.&#10;&#10;1. Make the sheet. Open sheets.new, signed in with your VT account. Name the sheet with your business's name, such as Wildbriar Pantry System.&#10;2. Share it. Click Share, add the VT email of every member, keep the role Editor, and click Send. The script builder needs edit access to add the Requests tab and the script.&#10;3. Make the state tab. Double-click the first tab at the bottom left and type the name from section 2 of your design file, such as Slots or Performances. Click cell A1 and paste the starter rows from section 2. Check that the rows fill the cells that section 2 names.&#10;4. Publish the state tab. File, Share, Publish to web. Choose your state tab, not Entire document, and Comma-separated values (.csv). Click Publish and OK. Copy the link.&#10;5. Post the link on your team's Canvas page, with the words published link. Both agent owners need it for the read tool.&#10;6. Check the link. Open it in a private window. Your browser downloads a .csv file or shows the rows as text.&#10;7. Build the staff site, Part E of the page, once the staff agent owner sends the staff agent's share link.&#10;8. Keep the state tab true. In the loop and the stress tests, you or whoever plays the manager changes the state tab by hand after a decision, as section 7 says. Never change the column names in row 1.&#10;&#10;If a member cannot contribute, you also take the test lead's tasks." aria-label="Specification text, scrollable">ROLE 1, THE SHEET OWNER
+
+You start: right away, during the first meeting.
+You wait for: nothing for the sheet. The staff agent's share link, from the staff agent owner, for the staff site.
+You hand over: the shared sheet, to everyone, and the published link of the state tab, on your team's Canvas page.
+
+1. Make the sheet. Open sheets.new, signed in with your VT account. Name the sheet with your business's name, such as Wildbriar Pantry System.
+2. Share it. Click Share, add the VT email of every member, keep the role Editor, and click Send. The script builder needs edit access to add the Requests tab and the script.
+3. Make the state tab. Double-click the first tab at the bottom left and type the name from section 2 of your design file, such as Slots or Performances. Click cell A1 and paste the starter rows from section 2. Check that the rows fill the cells that section 2 names.
+4. Publish the state tab. File, Share, Publish to web. Choose your state tab, not Entire document, and Comma-separated values (.csv). Click Publish and OK. Copy the link.
+5. Post the link on your team's Canvas page, with the words published link. Both agent owners need it for the read tool.
+6. Check the link. Open it in a private window. Your browser downloads a .csv file or shows the rows as text.
+7. Build the staff site, Part E of the page, once the staff agent owner sends the staff agent's share link.
+8. Keep the state tab true. In the loop and the stress tests, you or whoever plays the manager changes the state tab by hand after a decision, as section 7 says. Never change the column names in row 1.
+
+If a member cannot contribute, you also take the test lead's tasks.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-14-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">For reading. Section numbers are the sections of your design file.</div>
+</div>
+
+<div class="plib-material" id="plib-material-15">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Role 2, the script builder</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-15-prompt" data-copy="ROLE 2, THE SCRIPT BUILDER&#10;&#10;You start: as soon as the sheet owner shares the sheet with you.&#10;You wait for: edit access to the sheet.&#10;You hand over: the web app address of the script, which ends in /exec, on your team's Canvas page, and the script itself for Part B.&#10;&#10;1. Add the Requests tab. Click the plus sign at the bottom left of the sheet, double-click the new tab and type Requests. Click cell A1 and paste the column names from section 3 of your design file. Leave every row below row 1 empty.&#10;2. Get the script. Open a new regular Hokie AI thread, not an agent. Paste the script prompt from section 4 and send it. Hokie AI answers with one code block.&#10;3. Read it once. Every line ends with a comment after two slashes, //. Find the line that holds your office key and the line that makes the request_id with your letter.&#10;4. Put it in the sheet. In the sheet, click Extensions, then Apps Script. Select everything in the editor with Ctrl+A, delete it, paste the script with the copy button of the code block, and press Ctrl+S.&#10;5. Deploy it. Click Deploy, then New deployment. Next to Select type, click the gear and choose Web app. Set Execute as to Me and Who has access to Anyone. Click Deploy.&#10;6. Authorize it. Choose your VT account. If Google says it has not verified the app, click Advanced, then the link that starts with Go to, then Allow.&#10;7. Copy the Web app URL, which ends in /exec, and post it on your team's Canvas page with the words script address. Both agent owners need it.&#10;8. Test it. Open a private window, paste the /exec address, add the test ending from section 4 right after /exec, and press Enter. The browser shows ok true and your letter followed by 101. Copy what it shows for Part A.&#10;9. Delete the test row. Right-click the number 2 at the left of the test row in the Requests tab and choose Delete row.&#10;10. Send the script to the test lead for Part B, or paste it into the Part B box yourself.&#10;&#10;If you change the script later, deploy a new version so the address stays the same: Deploy, Manage deployments, the pencil, Version, New version, Deploy." aria-label="Specification text, scrollable">ROLE 2, THE SCRIPT BUILDER
+
+You start: as soon as the sheet owner shares the sheet with you.
+You wait for: edit access to the sheet.
+You hand over: the web app address of the script, which ends in /exec, on your team's Canvas page, and the script itself for Part B.
+
+1. Add the Requests tab. Click the plus sign at the bottom left of the sheet, double-click the new tab and type Requests. Click cell A1 and paste the column names from section 3 of your design file. Leave every row below row 1 empty.
+2. Get the script. Open a new regular Hokie AI thread, not an agent. Paste the script prompt from section 4 and send it. Hokie AI answers with one code block.
+3. Read it once. Every line ends with a comment after two slashes, //. Find the line that holds your office key and the line that makes the request_id with your letter.
+4. Put it in the sheet. In the sheet, click Extensions, then Apps Script. Select everything in the editor with Ctrl+A, delete it, paste the script with the copy button of the code block, and press Ctrl+S.
+5. Deploy it. Click Deploy, then New deployment. Next to Select type, click the gear and choose Web app. Set Execute as to Me and Who has access to Anyone. Click Deploy.
+6. Authorize it. Choose your VT account. If Google says it has not verified the app, click Advanced, then the link that starts with Go to, then Allow.
+7. Copy the Web app URL, which ends in /exec, and post it on your team's Canvas page with the words script address. Both agent owners need it.
+8. Test it. Open a private window, paste the /exec address, add the test ending from section 4 right after /exec, and press Enter. The browser shows ok true and your letter followed by 101. Copy what it shows for Part A.
+9. Delete the test row. Right-click the number 2 at the left of the test row in the Requests tab and choose Delete row.
+10. Send the script to the test lead for Part B, or paste it into the Part B box yourself.
+
+If you change the script later, deploy a new version so the address stays the same: Deploy, Manage deployments, the pencil, Version, New version, Deploy.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-15-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">For reading.</div>
+</div>
+
+<div class="plib-material" id="plib-material-16">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Role 3, the customer agent owner</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-16-prompt" data-copy="ROLE 3, THE CUSTOMER AGENT OWNER&#10;&#10;Take this role if you created your team's customer agent for progress report 1, because only the member who created an agent can edit it.&#10;&#10;You start: right away, with the instructions.&#10;You wait for: the published link, from the sheet owner, and the /exec address, from the script builder, before you add the tools.&#10;You hand over: the customer agent's share link, to every member and to the sheet owner, and the instructions for Part C.&#10;&#10;1. Read sections 1, 5 and 9 of your design file, and your customer agent's instructions from progress report 1.&#10;2. Rewrite the instructions in the five parts of SCORE. Keep what still fits your business. Remove the HANDOFF line and its rules. Add what section 9 says the instructions need: when to call the read tool and add_request, what to collect for each of your two kinds of request, the yes before add_request, the request_id after it, and the rule that the agent cannot see other requests. Write them yourself; your team may read them together.&#10;3. Open the agent's edit page and paste the new text into the Specific tab, in place of the old text.&#10;4. Add the read tool. Click Add Knowledge Source and choose API Call. Copy its Name, Description and the empty Parameter Schema from section 5. The Endpoint is the published link. Choose GET and click Add.&#10;5. Add add_request the same way, with its Name, Description and Parameter Schema from section 5. The Endpoint is the /exec address with nothing after it. Choose GET and click Add.&#10;6. Save the agent. Open its edit page again and check that the first line of the instructions is your new first line and that both tools are listed.&#10;7. Test it. Start a new thread with the agent, make one request and reply yes. A pending row appears in the Requests tab. Look at Tool Calls in Execution Details to see what the agent sent.&#10;8. Share the agent with every member, and send the share link to the sheet owner for your team's records." aria-label="Specification text, scrollable">ROLE 3, THE CUSTOMER AGENT OWNER
+
+Take this role if you created your team's customer agent for progress report 1, because only the member who created an agent can edit it.
+
+You start: right away, with the instructions.
+You wait for: the published link, from the sheet owner, and the /exec address, from the script builder, before you add the tools.
+You hand over: the customer agent's share link, to every member and to the sheet owner, and the instructions for Part C.
+
+1. Read sections 1, 5 and 9 of your design file, and your customer agent's instructions from progress report 1.
+2. Rewrite the instructions in the five parts of SCORE. Keep what still fits your business. Remove the HANDOFF line and its rules. Add what section 9 says the instructions need: when to call the read tool and add_request, what to collect for each of your two kinds of request, the yes before add_request, the request_id after it, and the rule that the agent cannot see other requests. Write them yourself; your team may read them together.
+3. Open the agent's edit page and paste the new text into the Specific tab, in place of the old text.
+4. Add the read tool. Click Add Knowledge Source and choose API Call. Copy its Name, Description and the empty Parameter Schema from section 5. The Endpoint is the published link. Choose GET and click Add.
+5. Add add_request the same way, with its Name, Description and Parameter Schema from section 5. The Endpoint is the /exec address with nothing after it. Choose GET and click Add.
+6. Save the agent. Open its edit page again and check that the first line of the instructions is your new first line and that both tools are listed.
+7. Test it. Start a new thread with the agent, make one request and reply yes. A pending row appears in the Requests tab. Look at Tool Calls in Execution Details to see what the agent sent.
+8. Share the agent with every member, and send the share link to the sheet owner for your team's records.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-16-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">For reading.</div>
+</div>
+
+<div class="plib-material" id="plib-material-17">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Role 4, the staff agent owner</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-17-prompt" data-copy="ROLE 4, THE STAFF AGENT OWNER&#10;&#10;Take this role if you created your team's staff agent for progress report 1, because only the member who created an agent can edit it.&#10;&#10;You start: right away, with the instructions.&#10;You wait for: the published link, from the sheet owner, and the /exec address, from the script builder, before you add the tools.&#10;You hand over: the staff agent's share link, to every member and to the sheet owner for the staff site, and the instructions for Part D.&#10;&#10;1. Read sections 1, 6, 7 and 9 of your design file, and your staff agent's instructions from progress report 1.&#10;2. Rewrite the instructions in the five parts of SCORE. Keep your manager and your checks from the fact sheet. Remove the RECORD line and its rules. Add what section 9 says the instructions need: when to call list_requests, the read tool and the live data tool, a decision only when the manager names a request_id and one of your decision words, the confirmation before decide_request, and the reminder to update the state tab. Write them yourself; your team may read them together.&#10;3. Open the agent's edit page and paste the new text into the Specific tab, in place of the old text.&#10;4. Add the four tools from section 6, one at a time: Add Knowledge Source, API Call, the Name, Description and Parameter Schema copied from section 6, the Endpoint, GET, Add.&#10;   The read tool: the published link.&#10;   list_requests and decide_request: the /exec address with nothing after it. Your office key is already inside their schemas.&#10;   The live data tool: the Endpoint given in section 6, copied exactly.&#10;5. Save the agent. Open its edit page again and check the first line of the instructions and the four tools.&#10;6. Test it. Start a new thread and ask what is waiting. Then ask the live data question from section 7. Look at Tool Calls in Execution Details. Open the live data Endpoint in a browser to compare.&#10;7. Share the agent with every member, and send the share link to the sheet owner for the staff site." aria-label="Specification text, scrollable">ROLE 4, THE STAFF AGENT OWNER
+
+Take this role if you created your team's staff agent for progress report 1, because only the member who created an agent can edit it.
+
+You start: right away, with the instructions.
+You wait for: the published link, from the sheet owner, and the /exec address, from the script builder, before you add the tools.
+You hand over: the staff agent's share link, to every member and to the sheet owner for the staff site, and the instructions for Part D.
+
+1. Read sections 1, 6, 7 and 9 of your design file, and your staff agent's instructions from progress report 1.
+2. Rewrite the instructions in the five parts of SCORE. Keep your manager and your checks from the fact sheet. Remove the RECORD line and its rules. Add what section 9 says the instructions need: when to call list_requests, the read tool and the live data tool, a decision only when the manager names a request_id and one of your decision words, the confirmation before decide_request, and the reminder to update the state tab. Write them yourself; your team may read them together.
+3. Open the agent's edit page and paste the new text into the Specific tab, in place of the old text.
+4. Add the four tools from section 6, one at a time: Add Knowledge Source, API Call, the Name, Description and Parameter Schema copied from section 6, the Endpoint, GET, Add.
+   The read tool: the published link.
+   list_requests and decide_request: the /exec address with nothing after it. Your office key is already inside their schemas.
+   The live data tool: the Endpoint given in section 6, copied exactly.
+5. Save the agent. Open its edit page again and check the first line of the instructions and the four tools.
+6. Test it. Start a new thread and ask what is waiting. Then ask the live data question from section 7. Look at Tool Calls in Execution Details. Open the live data Endpoint in a browser to compare.
+7. Share the agent with every member, and send the share link to the sheet owner for the staff site.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-17-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">For reading.</div>
+</div>
+
+<div class="plib-material" id="plib-material-18">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Role 5, the test lead</div>
+  <pre class="plib-material-box" tabindex="0" id="plib-material-18-prompt" data-copy="ROLE 5, THE TEST LEAD&#10;&#10;You start: right away.&#10;You wait for: nothing for the schema comparison and the plans. Both agents, for the loop.&#10;You hand over: the submission thread, Part B's schema comparison, the two requests for Part F, and the stress test plan.&#10;&#10;1. Start the submission thread. Open a new regular Hokie AI thread, paste the opener from the page, and paste your roles after it.&#10;2. Compare the schema for Part B. Send the schema prompt from section 5 of your design file in a new regular Hokie AI thread. Compare the answer with the add_request schema in section 5, field by field: the names, the types, the words in each enum, the required list, and no key. Write down what matched and what differed for the team's explanation.&#10;3. Plan the loop for Part F. Write two requests a customer of your business would make, one of each of your two kinds, with every detail the customer agent asks for. Use your fact sheet, and make at least one of them a request your manager would approve.&#10;4. Plan the stress tests. Each member runs three tests of a different kind for Stress Test 2. Share out the kinds so that no two members run the same kind, and write the plan on your team's Canvas page.&#10;5. Run the sample loop from section 8 with the whole team, once both agents work.&#10;6. Keep the submission thread. Paste each part as your team finishes it, in the order of the page, with the M OPEN and M CLOSE markers around Part F.&#10;7. Export the thread as a .zip and upload it to Canvas, or hand it to the member who uploads." aria-label="Specification text, scrollable">ROLE 5, THE TEST LEAD
+
+You start: right away.
+You wait for: nothing for the schema comparison and the plans. Both agents, for the loop.
+You hand over: the submission thread, Part B's schema comparison, the two requests for Part F, and the stress test plan.
+
+1. Start the submission thread. Open a new regular Hokie AI thread, paste the opener from the page, and paste your roles after it.
+2. Compare the schema for Part B. Send the schema prompt from section 5 of your design file in a new regular Hokie AI thread. Compare the answer with the add_request schema in section 5, field by field: the names, the types, the words in each enum, the required list, and no key. Write down what matched and what differed for the team's explanation.
+3. Plan the loop for Part F. Write two requests a customer of your business would make, one of each of your two kinds, with every detail the customer agent asks for. Use your fact sheet, and make at least one of them a request your manager would approve.
+4. Plan the stress tests. Each member runs three tests of a different kind for Stress Test 2. Share out the kinds so that no two members run the same kind, and write the plan on your team's Canvas page.
+5. Run the sample loop from section 8 with the whole team, once both agents work.
+6. Keep the submission thread. Paste each part as your team finishes it, in the order of the page, with the M OPEN and M CLOSE markers around Part F.
+7. Export the thread as a .zip and upload it to Canvas, or hand it to the member who uploads.</pre>
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-18-prompt', this)" aria-label="Copy the text above to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy the text above
+  </button>
+  <div class="plib-material-note">For reading.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-19">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by THEN, the order of the work. Start together, read the design file, choose roles, and make the sheet. Build apart, each member does the steps of their role, in parallel. Connect, the two addresses go into both agents. Run together, the sample loop, then your own loop for Part F. Finish, explanations, the submission thread, and each member's stress tests."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 231" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="231" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The order of the work</text><rect x="21" y="46" width="153" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Start</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">together</text><text x="37" y="134" font-size="14" fill="#6b6b6b">read the design</text><text x="37" y="153" font-size="14" fill="#6b6b6b">file, choose roles,</text><text x="37" y="172" font-size="14" fill="#6b6b6b">and make the</text><text x="37" y="191" font-size="14" fill="#6b6b6b">sheet</text><text x="198" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="222" y="46" width="153" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Build apart</text><text x="238" y="122" font-size="14" fill="#6b6b6b">each member does</text><text x="238" y="141" font-size="14" fill="#6b6b6b">the steps of their</text><text x="238" y="160" font-size="14" fill="#6b6b6b">role, in parallel</text><text x="399" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="423" y="46" width="153" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Connect</text><text x="439" y="122" font-size="14" fill="#6b6b6b">the two addresses</text><text x="439" y="141" font-size="14" fill="#6b6b6b">go into both agents</text><text x="601" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="625" y="46" width="153" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Run</text><text x="670" y="103" font-size="17" font-weight="600" fill="#2b2b2b">together</text><text x="641" y="134" font-size="14" fill="#6b6b6b">the sample loop,</text><text x="641" y="153" font-size="14" fill="#6b6b6b">then your own loop</text><text x="641" y="172" font-size="14" fill="#6b6b6b">for Part F</text><text x="802" y="132" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="826" y="46" width="153" height="163" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Finish</text><text x="842" y="122" font-size="14" fill="#6b6b6b">explanations, the</text><text x="842" y="141" font-size="14" fill="#6b6b6b">submission thread,</text><text x="842" y="160" font-size="14" fill="#6b6b6b">and each member's</text><text x="842" y="179" font-size="14" fill="#6b6b6b">stress tests</text></svg></div>
+    <figcaption class="plib-tile-caption">Only the first hour needs everyone at once. The loop needs the whole system working.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>The work runs in five steps.</p>
+  <p>First, start together. Meet for about an hour, in person or online. Read the design file together, section by section, with your fact sheet open. Choose the roles and write them in the box below. The sheet owner makes the sheet while the others watch, and shares it with every member as an editor, so the script builder can start.</p>
+  <p>THEN build apart. Each member does the tasks of their role. The script builder needs the sheet, and the two agent owners need the two addresses for their tools, and everything else can start right away. Post each address on your team's Canvas page as soon as it exists, so nobody waits for a message.</p>
+  <p>THEN connect. The agent owners paste the published link and the /exec address into their tools, save the agents, and share them with every member, so everyone can test.</p>
+  <p>THEN run together. Run the sample loop in section 8 of your design file once, with everyone watching, to check that the whole system works. Then run your own loop for Part F, with requests your team makes up.</p>
+  <p>THEN finish. Write the explanations of Part B and Part G together, paste every part into the submission thread, and upload it. Each member then runs three stress tests on their own assignment.</p>
+</div>
+
+<div class="plib-narration">
+  <p>The test lead opens a new regular Hokie AI thread. This is your submission thread. Paste the block below as its first message and wait for the one sentence acknowledgment. Then paste each part of this page into the same thread as your team finishes it, in the order of the page. Do not start a new submission thread.</p>
+</div>
+
+<div class="plib-prompt-marker" role="region" aria-label="Session Opener">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-marker-id">TP2.1</span>
+    <span class="plib-prompt-type-label plib-marker-label">Session Opener</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Progress Report 2. You are an AI assistant for this session. The student's team built a two agent system for a made up business on one Google Sheet: a customer agent that adds requests, a staff agent that lists them and records the manager's decisions, a script that Hokie AI wrote, and a live data source. In this thread the student pastes the team's records: the team's roles, the sheet's links, the script, the agents' instructions and links, the staff site's address, and the text of the team's threads with each agent and the rows of its sheet, plus the team's own explanations. Before each paste the student tells you which paste comes next; reply in one sentence that the student can paste it. Acknowledge every record and every paste in one sentence, and do not analyze, judge, correct or rewrite its content unless the student asks a question.
+---
+**AI Interaction Protocol**
+
+In this session, you will receive blocks of content with the
+following structural pattern:
+
+```
+### &lt;BlockID&gt;
+----------
+&lt;content&gt;
+----------
+###
+```
+
+Some blocks include an interaction-mode directive on a separate
+line inside the dashed envelope:
+
+```
+### &lt;BlockID&gt;
+----------
+[ai_interaction=&lt;mode&gt;]
+&lt;content&gt;
+----------
+###
+```
+
+Three modes determine your response:
+
+  - **respond**: Engage substantively with the block content.
+    Treat it as a prompt, question, or task that wants your
+    analytical response. Default for S blocks (prompts) and X
+    blocks (free exploration).
+
+  - **acknowledge**: Confirm receipt with one brief sentence
+    naming the block ID. Do not analyze, comment on, or expand on
+    the content. The student is filing the block for the record,
+    not asking for engagement. Default for T blocks (this opener),
+    R blocks (reflections), M CLOSE blocks (closing markers), Q
+    blocks (structured selections), and O blocks (ordering
+    selections).
+
+  - **archive**: Respond with only the block ID and nothing else.
+    Used for batched archival pastes where even brief
+    acknowledgment would clutter the thread.
+
+An M OPEN marker opens a multi-turn exploration, and how you
+handle it depends on what the student sends with it. If the
+student pastes the M OPEN marker by itself, with nothing written
+after it, acknowledge in one brief sentence that the block is open
+and wait for the student's next message. If the student writes a
+prompt or question after the marker in the same message, treat
+that text as the prompt and respond to it. Always acknowledge an
+M CLOSE marker.
+
+If a block has no explicit `[ai_interaction=...]` directive, apply
+the block-type default per the list above.
+
+This protocol applies for the remainder of this session.
+---</div>
+  <div class="plib-prompt-text" id="text_prompt_22" data-copy="### TP2.1&#10;----------&#10;BUS 1204 AI Literacy for Business, Progress Report 2. You are an AI assistant for this session. The student's team built a two agent system for a made up business on one Google Sheet: a customer agent that adds requests, a staff agent that lists them and records the manager's decisions, a script that Hokie AI wrote, and a live data source. In this thread the student pastes the team's records: the team's roles, the sheet's links, the script, the agents' instructions and links, the staff site's address, and the text of the team's threads with each agent and the rows of its sheet, plus the team's own explanations. Before each paste the student tells you which paste comes next; reply in one sentence that the student can paste it. Acknowledge every record and every paste in one sentence, and do not analyze, judge, correct or rewrite its content unless the student asks a question.&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_22', this)"
+          aria-label="Copy session opener to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy session opener
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, write five lines, one for each role, in the order of the card: Sheet owner, Script builder, Customer agent owner, Staff agent owner and Test lead, each followed by the name of the member who takes it. Copy the box into the submission thread after the opener. If one member takes two roles, write that member's name on both lines.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.0">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.0</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Your roles</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 80 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_25" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.0"
+            data-maxwords="80" data-maxchars="800"
+            oninput="updateCounter('prompt_25', 'textarea_25')"></textarea>
+  <div class="plib-counter" id="counter_prompt_25" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_25">0</span> / 80 words&nbsp;·&nbsp;
+    <span id="cc_prompt_25">0</span> / 800 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_25" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_25"
+       data-prefix="### RP2.1.0&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_25"
+       data-maxwords="80"
+       data-maxchars="800"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_25', this)"
+          aria-label="Copy contribution RP2.1.0 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 3 of 5</div><div class="plib-section-t">THE BUILD</div></div>
+
+<div class="plib-narration">
+  <p>Part A is worth 10 points. The sheet owner builds the sheet from section 2 of your design file, and the script builder adds the Requests tab from section 3 and the script from section 4.</p>
+  <p>First, the sheet owner makes one Google Sheet for the team, names it with your business's name, and shares it with every member as an editor. The sheet owner names the first tab as section 2 says, pastes the starter rows into cell A1, and publishes that tab: File, Share, Publish to web, your state tab, Comma-separated values (.csv), Publish. Copy the link and post it on your team's Canvas page.</p>
+  <p>THEN the script builder adds the Requests tab and pastes the column names from section 3 into cell A1. Leave the rows below empty, because the script fills them.</p>
+  <p>THEN the script builder sends the script prompt from section 4 in a new regular Hokie AI thread, puts the script into the sheet and deploys it, the way you did in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, the gear, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec and post it on your team's Canvas page.</p>
+  <p>THEN the script builder tests the script in a private window, with the /exec address and the test ending from section 4. The browser shows ok true and the first request_id, your letter followed by 101. Copy what the browser shows. Then delete the test row, as section 4 says, so that your first real request gets 101 again.</p>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste the published link of your state tab on the first line, your /exec address on the second line, and what the browser showed for the test on the third line. If the test showed an error, paste it, and add one sentence on what your team did next. Copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.1">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.1</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part A the sheet</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 120 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_30" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.1"
+            data-maxwords="120" data-maxchars="1200"
+            oninput="updateCounter('prompt_30', 'textarea_30')"></textarea>
+  <div class="plib-counter" id="counter_prompt_30" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_30">0</span> / 120 words&nbsp;·&nbsp;
+    <span id="cc_prompt_30">0</span> / 1200 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_30" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_30"
+       data-prefix="### RP2.1.1&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_30"
+       data-maxwords="120"
+       data-maxchars="1200"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_30', this)"
+          aria-label="Copy contribution RP2.1.1 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part B is worth 15 points, 5 for the script and 10 for your explanation. Your script is short, about 40 to 100 lines, and every line ends with a comment in plain English after two slashes, //. Read the comments with your Requests tab open in the next browser tab. When a comment says the script reads the column names from row 1, look at row 1 of your Requests tab. When it says the script adds a row at the bottom, look at where the test row appeared. When it says the script checks the office key, find your key in section 4 of the design file. The script does three things, add, list and decide, and each comment tells you which one a line belongs to.</p>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste the whole script, exactly as it is in Apps Script, and copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.2">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.2</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part B the script</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 3000 words). Drag the lower right corner of the box to make it taller. Then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_34" class="plib-textarea" style="min-height:400px"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.2"
+            data-maxwords="3000" data-maxchars="30000"
+            oninput="updateCounter('prompt_34', 'textarea_34')"></textarea>
+  <div class="plib-counter" id="counter_prompt_34" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_34">0</span> / 3000 words&nbsp;·&nbsp;
+    <span id="cc_prompt_34">0</span> / 30000 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_34" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_34"
+       data-prefix="### RP2.1.2&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_34"
+       data-maxwords="3000"
+       data-maxchars="30000"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_34', this)"
+          aria-label="Copy contribution RP2.1.2 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Your instructor wrote every schema in your design file and tested it, and your agents use those schemas. A schema is the list of values a tool sends, with the type of each value, the values it allows and the values it always sends. Each schema follows from your sheet: one field for each column the agent fills, a fixed list of words wherever only certain words are allowed, and no office key in the customer agent's tool. Under the add_request schema in section 5, your design file has a prompt that asks Hokie AI for the same schema from the columns and the rules of your business.</p>
+  <p>The test lead sends that schema prompt in a new regular Hokie AI thread and compares the answer with the schema in section 5, one field at a time. Check that every field has the same name and the same type, string for text and integer for a whole number. Check that request_type and every other field with fixed words has the same words in its enum, and that the required list names the same fields. Check that the answer has no key and none of the four columns the script fills. Paste the schema from your design file into your agent, never the one Hokie AI writes.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-37">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, Part B explained, all three parts. Two lines, two lines of your script with their comments, and what each does with your Requests tab. The schema, what matched and what differed between Hokie AI's schema and the given one. One mistake, what would go wrong in your system if the schema had one mistake, and why."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Part B explained, all three parts</text><rect x="21" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Two lines</text><text x="37" y="122" font-size="14" fill="#6b6b6b">two lines of your script with their</text><text x="37" y="141" font-size="14" fill="#6b6b6b">comments, and what each does with</text><text x="37" y="160" font-size="14" fill="#6b6b6b">your Requests tab</text><text x="332" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The schema</text><text x="372" y="122" font-size="14" fill="#6b6b6b">what matched and what differed</text><text x="372" y="141" font-size="14" fill="#6b6b6b">between Hokie AI's schema and the</text><text x="372" y="160" font-size="14" fill="#6b6b6b">given one</text><text x="668" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One mistake</text><text x="708" y="122" font-size="14" fill="#6b6b6b">what would go wrong in your system if</text><text x="708" y="141" font-size="14" fill="#6b6b6b">the schema had one mistake, and why</text></svg></div>
+    <figcaption class="plib-tile-caption">Answer all three parts. The third part counts most.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your team's explanation of Part B, in your own words and without help from the AI. First, choose two lines of your script, copy each with its comment, and say what the line does with your Requests tab, naming the column, the row or the value it reads or writes AND second, say what matched and what differed between the schema Hokie AI wrote and the schema in your design file, naming the fields you checked AND third, say what would go wrong in your system if the schema your agent uses had one mistake, such as request_type without its enum or a count sent as text, and why. Three parts.</p>
+  <p>Your instructor gives the third part the most weight. Write 100 to 200 words, and copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.3">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.3</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part B the script and the schema explained</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_39" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.3"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_39', 'textarea_39')"></textarea>
+  <div class="plib-counter" id="counter_prompt_39" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_39">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_39">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_39" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_39"
+       data-prefix="### RP2.1.3&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_39"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_39', this)"
+          aria-label="Copy contribution RP2.1.3 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part C is worth 15 points. The customer agent owner updates the customer agent your team built for progress report 1.</p>
+  <p>First, rewrite its Specific instructions in the five parts of SCORE, from your progress report 1 text and section 9 of your design file. The add_request call takes the place of the HANDOFF line, so remove the HANDOFF line and its rules, and add when to call each tool, what to collect for each of your two kinds of request, and the rule that the agent cannot see other requests. Write them yourselves, on the pattern of the trip desk instructions in lec13_1.</p>
+  <p>THEN add the two API Call sources from section 5, the read tool of your state tab and add_request, with their Names, Descriptions and Parameter Schemas copied from the design file, the Endpoint each one needs, and the Method GET. Save the agent, open its edit page again and check that the new instructions and both tools are there.</p>
+  <p>THEN share the agent with every member and test one request yourself. A pending row appears in the Requests tab.</p>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste the customer agent's share link on the first line, and its full Specific instructions below it, the same text that is in its Specific tab. Copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.4">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.4</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part C the customer agent</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 2000 words). Drag the lower right corner of the box to make it taller. Then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_43" class="plib-textarea" style="min-height:400px"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.4"
+            data-maxwords="2000" data-maxchars="20000"
+            oninput="updateCounter('prompt_43', 'textarea_43')"></textarea>
+  <div class="plib-counter" id="counter_prompt_43" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_43">0</span> / 2000 words&nbsp;·&nbsp;
+    <span id="cc_prompt_43">0</span> / 20000 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_43" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_43"
+       data-prefix="### RP2.1.4&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_43"
+       data-maxwords="2000"
+       data-maxchars="20000"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_43', this)"
+          aria-label="Copy contribution RP2.1.4 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part D is worth 15 points. The staff agent owner updates the staff agent your team built for progress report 1.</p>
+  <p>First, rewrite its Specific instructions in the five parts of SCORE, from your progress report 1 text and section 9 of your design file. The decide_request call takes the place of the RECORD line, so remove the RECORD line and its rules, and add when to call each of the four tools, the checks from your fact sheet the agent reports before a decision, the confirmation before every decide_request, and the reminder to update the state tab. Write them yourselves, on the pattern of the office instructions in lec13_1.</p>
+  <p>THEN add the four API Call sources from section 6, with their Names, Descriptions and Parameter Schemas copied from the design file, the Endpoint each one needs, and the Method GET. The office key is in the list_requests and decide_request schemas, so the Endpoint of both is your /exec address with nothing after it. Save the agent, open its edit page again and check that the new instructions and all four tools are there.</p>
+  <p>THEN share the agent with every member and test it with a pending request from the Part C test. Ask what is waiting, and look at Tool Calls in Execution Details.</p>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste the staff agent's share link on the first line, and its full Specific instructions below it. Copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.5">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.5</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part D the staff agent</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 2000 words). Drag the lower right corner of the box to make it taller. Then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_47" class="plib-textarea" style="min-height:400px"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.5"
+            data-maxwords="2000" data-maxchars="20000"
+            oninput="updateCounter('prompt_47', 'textarea_47')"></textarea>
+  <div class="plib-counter" id="counter_prompt_47" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_47">0</span> / 2000 words&nbsp;·&nbsp;
+    <span id="cc_prompt_47">0</span> / 20000 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_47" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_47"
+       data-prefix="### RP2.1.5&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_47"
+       data-maxwords="2000"
+       data-maxchars="20000"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_47', this)"
+          aria-label="Copy contribution RP2.1.5 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-narration">
+  <p>Part E is worth 5 points. The sheet owner builds a plain Google Site for your staff, with the staff agent in a box, the way you embedded the trip desk in lec12_1. It needs no theme, logo or facts page.</p>
+  <p>First, open sites.google.com/new and click Blank site. Name it with your business's name and the words Staff Office, at the top left and as the page title.</p>
+  <p>THEN add a text box with one line: For the staff of your business only, followed by the line A made up business for a class at Virginia Tech.</p>
+  <p>THEN embed the staff agent. Copy the staff agent's share link from the staff agent owner. In the Insert tab, click Embed, paste the link into the By URL box, and click Insert. Drag the corners of the box until it is about as wide as the page and tall enough for a conversation.</p>
+  <p>THEN publish. Click Publish, type a web address with your business's name, the word staff and your team number, such as copper-ladle-staff-team03, and choose the public setting. Under Search settings, check the box Request public search engines to not display my site, and click Publish. Open the published site, sign in with your VT account in the box, and ask the staff agent what is waiting.</p>
+</div>
+
+<div class="plib-narration">
+  <p>In the box below, paste the published address of your staff site on the first line, and one sentence below it saying that the search setting is checked. Copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.6">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.6</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part E the staff site</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 60 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_51" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.6"
+            data-maxwords="60" data-maxchars="600"
+            oninput="updateCounter('prompt_51', 'textarea_51')"></textarea>
+  <div class="plib-counter" id="counter_prompt_51" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_51">0</span> / 60 words&nbsp;·&nbsp;
+    <span id="cc_prompt_51">0</span> / 600 characters
+  </div>
+  <div class="plib-warn" id="warn_prompt_51" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_51"
+       data-prefix="### RP2.1.6&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_51"
+       data-maxwords="60"
+       data-maxchars="600"
+       data-minwords="0"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_51', this)"
+          aria-label="Copy contribution RP2.1.6 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-53">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If Google says it has not verified the app. Click Advanced. Then click the link that starts with Go to, then Allow. The script is yours, and it runs on your sheet only."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF GOOGLE SAYS IT HAS NOT VERIFIED THE APP</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Click Advanced</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Then click the link that starts with Go to, then</text><text x="34" y="199" font-size="15" fill="#6b6b6b">Allow. The script is yours, and it runs on your</text><text x="34" y="220" font-size="15" fill="#6b6b6b">sheet only.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the staff agent says the office key is missing. Check the schema. Paste the list_requests and decide_request schemas again, and keep the Endpoint as your /exec address alone."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE STAFF AGENT SAYS THE OFFICE KEY IS MISSING</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the schema</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Paste the list_requests and decide_request</text><text x="34" y="199" font-size="15" fill="#6b6b6b">schemas again, and keep the Endpoint as your</text><text x="34" y="220" font-size="15" fill="#6b6b6b">/exec address alone.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If no row appears after the customer says yes. Check the instructions. Open the customer agent, check that the new instructions saved, and that add_request is listed."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF NO ROW APPEARS AFTER THE CUSTOMER SAYS YES</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the instructions</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Open the customer agent, check that the new</text><text x="34" y="199" font-size="15" fill="#6b6b6b">instructions saved, and that add_request is listed.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the test address shows an error page. Deploy again. Check that Who has access is Anyone, and copy the Web app URL that ends in /exec."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE TEST ADDRESS SHOWS AN ERROR PAGE</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Deploy again</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Check that Who has access is Anyone, and copy</text><text x="34" y="199" font-size="15" fill="#6b6b6b">the Web app URL that ends in /exec.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If you changed the script and nothing changed. Deploy a new version. Deploy, Manage deployments, the pencil, Version, New version, Deploy. The address stays the same."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF YOU CHANGED THE SCRIPT AND NOTHING CHANGED</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Deploy a new version</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Deploy, Manage deployments, the pencil, Version,</text><text x="34" y="199" font-size="15" fill="#6b6b6b">New version, Deploy. The address stays the same.</text></svg></div>
+  </figure>
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If an agent still shows the old numbers. Wait a minute. The published link updates a minute or two after a change. Then start a new thread and ask again."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF AN AGENT STILL SHOWS THE OLD NUMBERS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Wait a minute</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">The published link updates a minute or two after a</text><text x="34" y="199" font-size="15" fill="#6b6b6b">change. Then start a new thread and ask again.</text></svg></div>
+  </figure>
+</div>
+<script>(function(){var g=document.getElementById("plib-tiles-53");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+
+<div class="plib-section"><div class="plib-section-n">Section 4 of 5</div><div class="plib-section-t">THE LOOP</div></div>
+
+<div class="plib-narration">
+  <p>Part F is worth 20 points and Part G 10. When both agents work, the whole team runs the sample loop in section 8 of your design file once, to check every part of the system. Then your team makes up two requests of its own from your fact sheet, one of each of your two kinds, the way customers of your business would ask, and runs the loop below. At least one of your manager's two decisions is an approval.</p>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-56">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by THEN, your loop for Part F. Request one, as a customer, one request of your first kind, in a new thread with the customer agent. Request two, as a customer, one request of your second kind, in another new thread. Decide, as the manager, list, check, ask about the live data, and decide both requests, in one staff thread. Update, as the manager, change the state tab by hand after the approval. Ask again, as a customer, ask a question that shows the change, in a new thread."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 257" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="257" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your loop for Part F</text><rect x="21" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">one</text><text x="37" y="134" font-size="14" fill="#6b6b6b">as a customer, one</text><text x="37" y="153" font-size="14" fill="#6b6b6b">request of your</text><text x="37" y="172" font-size="14" fill="#6b6b6b">first kind, in a new</text><text x="37" y="191" font-size="14" fill="#6b6b6b">thread with the</text><text x="37" y="210" font-size="14" fill="#6b6b6b">customer agent</text><text x="198" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="222" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request</text><text x="267" y="103" font-size="17" font-weight="600" fill="#2b2b2b">two</text><text x="238" y="134" font-size="14" fill="#6b6b6b">as a customer, one</text><text x="238" y="153" font-size="14" fill="#6b6b6b">request of your</text><text x="238" y="172" font-size="14" fill="#6b6b6b">second kind, in</text><text x="238" y="191" font-size="14" fill="#6b6b6b">another new</text><text x="238" y="210" font-size="14" fill="#6b6b6b">thread</text><text x="399" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="423" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Decide</text><text x="439" y="122" font-size="14" fill="#6b6b6b">as the manager,</text><text x="439" y="141" font-size="14" fill="#6b6b6b">list, check, ask</text><text x="439" y="160" font-size="14" fill="#6b6b6b">about the live data,</text><text x="439" y="179" font-size="14" fill="#6b6b6b">and decide both</text><text x="439" y="198" font-size="14" fill="#6b6b6b">requests, in one</text><text x="439" y="217" font-size="14" fill="#6b6b6b">staff thread</text><text x="601" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="625" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Update</text><text x="641" y="122" font-size="14" fill="#6b6b6b">as the manager,</text><text x="641" y="141" font-size="14" fill="#6b6b6b">change the state</text><text x="641" y="160" font-size="14" fill="#6b6b6b">tab by hand after</text><text x="641" y="179" font-size="14" fill="#6b6b6b">the approval</text><text x="802" y="146" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="826" y="46" width="153" height="189" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Ask again</text><text x="842" y="122" font-size="14" fill="#6b6b6b">as a customer, ask</text><text x="842" y="141" font-size="14" fill="#6b6b6b">a question that</text><text x="842" y="160" font-size="14" fill="#6b6b6b">shows the change,</text><text x="842" y="179" font-size="14" fill="#6b6b6b">in a new thread</text></svg></div>
+    <figcaption class="plib-tile-caption">Use requests your team makes up. The sample loop in the design file is practice.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Your loop takes five steps.</p>
+  <p>First, make your first request as a customer. Start a new thread with the customer agent and send the request. Answer its questions, and when it repeats the request, reply yes. Note the request_id.</p>
+  <p>THEN make your second request, of your other kind, in another new thread with the customer agent.</p>
+  <p>THEN act as the manager. Start one new thread with the staff agent. Ask what is waiting. Ask whether one request fits, with a question about your state tab or a rule of your fact sheet. Ask the question about your live data that section 7 of your design file describes. Then decide each request by its request_id, with a note, and reply yes when the agent asks you to confirm.</p>
+  <p>THEN update the sheet by hand, as section 7 says your manager does after an approval. Then copy the rows of your Requests tab and the row of the state tab you changed: select the cells, press Ctrl+C, and keep them for the submission thread.</p>
+  <p>THEN ask again as a customer, in a new thread with the customer agent, a question whose answer shows your change. Wait a minute after the change before you ask.</p>
+</div>
+
+<div class="plib-narration">
+  <p>Now put the loop in the submission thread. Paste the M OPEN marker below. Inside the block you send ten messages, an announcement and a paste five times. Send the first announcement below on its own and wait for the reply, then paste the whole text of your first customer agent thread as one message. Do the same with the second, third, fourth and fifth announcements and their pastes. Then paste the M CLOSE marker.</p>
+</div>
+
+<div class="plib-material" id="plib-material-59">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The five announcements before your pastes</div>
+  <div class="plib-material-copies">
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">1. Before the first customer agent thread</div>
+      <code class="plib-copyrow-code" id="plib-material-59-copy-0" data-copy="I am about to paste the full text of our first thread with our customer agent, for the record. Please confirm, and I will paste it in my next message.">I am about to paste the full text of our first thread with our customer agent, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-59-copy-0', this)" aria-label="Copy 1. Before the first customer agent thread to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">2. Before the second customer agent thread</div>
+      <code class="plib-copyrow-code" id="plib-material-59-copy-1" data-copy="Next I am about to paste the full text of our second thread with our customer agent, for the record. Please confirm, and I will paste it in my next message.">Next I am about to paste the full text of our second thread with our customer agent, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-59-copy-1', this)" aria-label="Copy 2. Before the second customer agent thread to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">3. Before the staff agent thread</div>
+      <code class="plib-copyrow-code" id="plib-material-59-copy-2" data-copy="Next I am about to paste the full text of our thread with our staff agent, for the record. Please confirm, and I will paste it in my next message.">Next I am about to paste the full text of our thread with our staff agent, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-59-copy-2', this)" aria-label="Copy 3. Before the staff agent thread to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">4. Before the rows of the sheet</div>
+      <code class="plib-copyrow-code" id="plib-material-59-copy-3" data-copy="Next I am about to paste the rows of our Requests tab and the row of our state tab that the manager changed, copied from our sheet, for the record. Please confirm, and I will paste them in my next message.">Next I am about to paste the rows of our Requests tab and the row of our state tab that the manager changed, copied from our sheet, for the record. Please confirm, and I will paste them in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-59-copy-3', this)" aria-label="Copy 4. Before the rows of the sheet to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">5. Before the last customer agent thread</div>
+      <code class="plib-copyrow-code" id="plib-material-59-copy-4" data-copy="Next I am about to paste the full text of our last thread with our customer agent, after the change, for the record. Please confirm, and I will paste it in my next message.">Next I am about to paste the full text of our last thread with our customer agent, after the change, for the record. Please confirm, and I will paste it in my next message.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-59-copy-4', this)" aria-label="Copy 5. Before the last customer agent thread to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+  </div>
+  <div class="plib-material-note">Send each announcement on its own, wait for the reply, then paste.</div>
+</div>
+
+<div class="plib-prompt-m" role="region" aria-label="Multi-turn Block MP2.1.1, Begin">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-m-id">MP2.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">Multi-turn · Exploration</span>
+    <span class="plib-m-badge">Summative</span>
+    <span class="plib-ai-badge plib-ai-respond">AI: respond</span>
+  </div>
+  <div class="plib-m-instructions">
+    <div class="plib-m-instructions-label">&#128221; How this block works</div>
+    <ol class="plib-m-steps">
+      <li>Click <strong>Copy opening marker</strong> and paste it into Hokie AI to begin this block.</li>
+      <li>Interact with Hokie AI: ask questions, explore, respond. All of this exchange belongs to this block.</li>
+      <li>When finished, use the <strong>Copy closing marker</strong> button below to close the block in your thread.</li>
+    </ol>
+  </div>
+  <div class="plib-prompt-text" id="text_m_open_60" data-copy="### MP2.1.1 OPEN&#10;----------&#10;"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-open" onclick="copyPrompt('text_m_open_60', this)"
+          aria-label="Copy opening marker for block MP2.1.1">
+    <span aria-hidden="true">&#9654;</span> Copy opening marker
+  </button>
+</div>
+
+<div class="plib-prompt-m-close" role="region" aria-label="Multi-turn Block MP2.1.1, End">
+  <div class="plib-m-close-label">
+    <span class="plib-prompt-id plib-m-id">MP2.1.1</span>
+    <span class="plib-prompt-type-label plib-m-label">End of Multi-turn Block</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-m-close-instruction">When you have finished your exchange, copy this closing marker and paste it into Hokie AI to close the block.</p>
+  <div class="plib-prompt-text" id="text_m_close_61" data-copy="&#10;----------&#10;### MP2.1.1 CLOSE"></div>
+  <button class="plib-copy-btn plib-copy-btn-m-close" onclick="copyPrompt('text_m_close_61', this)"
+          aria-label="Copy closing marker for block MP2.1.1">
+    <span aria-hidden="true">&#9646;&#9646;</span> Copy closing marker
+  </button>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-63">
+  <figure class="plib-tile">
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by AND, Part G explained, all four parts. The customer agent, what it did with your two requests, and the request_ids. The staff agent, what it checked, including the live data and what it reported. The manager, what your manager decided and why, and what changed in the sheet and in the customer agent's answer. One change, one change your team would make to an instruction, a rule or the sheet, and why."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Part G explained, all four parts</text><rect x="21" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The customer</text><text x="66" y="103" font-size="17" font-weight="600" fill="#2b2b2b">agent</text><text x="37" y="134" font-size="14" fill="#6b6b6b">what it did with your two</text><text x="37" y="153" font-size="14" fill="#6b6b6b">requests, and the</text><text x="37" y="172" font-size="14" fill="#6b6b6b">request_ids</text><text x="248" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="272" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The staff agent</text><text x="288" y="122" font-size="14" fill="#6b6b6b">what it checked, including</text><text x="288" y="141" font-size="14" fill="#6b6b6b">the live data and what it</text><text x="288" y="160" font-size="14" fill="#6b6b6b">reported</text><text x="500" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The manager</text><text x="540" y="122" font-size="14" fill="#6b6b6b">what your manager</text><text x="540" y="141" font-size="14" fill="#6b6b6b">decided and why, and what</text><text x="540" y="160" font-size="14" fill="#6b6b6b">changed in the sheet and in</text><text x="540" y="179" font-size="14" fill="#6b6b6b">the customer agent's</text><text x="540" y="198" font-size="14" fill="#6b6b6b">answer</text><text x="752" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="776" y="46" width="204" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">One change</text><text x="792" y="122" font-size="14" fill="#6b6b6b">one change your team</text><text x="792" y="141" font-size="14" fill="#6b6b6b">would make to an</text><text x="792" y="160" font-size="14" fill="#6b6b6b">instruction, a rule or the</text><text x="792" y="179" font-size="14" fill="#6b6b6b">sheet, and why</text></svg></div>
+    <figcaption class="plib-tile-caption">Answer all four parts. The fourth part counts most.</figcaption>
+  </figure>
+</div>
+
+<div class="plib-narration">
+  <p>Now write your team's explanation of the loop, in your own words and without help from the AI. First, say what the customer agent did with your two requests, with their request_ids AND second, say what the staff agent checked before the decisions, including what it reported from your live data AND third, say what your manager decided on each request and why, what your manager changed in the state tab, and what the customer agent said afterward AND fourth, name one change your team would make to an instruction, a rule of your business or a column of your sheet after this loop, and say why, for your customers or your business. Four parts.</p>
+  <p>Your instructor gives the fourth part the most weight. Write 100 to 200 words, and copy the box into the submission thread.</p>
+</div>
+
+<div class="plib-prompt-r" role="region" aria-label="Contribution RP2.1.7">
+  <div class="plib-prompt-header">
+    <span class="plib-prompt-id plib-r-id">RP2.1.7</span>
+    <span class="plib-prompt-type-label plib-reflect-label">Part G the loop explained</span>
+    <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
+  </div>
+  <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
+  <textarea id="textarea_65" class="plib-textarea"
+            placeholder="Write your response here..."
+            aria-label="Write your contribution for RP2.1.7"
+            data-maxwords="200" data-maxchars="2000"
+            oninput="updateCounter('prompt_65', 'textarea_65')"></textarea>
+  <div class="plib-counter" id="counter_prompt_65" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_65">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_65">0</span> / 2000 characters
+    <span class="plib-counter-min">minimum: 100 words</span>
+  </div>
+  <div class="plib-warn" id="warn_prompt_65" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_65"
+       data-prefix="### RP2.1.7&#10;----------&#10;"
+       data-suffix="&#10;----------&#10;###"
+       data-tid="textarea_65"
+       data-maxwords="200"
+       data-maxchars="2000"
+       data-minwords="100"></div>
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_65', this)"
+          aria-label="Copy contribution RP2.1.7 to clipboard">
+    <span aria-hidden="true">&#128203;</span> Copy contribution
+  </button>
+</div>
+
+<div class="plib-section"><div class="plib-section-n">Section 5 of 5</div><div class="plib-section-t">SUBMISSION</div></div>
+
+<div class="plib-narration">
+  <p>You are done with this team thread when it has the opener, your roles, Parts A to E, the Part F block and Part G. Export the whole submission thread from Hokie AI as a .zip. One team member uploads the .zip to the Progress Report 2 assignment in Canvas for the whole team.</p>
+  <p>Leave the turns where something went wrong. How your team recovered is part of what your instructor reads. Then every member submits Stress Test 2, with three stress tests of your team's system, and Peer Evaluation 2, each on its own assignment and due with the team submission.</p>
+</div>
+
+<div class="plib-material" id="plib-material-69">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">Progress Report 2 on Canvas</div>
+  <div class="plib-material-btns">
+    <a class="plib-material-btn" href="https://canvas.vt.edu/courses/233694/assignments/2891299" target="_blank" rel="noopener noreferrer">Open the Progress Report 2 assignment</a>
+  </div>
+  <div class="plib-material-note">One upload per team. Stress Test 2 and Peer Evaluation 2 have their own assignments, and every member submits both, so check the title on the page before you upload.</div>
+</div>
+
+<div class="plib-submit">
+  <div class="plib-submit-title">Turn it in</div>
+  <p class="plib-submit-p">Export this thread as a .zip file, then upload it to the Canvas assignment for this part. Leave the file as it came out. Your work is not submitted until Canvas shows your file.</p>
+</div>
+
+</div>
+</main>
+<script>
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/[ \t\n\r]+/).length;
+}
+function announce(msg) {
+  var el = document.getElementById('plib-live');
+  if (!el) { el = document.createElement('div'); el.id = 'plib-live';
+    el.setAttribute('aria-live','polite'); el.setAttribute('aria-atomic','true');
+    el.style.cssText='position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el); }
+  el.textContent = ''; setTimeout(function(){ el.textContent = msg; }, 50);
+}
+function autoResize(ta) {
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight + 2, 600) + 'px';
+}
+function updateCounter(bid, tid) {
+  var ta = document.getElementById(tid);
+  var textEl = document.getElementById('text_' + bid);
+  var wcEl = document.getElementById('wc_' + bid);
+  var ccEl = document.getElementById('cc_' + bid);
+  var ctrEl = document.getElementById('counter_' + bid);
+  if (!ta) return;
+  autoResize(ta);
+  var maxwords = textEl ? parseInt(textEl.getAttribute('data-maxwords') || '0') : 0;
+  var maxchars = textEl ? parseInt(textEl.getAttribute('data-maxchars') || '0') : 0;
+  var minwords = textEl ? parseInt(textEl.getAttribute('data-minwords') || '0') : 0;
+  var text = ta.value;
+  var words = countWords(text);
+  var chars = text.length;
+  if (maxchars && chars > maxchars) {
+    ta.value = text.substring(0, maxchars);
+    text = ta.value; words = countWords(text); chars = text.length;
+  }
+  if (wcEl) wcEl.textContent = words;
+  if (ccEl) ccEl.textContent = chars;
+  if (ctrEl && maxwords) {
+    var pct = words / maxwords;
+    var cls = pct >= 1.0 ? 'bad' : (pct >= 0.8 || (minwords && words < minwords)) ? 'warn' : 'ok';
+    if (pct >= 1.0) { ctrEl.className = 'plib-counter at-limit'; }
+    else { ctrEl.className = 'plib-counter'; }
+    if (wcEl) wcEl.className = 'plib-count-' + cls;
+    if (ccEl) ccEl.className = 'plib-count-' + cls;
+  }
+}
+function copyPrompt(id, btn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = (el.getAttribute('data-copy') || el.textContent || '').replace(/&#10;/g, '\n');
+  var label = (btn.getAttribute('aria-label') || 'item').replace('Copy ','').replace(' to clipboard','');
+  doCopy(text, btn, label + ' copied.', '&#10003; Copied', 2000);
+}
+function copyWithInput(bid, btn) {
+  var el = document.getElementById('text_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!el) return;
+  var tid = el.getAttribute('data-tid');
+  var inputEl = document.getElementById(tid);
+  var prefix = (el.getAttribute('data-prefix') || '').replace(/&#10;/g, '\n');
+  var suffix = (el.getAttribute('data-suffix') || '').replace(/&#10;/g, '\n');
+  var userText = inputEl ? inputEl.value.trim() : '';
+  if (userText.replace(/[\t\n\r ]/g, '').length < 2) {
+    if (warnEl) warnEl.textContent = 'Please write your response before copying.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  var maxwords = parseInt(el.getAttribute('data-maxwords') || '0');
+  var maxchars = parseInt(el.getAttribute('data-maxchars') || '0');
+  var minwords = parseInt(el.getAttribute('data-minwords') || '0');
+  if (minwords && countWords(userText) < minwords) {
+    if (warnEl) warnEl.textContent = 'Response is below the minimum of ' + minwords + ' words.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (maxwords && countWords(userText) > maxwords) {
+    if (warnEl) warnEl.textContent = 'Response exceeds the ' + maxwords + ' word limit.';
+    if (inputEl) inputEl.focus(); return;
+  }
+  if (warnEl) warnEl.textContent = '';
+  doCopy(prefix + userText + suffix, btn, 'Copied. Paste into Hokie AI.', '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function doCopy(text, btn, announcement, label, duration) {
+  function ok() {
+    var orig = btn.innerHTML; btn.innerHTML = label; btn.classList.add('copied');
+    announce(announcement);
+    setTimeout(function() { btn.innerHTML = orig; btn.classList.remove('copied'); }, duration);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(ok).catch(function() { fallback(text, ok); });
+  } else { fallback(text, ok); }
+}
+function fallback(text, cb) {
+  var ta = document.createElement('textarea'); ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function copyStructured(bid, blockId, btn) {
+  var container = document.getElementById('qitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!container) return;
+  var outerDiv = container.closest('.plib-prompt-q');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var items = container.querySelectorAll('.plib-q-item');
+  var lines = [];
+  var emptyItems = [];
+
+  items.forEach(function(itemEl) {
+    var n = itemEl.getAttribute('data-item-n');
+    var render = itemEl.getAttribute('data-render');
+    var selections = [];
+
+    if (render === 'dropdown') {
+      var sel = itemEl.querySelector('select');
+      if (sel && sel.value) selections.push(sel.value);
+    } else if (render === 'likert') {
+      var checkedRadio = itemEl.querySelector('input[type="radio"]:checked');
+      if (checkedRadio) selections.push(checkedRadio.value);
+    } else if (render === 'checkbox') {
+      var checks = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+      checks.forEach(function(c) { selections.push(c.value); });
+    }
+
+    if (selections.length === 0) {
+      emptyItems.push(n);
+    } else {
+      lines.push('ITEM ' + n + ': ' + selections.join(', '));
+    }
+  });
+
+  if (emptyItems.length > 0) {
+    if (warnEl) {
+      warnEl.textContent = 'Please make a selection for ITEM '
+        + emptyItems.join(', ITEM ') + ' before copying.';
+    }
+    return;
+  }
+
+  if (warnEl) warnEl.textContent = '';
+
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\n'
+    + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Structured response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+function enforceCheckboxCap(itemEl) {
+  var max = parseInt(itemEl.getAttribute('data-max-select') || '0', 10);
+  if (!max || max < 2) return;
+  var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+  var checked = itemEl.querySelectorAll('input[type="checkbox"]:checked');
+  var atCap = checked.length >= max;
+  checks.forEach(function(c) {
+    if (!c.checked) c.disabled = atCap;
+  });
+}
+function moveItem(btn, direction) {
+  var li = btn.closest('.plib-o-item');
+  if (!li) return;
+  var list = li.parentElement;
+  if (!list) return;
+  if (direction === 'up') {
+    var prev = li.previousElementSibling;
+    if (prev) list.insertBefore(li, prev);
+  } else if (direction === 'down') {
+    var next = li.nextElementSibling;
+    if (next) list.insertBefore(next, li);
+  }
+  updateArrowStates(list);
+}
+function updateArrowStates(list) {
+  var items = list.querySelectorAll('.plib-o-item');
+  items.forEach(function(li, idx) {
+    var rankEl = li.querySelector('.plib-o-rank');
+    if (rankEl) rankEl.textContent = (idx + 1) + '.';
+    var upBtn = li.querySelector('.plib-o-arrow-up');
+    var downBtn = li.querySelector('.plib-o-arrow-down');
+    if (upBtn) upBtn.disabled = (idx === 0);
+    if (downBtn) downBtn.disabled = (idx === items.length - 1);
+    var itemText = li.getAttribute('data-item-text') || '';
+    if (upBtn) upBtn.setAttribute('aria-label', 'Move ' + itemText + ' up');
+    if (downBtn) downBtn.setAttribute('aria-label', 'Move ' + itemText + ' down');
+  });
+}
+function copyOrdered(bid, blockId, btn) {
+  var list = document.getElementById('oitems_' + bid);
+  var warnEl = document.getElementById('warn_' + bid);
+  if (!list) return;
+  var outerDiv = list.closest('.plib-prompt-o');
+  var aiDirective = outerDiv ? (outerDiv.getAttribute('data-ai-directive') || '') : '';
+  var question = list.getAttribute('data-question') || '';
+  var items = list.querySelectorAll('.plib-o-item');
+  var lines = [];
+  items.forEach(function(li, idx) {
+    var itemText = li.getAttribute('data-item-text') || '';
+    lines.push((idx + 1) + '. ' + itemText);
+  });
+  if (warnEl) warnEl.textContent = '';
+  var directiveLine = aiDirective ? aiDirective + '\n' : '';
+  var envelope = '### ' + blockId + '\n----------\n' + directiveLine + 'RESPONSE:\nQuestion: '
+    + question + '\n' + lines.join('\n') + '\n----------\n###';
+  doCopy(envelope, btn,
+    'Ordered response copied. Paste into Hokie AI.',
+    '&#10003; Copied. Paste into Hokie AI', 3000);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var checkboxItems = document.querySelectorAll('.plib-q-item[data-render="checkbox"]');
+  checkboxItems.forEach(function(itemEl) {
+    var checks = itemEl.querySelectorAll('input[type="checkbox"]');
+    checks.forEach(function(c) {
+      c.addEventListener('change', function() { enforceCheckboxCap(itemEl); });
+    });
+  });
+  var oLists = document.querySelectorAll('.plib-o-list');
+  oLists.forEach(function(list) {
+    updateArrowStates(list);
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+MAROON HOLLOW GOODS, SYSTEM DESIGN FOR PROGRESS REPORT 2
+TEAM13. Maroon Hollow Goods is made up, and so are the customers and names below. This design builds on your fact sheet from progress report 1 and on the Kestrel Bend system from lec13_1. Every box of text marked COPY is pasted exactly as it is.
+
+
+1. YOUR BUSINESS IN SHORT
+
+Maroon Hollow Goods is an online shop in Blacksburg that sells Virginia Tech themed apparel and gifts in the United States and to Canada, the United Kingdom, Germany, Japan and South Korea. Customers order online and may return items that are not personalized within 30 days. Your customer agent takes two kinds of request: an order, and a return. Your staff agent works with Rachel Kim, the operations manager, who decides every request. Customers abroad see prices in their own currency and pay in dollars, so both agents check the exchange rates, the customer agent to show a price abroad and the manager to quote international orders.
+
+The system has five parts:
+Products tab: the products, their prices in dollars and how many are in stock. Both agents read it.
+Requests tab: one row per request, with its status and the operations manager's note. Only the staff agent reads it.
+Customer agent: reads the Products tab and the exchange rates and adds a request to the Requests tab. It holds no office key.
+Staff agent: lists the requests, checks the Products tab and the exchange rates, and records the operations manager's decision after the manager confirms.
+Rachel Kim: decides every request and updates the Products tab by hand.
+
+
+2. THE PRODUCTS TAB
+
+Make one Google Sheet for your team, owned by one member and shared with the others as editors. Name the first tab Products and paste the rows below into cell A1. They go into A1 to F6.
+
+The columns:
+product_id   The product's code. MH means Maroon Hollow, then a number.
+product      The product.
+price_usd    The price in dollars.
+sizes        The sizes in stock, or one size.
+stock        How many are in stock, across all sizes.
+status       in stock, or sold out at 0.
+
+COPY, the Products tab, starter rows for A1:
+product_id	product	price_usd	sizes	stock	status
+MH-01	Game day t-shirt	24	S, M, L, XL, 2XL	86	in stock
+MH-02	Hooded sweatshirt	48	M, L, XL	12	in stock
+MH-03	Knit beanie	20	one size	40	in stock
+MH-04	Ceramic mug	16	one size	0	sold out
+MH-05	Stadium blanket	55	one size	9	in stock
+
+Publish the Products tab the way you published the Trips tab in lec12_2: File, Share, Publish to web, the Products tab, Comma-separated values (.csv), Publish. Keep the link in a note. This is the Endpoint of read_products.
+
+
+3. THE REQUESTS TAB
+
+Add a second tab to the same sheet, name it Requests, click cell A1 and paste the column names below. They go into A1 to O1. Leave the rows below empty. The script fills them.
+
+The columns:
+request_id        G and a number, such as G101, made by the script.
+time              When the request came in, written by the script.
+request_type      order or return.
+name              The customer's full name.
+email             The customer's email.
+product_id        The product, from read_products.
+size              The size, or one size.
+quantity          For an order, how many.
+personalization   For an order, the name and number on a shirt or sweatshirt, or none.
+country           For an order, the country it ships to.
+shipping          For an order, standard, express or abroad.
+order_ref         For a return, the order the item came from.
+reason            For a return, the reason and how many days since delivery.
+status            pending when the request comes in, then confirmed, refunded or declined.
+manager_note      The operations manager's note on the decision, or the word none.
+
+In an order row order_ref and reason stay empty, and in a return row quantity, personalization, country and shipping stay empty.
+
+COPY, the Requests tab, column names for A1:
+request_id	time	request_type	name	email	product_id	size	quantity	personalization	country	shipping	order_ref	reason	status	manager_note
+
+
+4. YOUR SCRIPT PROMPT
+
+Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
+
+Test it in a private window with your /exec address and this ending:
+?action=add&request_type=order&name=Test&email=test%40example.com&product_id=MH-03&size=one%20size&quantity=1&personalization=none&country=United%20States&shipping=standard
+The right answer is ok true and request_id G101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is G101 again.
+
+This prompt is for your sheet only, with your office key, maroon-crate-9163, and the letter G.
+
+COPY, the script prompt:
+Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+
+The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
+
+At the top, put the office key in a constant named OFFICE_KEY with the value maroon-crate-9163.
+
+Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+
+1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter G in front of that number. A tab with three rows gives G103, never G3100, G1003 or G3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
+
+2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.
+
+3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.
+
+If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.
+
+Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.
+
+At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it.
+
+
+5. THE CUSTOMER AGENT'S TOOLS
+
+Add three API Call sources to your customer agent, all with the Method GET.
+
+read_products
+Name: read_products
+Description, COPY: Use when someone asks about products, prices in dollars, sizes or stock. Returns every product in the Products tab as comma separated text, one product per row.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint: your published Products link.
+
+add_request
+Name: add_request
+Description, COPY: Use once the customer has confirmed the details of an order or a return, one product per request. Records the request in the Requests tab and returns its request_id.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["order","return"],"description":"order for a new order, return to return an item."},"name":{"type":"string","description":"The customer's full name."},"email":{"type":"string","description":"The customer's email."},"product_id":{"type":"string","description":"The product_id from read_products, such as MH-02."},"size":{"type":"string","description":"The size, or one size."},"quantity":{"type":"integer","description":"For an order only. How many."},"personalization":{"type":"string","description":"For an order only. The name and number for a shirt or sweatshirt, or none."},"country":{"type":"string","enum":["United States","Canada","United Kingdom","Germany","Japan","South Korea"],"description":"For an order only. The country it ships to."},"shipping":{"type":"string","enum":["standard","express","abroad"],"description":"For an order only. standard or express in the United States, abroad for the other countries."},"order_ref":{"type":"string","description":"For a return only. The order number or the request_id of the order."},"reason":{"type":"string","description":"For a return only. The reason and how many days since delivery."}},"required":["action","request_type","name","email","product_id","size"]}
+Endpoint: your /exec address, with nothing after it.
+
+How this schema was made. Your instructor wrote this schema from the columns of your Requests tab, the two kinds of request and the rules for each field, and tested it. The prompt below asks Hokie AI for the same schema. Your team sends it in a new regular Hokie AI thread and compares the answer with the schema above, field by field, for Part B of progress report 2. Paste the schema above into your agent, never the one Hokie AI writes.
+COPY, the schema prompt:
+Write a Parameter Schema in JSON for a Hokie AI API Call tool named add_request. The tool adds one request as a new row in the Requests tab of a Google Sheet for Maroon Hollow Goods, a made up business. Follow these rules exactly.
+
+The schema is a JSON object with "type": "object", "properties" and "required". Give every property a "type" and a short "description".
+
+The Requests tab has these columns: request_id, time, request_type, name, email, product_id, size, quantity, personalization, country, shipping, order_ref, reason, status, manager_note. The script fills request_id, time, status and manager_note itself, so leave those four out of the schema. The tool never sends an office key, so leave out any key.
+
+Include a property named action, of type string, whose only allowed value is add, set with enum.
+
+Include a property named request_type, of type string, whose only allowed values are order and return, set with enum.
+
+Include one property for each of the other columns, with these types and descriptions:
+- name: text (type string). The customer's full name.
+- email: text (type string). The customer's email.
+- product_id: text (type string). The product_id from read_products, such as MH-02.
+- size: text (type string). The size, or one size.
+- quantity: a whole number (integer). For an order only. How many.
+- personalization: text (type string). For an order only. The name and number for a shirt or sweatshirt, or none.
+- country: text (type string), with only these allowed values, set with enum: United States, Canada, United Kingdom, Germany, Japan, South Korea. For an order only. The country it ships to.
+- shipping: text (type string), with only these allowed values, set with enum: standard, express, abroad. For an order only. standard or express in the United States, abroad for the other countries.
+- order_ref: text (type string). For a return only. The order number or the request_id of the order.
+- reason: text (type string). For a return only. The reason and how many days since delivery.
+
+List these properties in required: action, request_type, name, email, product_id, size. Leave quantity, personalization, country, shipping, order_ref and reason out of required, because each of them belongs to only one kind of request or is not always known.
+
+Give the schema in one code block, with nothing after it.
+END OF THE SCHEMA PROMPT.
+
+get_rates
+Name: get_rates
+Description, COPY: Use when someone asks what a price is in another currency. Returns today's exchange rates from one US dollar to the Canadian dollar, the British pound, the euro, the Japanese yen and the Korean won, published on working days.
+Parameter Schema, COPY: {"type":"object","properties":{}}
+Endpoint, COPY:
+https://api.frankfurter.dev/v1/latest?base=USD&symbols=CAD,GBP,EUR,JPY,KRW
+The rates come from Frankfurter, a free public service with no account or key that publishes the European Central Bank's rates on working days. Open the Endpoint in a browser to see what the agent receives.
+The customer agent shows a price abroad as an estimate in the customer's currency, the dollar price times today's rate, and says the order is charged in dollars.
+
+What add_request sends, field by field:
+action            Always add. The script adds a row.
+request_type      order or return. The enum allows only these two words.
+name              The customer's name.
+email             The customer's email.
+product_id        The product, from read_products.
+size              The size in words.
+quantity          For an order, a whole number.
+personalization   For an order, the name and number, or none.
+country           For an order, one of the six countries.
+shipping          For an order, standard, express or abroad.
+order_ref         For a return, the order it came from.
+reason            For a return, the reason in words.
+required          The agent must send action, request_type, name, email, product_id and size. The other fields are sent only for the kind of request they belong to.
+There is no key here. The customer agent can add a request and do nothing else.
+
+
+6. THE STAFF AGENT'S TOOLS
+
+Add four API Call sources to your staff agent, all with the Method GET.
+
+read_products
+The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Products link.
+
+list_requests
+Name: list_requests
+Description, COPY: Use when the operations manager asks about orders or returns. Returns requests from the Requests tab, all of them or only those with one status.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["maroon-crate-9163"],"description":"The office key. Always maroon-crate-9163."},"status":{"type":"string","enum":["pending","confirmed","refunded","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
+Endpoint: your /exec address, with nothing after it.
+
+decide_request
+Name: decide_request
+Description, COPY: Use only after the operations manager has named a request_id, said confirm, refund or decline, and confirmed. Records the decision and the note in the Requests tab.
+Parameter Schema, COPY:
+{"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["maroon-crate-9163"],"description":"The office key. Always maroon-crate-9163."},"request_id":{"type":"string","description":"The request_id the operations manager decided, such as G103."},"status":{"type":"string","enum":["confirmed","refunded","declined"],"description":"The operations manager's decision: confirmed for an order, refunded for a return, with the amount in the note, declined for either."},"manager_note":{"type":"string","description":"The operations manager's note for this request. If the operations manager gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
+Endpoint: your /exec address, with nothing after it.
+
+get_rates
+The same as in the customer agent.
+
+What the office tools send, field by field:
+list_requests
+action         Always list. The script sends back requests and changes nothing.
+key            The office key, fixed to one value with enum. The script lists requests only when it receives this word.
+status         Optional: pending, confirmed, refunded or declined, when the operations manager asks for one kind, such as what is waiting.
+decide_request
+action         Always decide. The script changes one row.
+key            The office key, as in list_requests.
+request_id     Which request the operations manager decided, such as G103.
+status         confirmed for an order, refunded for a return, with the amount in the note, declined for either.
+manager_note   The operations manager's note. When the operations manager gives no note, the agent sends the word none.
+required       The agent must send all five values, so every decision has a note.
+
+
+7. THE OPERATIONS MANAGER'S DECISIONS
+
+Rachel Kim decides every request. Before each decision, the staff agent checks what the fact sheet and the Products tab say, and the manager decides.
+
+An order. The staff agent checks that the product and the size are in stock, that the country is one the shop ships to, and works out the total: the item price, 12 dollars for a name and number, and shipping (standard 6 dollars and free from 75 dollars, express 18 dollars, abroad 25 dollars). For an order abroad, the staff agent also gives the total in the customer's currency from get_rates and notes that the customer pays any import tax. The manager confirms or declines.
+After a confirmed order: the manager lowers stock for that product by the quantity on the Products tab, and writes sold out in status when it reaches 0.
+
+A return. The staff agent checks that the item is not personalized, that it is unworn with tags, and that it came within 30 days of delivery, and works out the refund of the item price. Return shipping is free in the United States and paid by the customer abroad. The manager marks the return refunded, with the amount in the note, or declines. A return after 30 days, a refund of shipping, or a return of a personalized item is an exception, and the manager decides it with a note.
+After a refunded return: the manager raises stock for that product by 1 on the Products tab when the item can be sold again.
+
+The exchange rates. When the manager asks about the rates, the staff agent calls get_rates and reports how many Canadian dollars, pounds, euros, yen and won one dollar buys today, and the prices of the products in those currencies. The prices in the Products tab stay in dollars, and every order is charged in dollars.
+
+
+8. A SAMPLE LOOP
+
+Run these messages after both agents are updated. Look at your Requests tab and your Products tab after each step.
+
+To the customer agent: Hi, I live in Toronto. How much is a hooded sweatshirt in Canadian dollars? I would like one in size L with the name Ward and the number 12, shipped to Canada. I am Ellie Ward, ellie.ward@example.com.
+Reply yes when the agent repeats the request. The agent gives a price estimate in Canadian dollars, a request_id, and a pending row appears.
+
+To the customer agent, in a new thread: I would like to return a game day t-shirt, size M, from my order G099. It is too small, unworn with tags, and arrived 12 days ago. I am Sam Torres, sam.torres@example.com.
+
+To the staff agent, as the operations manager, one message at a time:
+What requests are waiting for me?
+What is the total for the Ward order in dollars and in Canadian dollars?
+How many Canadian dollars, pounds, euros, yen and won does one dollar buy today?
+Confirm request G101. Note: ships abroad Monday.
+Reply yes when the agent asks you to confirm. If the Ward request has another request_id, use it in place of G101. Then mark the Torres return refunded, with the amount in the note, or decline it, the same way, by its request_id.
+
+Then, as the manager, lower stock for MH-02 from 12 to 11 on the Products tab, and ask the customer agent how many hooded sweatshirts are in stock. The right answer is 11.
+
+
+9. WHAT YOUR INSTRUCTIONS NEED
+
+Your agents now write to and read from the sheet, so your team updates the SCORE instructions it wrote for progress report 1. Write them yourselves, on the pattern of the Kestrel Bend instructions in lec13_1. The add_request call takes the place of the HANDOFF line in the customer agent, and decide_request takes the place of the RECORD line in the staff agent.
+
+The customer agent's instructions need to say:
+Call read_products before answering any question about products, prices, sizes or stock, and answer only from the rows it receives. Call get_rates when a customer asks for a price in another currency, and give it as an estimate, charged in dollars.
+For an order, collect the customer's name, email, the product, size, quantity, any name and number, the country and the shipping, one product per request. For a return, collect the name, email, the product, size, the order it came from and the reason with the days since delivery. Repeat the details back.
+When the customer says yes, call add_request in the same reply, once for each product, give each request_id and say that the shop confirms every order and return. Never say that an order is confirmed or a refund given.
+The agent cannot see other requests, and says it can help only with the customer's own new request.
+
+The staff agent's instructions need to say:
+Call list_requests when the manager asks about requests, with status pending for what is waiting, and report each request with its request_id and details.
+Call read_products when the manager asks whether an order fits, and get_rates for prices abroad.
+Record a decision only when the manager names a request_id and says confirm, refund or decline. Repeat it, ask the manager to confirm, then call decide_request once.
+After a confirmed order or a refunded return, remind the manager to update stock on the Products tab.
