@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Two Agents and a Manager on One Sheet</title>
+<title>A Script for the Business's Sheet and the Customer Agent</title>
 <style>
 :root {
   --c-text:#1a1a1a; --c-muted:#4a4a4a;
@@ -55,6 +55,7 @@
 .plib-submit-btn:focus{outline:3px solid var(--c-obj-accent);outline-offset:3px}
 .plib-submit-note{margin-top:.55rem;font-size:13px;color:var(--c-muted)}
 .plib-material{margin:1.6rem 0;padding:1.2rem 1.4rem;border-radius:var(--radius);background:var(--c-s-bg);border:1px solid var(--c-s-border)}
+.plib-caution{background:#fff8ec;border:1px solid #f0c98a;border-left:6px solid #CF4420}.plib-caution-tag{color:#a8380f !important;font-weight:700}.plib-caution-list{margin:.4em 0 .2em 1.2em;padding:0}.plib-caution-list li{margin:.35em 0;line-height:1.45}
 .plib-info{background:#f3f4f8;border:1px solid #c9cde0;border-left:5px solid #5a6aa8}
 .plib-info-tag{color:#4a5a98 !important}
 .plib-info-box{background:#fff;border-color:#c9cde0;max-height:none}
@@ -246,7 +247,7 @@
 <div class="plib-meta">
   <div class="plib-meta-course">BUS 1204 AI Literacy for Business</div>
   <div class="plib-meta-week">Week 13 · Lecture 1</div>
-  <div class="plib-meta-title">Two Agents and a Manager on One Sheet</div>
+  <div class="plib-meta-title">A Script for the Business's Sheet and the Customer Agent</div>
   <div class="plib-meta-details"><span><strong>Duration:</strong> 75 minutes</span>&ensp;·&ensp;<span><strong>Platform:</strong> Hokie AI, Google Sheets and Google Apps Script</span>&ensp;·&ensp;<span><strong>Submission:</strong> Your reflection thread, exported as a .zip and uploaded to Canvas before leaving class</span>&ensp;·&ensp;<span><strong>Lecture Mode:</strong> consolidation</span></div>
 </div>
 
@@ -255,9 +256,8 @@
   <p class="plib-objectives-intro">By the end of this lecture, students will be able to:</p>
   <ol class="plib-objectives-list">
     <li>Ask Hokie AI for a short script that lets agents add, list and decide requests in a Google Sheet, and read what each line does.</li>
+    <li>Deploy the script as a web app, test it, and fix the common errors with a new version.</li>
     <li>Give a customer agent a tool that adds a request, and prevent it from reading other customers' requests.</li>
-    <li>Give an office agent tools that list requests, check live data and record a manager's decision only after the manager confirms.</li>
-    <li>Explain why the manager, and not an agent, approves or declines each booking request.</li>
   </ol>
 </div>
 
@@ -266,12 +266,12 @@
 <div class="plib-context plib-context-student">
   <div class="plib-context-label">&#128203; Note for Students</div>
   <div class="plib-context-body">
-    <p>Today you finish the Kestrel Bend system. The customer agent, Kestrel Bend Seat Check from the last class, takes a booking request and writes it in the sheet. This page calls it Seat Check. A second agent, the office agent, helps the manager see the request, check the seats and the weather, and record the decision. Then your team turns to its own project.</p>
+    <p>Today you give the Kestrel Bend sheet a script and give the customer agent, Kestrel Bend Seat Check from the last class, a tool that writes a booking request into the sheet. This page calls the agent Seat Check. The office agent, which helps the manager decide, comes in the next class.</p>
   </div>
 </div>
 
 <div class="plib-narration">
-  <p>At Kestrel Bend, a customer asks Seat Check for four seats on the sunset paddle. Seat Check cannot promise them, because the manager decides every booking. So Seat Check writes the request in the business's sheet, and the office agent helps the manager decide. Today you build that system on your Kestrel Bend sheet from the last class.</p>
+  <p>At Kestrel Bend, a customer asks Seat Check for four seats on the sunset paddle. Seat Check cannot promise them, because the manager decides every booking. So Seat Check writes the request in the business's sheet, and in the next class an office agent helps the manager decide. Today you build the sheet's script and the customer side.</p>
 </div>
 
 <div class="plib-tiles" id="plib-tiles-8">
@@ -287,33 +287,54 @@
 </figure>
 
 <div class="plib-narration">
-  <p>The system has four parts. The customer agent, Seat Check, reads the Trips tab and adds each request as a pending row in the Requests tab AND the Requests tab holds one row per request, with its status and the manager's note AND the office agent lists the requests, checks the seats and the weather, and records the manager's decision AND the manager is the person who approves or declines every request and updates the seats. Four parts.</p>
+  <p>The system has four parts. Today you build the first two, the customer agent and the Requests tab, and the script that connects them.</p>
+  <ol class="plib-narration-list">
+    <li>The customer agent, Seat Check, reads the Trips tab and adds each request as a pending row in the Requests tab.</li>
+    <li>The Requests tab holds one row per request, with its status and the manager's note.</li>
+    <li>The office agent lists the requests, checks the seats and the weather, and records the manager's decision.</li>
+    <li>The manager is the person who approves or declines every request and updates the seats.</li>
+  </ol>
   <p>Seat Check can add a request, and it does not have a tool for reading requests. Only the office agent can read them, so one customer never sees another customer's booking.</p>
 </div>
 
 <div class="plib-section"><div class="plib-section-n">Section 2 of 4</div><div class="plib-section-t">DEMONSTRATION</div></div>
 
 <div class="plib-narration">
-  <p>Build the system with your instructor, one step at a time, on the Kestrel Bend sheet and the Kestrel Bend Seat Check agent from the last class. Use Chrome, signed in with your VT account. If you missed the last class, build the sheet and Seat Check from the lec12_2 page first, and join in when they work.</p>
+  <p>Build along with your instructor, one numbered step at a time, on the Kestrel Bend sheet and the Seat Check agent from the last class. If you missed the last class, build the sheet and Seat Check from the lec12_2 page first. Before you start, read the box below. Most errors in this build come from the eight points in it.</p>
 </div>
 
-<div class="plib-tiles" id="plib-tiles-13">
+<div class="plib-material plib-caution" id="plib-material-13">
+  <div class="plib-material-tag plib-caution-tag">Read before you start</div>
+  <div class="plib-material-title">Preventing errors</div>
+  <ul class="plib-caution-list">
+    <li>Use one Google account. Open a private window (Ctrl+Shift+N, or Command+Shift+N on a Mac) and sign in there with your VT account only, or use a Chrome profile that holds only your VT account.</li>
+    <li>Check every script.google.com address you open. If it has /u/1/, /u/2/ or another /u/ and a number in it, delete that part.</li>
+    <li>Copy with the Copy buttons. Do NOT copy by highlighting the text.</li>
+    <li>Copy the script with the copy button at the top of Hokie AI's code block. Line 1 of the script starts with const OFFICE_KEY.</li>
+    <li>Name the tab Requests, with a capital R and no space after it, before you deploy.</li>
+    <li>Save before you deploy. Press Ctrl+S (Command+S on a Mac) and wait until the save finishes.</li>
+    <li>After you change the script, deploy a new version through Manage deployments. A New deployment gives you a new /exec address.</li>
+    <li>Test the /exec address in the private window right after you deploy, before you change the agent.</li>
+  </ul>
+  <div class="plib-material-note">Your instructor goes through these points with the room before the build.</div>
+</div>
+
+<div class="plib-tiles" id="plib-tiles-14">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Four boxes joined by THEN, your script. Tab, a Requests tab with the column names from the box below. Prompt, the script prompt in a new regular Hokie AI thread. Deploy, Extensions, Apps Script, paste, save, then Deploy as a web app that anyone can open. Test, your web app address with the test ending in a private window, which should show R101."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 219" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="219" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your script</text><rect x="21" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Tab</text><text x="37" y="122" font-size="14" fill="#6b6b6b">a Requests tab with the</text><text x="37" y="141" font-size="14" fill="#6b6b6b">column names from the</text><text x="37" y="160" font-size="14" fill="#6b6b6b">box below</text><text x="248" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="272" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="296" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="296" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="318" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Prompt</text><text x="288" y="122" font-size="14" fill="#6b6b6b">the script prompt in a new</text><text x="288" y="141" font-size="14" fill="#6b6b6b">regular Hokie AI thread</text><text x="500" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="524" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Deploy</text><text x="540" y="122" font-size="14" fill="#6b6b6b">Extensions, Apps Script,</text><text x="540" y="141" font-size="14" fill="#6b6b6b">paste, save, then Deploy as</text><text x="540" y="160" font-size="14" fill="#6b6b6b">a web app that anyone can</text><text x="540" y="179" font-size="14" fill="#6b6b6b">open</text><text x="752" y="126" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="776" y="46" width="204" height="151" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="800" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="800" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="820" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Test</text><text x="792" y="122" font-size="14" fill="#6b6b6b">your web app address with</text><text x="792" y="141" font-size="14" fill="#6b6b6b">the test ending in a private</text><text x="792" y="160" font-size="14" fill="#6b6b6b">window, which should</text><text x="792" y="179" font-size="14" fill="#6b6b6b">show R101</text></svg></div>
-    <figcaption class="plib-tile-caption">About fifteen minutes. Read the comment on each line as you paste.</figcaption>
+    <figcaption class="plib-tile-caption">Follow the numbered steps. Read the comment on each line as you paste.</figcaption>
   </figure>
 </div>
 
 <div class="plib-narration">
-  <p>Your script takes four steps.</p>
-  <p>First, add the Requests tab. Open your Kestrel Bend sheet from the last class: go to sheets.google.com, signed in with your VT account, and click the sheet in the list of recent spreadsheets. If you do not see it, type Kestrel in the search bar at the top. In the sheet, click the plus sign at the bottom left to add a tab. Double-click the new tab, type Requests, and press Enter. Click cell A1 of the new tab and paste the column names from the box below. They go into A1 to G1.</p>
-  <p>THEN ask Hokie AI for the script. Open a new regular Hokie AI thread, not an agent, paste the script prompt from the box below, and send it. Hokie AI answers with one code block. Read a few of the comments at the end of the lines. Each one says in plain English what that line does.</p>
-  <p>THEN put the script in your sheet and deploy it. Copy the script with the copy button of the code block. In your sheet, click Extensions, then Apps Script. Select the few lines that are there with Ctrl+A, delete them, paste the script, and press Ctrl+S. Then click the blue Deploy button, then New deployment. Next to Select type, click the gear and choose Web app. In Description, type the name from the box below, Kestrel Bend requests v1. Set Execute as to Me and Who has access to Anyone, and click Deploy. Google asks you to authorize the script. Choose your VT account. If Google says it has not verified the app, click Advanced, then the link that starts with Go to, then Allow. Copy the Web app URL, which ends in /exec, and keep it in a note. If you lose it, open your sheet, click Extensions, then Apps Script, then Deploy, then Manage deployments, and copy the Web app URL shown there.</p>
-  <p>THEN test it. Open a private window with Ctrl+Shift+N, or Command+Shift+N on a Mac. Paste your /exec address, add the test ending from the box below right after /exec, and press Enter. The browser shows ok true and request_id R101, and a row appears in your Requests tab.</p>
-</div>
-
-<div class="plib-narration">
-  <p>For the first step, the column names of the Requests tab are in the box below.</p>
+  <p>Step 1, the Requests tab.</p>
+  <ol class="plib-narration-list">
+    <li>Open a private window signed in with your VT account only, and go to sheets.google.com.</li>
+    <li>Click your Kestrel Bend sheet in the list of recent spreadsheets. If you do not see it, type Kestrel in the search bar at the top.</li>
+    <li>Click the plus sign at the bottom left of the sheet to add a tab.</li>
+    <li>Double-click the new tab, type Requests, and press Enter. Check the capital R, and check that there is no space after the word.</li>
+    <li>Click cell A1 of the Requests tab and paste the column names from the box below. They fill A1 to G1.</li>
+  </ol>
 </div>
 
 <div class="plib-material" id="plib-material-16">
@@ -328,23 +349,28 @@
       </button>
     </div>
   </div>
-  <div class="plib-material-note">Click cell A1 of the Requests tab first, then paste.</div>
+  <div class="plib-material-note">Click cell A1 of the Requests tab first, then paste. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
 <div class="plib-narration">
-  <p>For the second step, the script prompt is in the box below. Send it in a new regular Hokie AI thread.</p>
+  <p>Step 2, the script prompt.</p>
+  <ol class="plib-narration-list">
+    <li>Open a new regular Hokie AI thread, not an agent.</li>
+    <li>Copy the prompt from the box below with its Copy button, paste it into the thread, and send it.</li>
+    <li>Hokie AI answers with one code block. Read a few of the comments at the ends of the lines. Each one says in plain English what that line does.</li>
+  </ol>
 </div>
 
 <div class="plib-material" id="plib-material-18">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">The script prompt</div>
-  <pre class="plib-material-box" tabindex="0" id="plib-material-18-prompt" data-copy="Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.&#10;&#10;The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.&#10;&#10;At the top, put the office key in a constant named OFFICE_KEY with the value otter-office-2741.&#10;&#10;Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.&#10;&#10;1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter R in front of that number. A tab with three rows gives R103, never R3100, R1003 or R3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.&#10;&#10;2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.&#10;&#10;3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.&#10;&#10;If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.&#10;&#10;Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.&#10;&#10;At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it." aria-label="Specification text, scrollable">Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
+  <pre class="plib-material-box" tabindex="0" id="plib-material-18-prompt" data-copy="Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.&#10;&#10;The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.&#10;&#10;At the top, put the office key in a constant named OFFICE_KEY with the value otter-office-2741.&#10;&#10;Write one function named doGet(e). First, open the Requests tab. If the sheet has no tab named Requests, reply with ok false and the error no tab named Requests in this sheet, and stop. If no action was sent, reply with ok false and the error no action in the address, add ?action=add after /exec, and change nothing. Otherwise the function reads the values in e.parameter and does one of three things, depending on the value of action.&#10;&#10;1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter R in front of that number. A tab with three rows gives R103, never R3100, R1003 or R3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.&#10;&#10;2. action is list. Do this only when key equals OFFICE_KEY. Reply with ok true and a list named requests that holds every row after row 1, each as a record of column name and value. If a status was sent, include only the rows with that status.&#10;&#10;3. action is decide. Do this only when key equals OFFICE_KEY. Find the row whose request_id equals the request_id that was sent. Write the status that was sent in its status column, and the manager_note that was sent in its manager_note column, or empty text if no manager_note was sent. Reply with ok true, the request_id and the status. If no row matches, reply with ok false and the error no request with that request_id.&#10;&#10;If key is missing or wrong for list or decide, reply with ok false and the error office key missing or wrong, and change nothing. For any other action, reply with ok false and the error unknown action.&#10;&#10;Send every reply as JSON with ContentService and the JSON MIME type, through a small helper function named reply.&#10;&#10;At the end of every line of code, write a short comment in plain English that says what the line does, for a reader who has never programmed. Give the whole script in one code block, with nothing after it." aria-label="Specification text, scrollable">Write a Google Apps Script for a Google Sheet that two Hokie AI agents call through API Calls. Follow these rules exactly.
 
 The sheet has a tab named Requests. Row 1 holds the column names. Read the column names from row 1, so the script works whatever the other columns are. Four of the columns are always there: request_id, time, status and manager_note.
 
 At the top, put the office key in a constant named OFFICE_KEY with the value otter-office-2741.
 
-Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+Write one function named doGet(e). First, open the Requests tab. If the sheet has no tab named Requests, reply with ok false and the error no tab named Requests in this sheet, and stop. If no action was sent, reply with ok false and the error no action in the address, add ?action=add after /exec, and change nothing. Otherwise the function reads the values in e.parameter and does one of three things, depending on the value of action.
 
 1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter R in front of that number. A tab with three rows gives R103, never R3100, R1003 or R3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
 
@@ -360,107 +386,193 @@ At the end of every line of code, write a short comment in plain English that sa
   <button class="plib-copy-btn" onclick="copyPrompt('plib-material-18-prompt', this)" aria-label="Copy the text above to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy the text above
   </button>
-  <div class="plib-material-note">Paste it into a new regular Hokie AI thread. Change nothing.</div>
+  <div class="plib-material-note">Paste it into a new regular Hokie AI thread. Change nothing. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
 <div class="plib-narration">
-  <p>For the third step, type this name in the Description field of the New deployment window.</p>
+  <p>Step 3, the script in your sheet.</p>
+  <ol class="plib-narration-list">
+    <li>In Hokie AI, click the copy button at the top of the code block. Do NOT copy by highlighting the text, because that also copies the word javascript.</li>
+    <li>In your sheet, click Extensions, then Apps Script.</li>
+    <li>Select the few lines that are there with Ctrl+A (Command+A on a Mac) and delete them.</li>
+    <li>Paste the script. Check that line 1 starts with const OFFICE_KEY.</li>
+    <li>Press Ctrl+S (Command+S on a Mac) and wait until the save finishes.</li>
+  </ol>
 </div>
 
-<div class="plib-material" id="plib-material-20">
+<div class="plib-narration">
+  <p>Step 4, the deployment.</p>
+  <ol class="plib-narration-list">
+    <li>Click the blue Deploy button, then New deployment.</li>
+    <li>Next to Select type, click the gear and choose Web app.</li>
+    <li>In Description, type the name from the box below.</li>
+    <li>Set Execute as to Me, and Who has access to Anyone.</li>
+    <li>Click Deploy, and choose your VT account when Google asks you to authorize the script.</li>
+    <li>If Google says it has not verified the app, click Advanced, then the link that starts with Go to, then Allow.</li>
+    <li>Copy the Web app URL, which ends in /exec, and keep it in a note. If you lose it, open your sheet, then Extensions, Apps Script, Deploy and Manage deployments, and copy the Web app URL there.</li>
+  </ol>
+</div>
+
+<div class="plib-material" id="plib-material-21">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">The deployment's Description</div>
   <div class="plib-material-copies">
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-20-copy-0" data-copy="Kestrel Bend requests v1">Kestrel Bend requests v1</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-20-copy-0', this)" aria-label="Copy Copy the Description to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-21-copy-0" data-copy="Kestrel Bend requests v1">Kestrel Bend requests v1</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-21-copy-0', this)" aria-label="Copy Copy the Description to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
   </div>
-  <div class="plib-material-note">If you change the script later, keep the same address: Deploy, Manage deployments, the pencil, Version, New version, with the Description Kestrel Bend requests v2.</div>
+  <div class="plib-material-note">Type it in the Description field of the New deployment window. A later version ends in v2, then v3, as in the steps for a new version below.</div>
 </div>
 
 <div class="plib-narration">
-  <p>For the fourth step, add this ending right after /exec in your web app address.</p>
+  <p>Step 5, the test.</p>
+  <ol class="plib-narration-list">
+    <li>In the private window, paste your /exec address into the address bar.</li>
+    <li>Copy the test ending from the box below with its Copy button and paste it right after /exec, with no space.</li>
+    <li>Press Enter. The browser shows ok true and request_id R101, and a row appears in your Requests tab.</li>
+    <li>If the browser shows anything else, find the message in the table of error messages below.</li>
+  </ol>
 </div>
 
-<div class="plib-material" id="plib-material-22">
+<div class="plib-material" id="plib-material-23">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">The test ending</div>
   <div class="plib-material-copies">
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">Copy the test ending</div>
-      <code class="plib-copyrow-code" id="plib-material-22-copy-0" data-copy="?action=add&amp;name=Test&amp;trip_id=KB101&amp;people=2">?action=add&amp;name=Test&amp;trip_id=KB101&amp;people=2</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-22-copy-0', this)" aria-label="Copy Copy the test ending to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-23-copy-0" data-copy="?action=add&amp;name=Test&amp;trip_id=KB101&amp;people=2">?action=add&amp;name=Test&amp;trip_id=KB101&amp;people=2</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-23-copy-0', this)" aria-label="Copy Copy the test ending to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
   </div>
-  <div class="plib-material-note">Add it right after /exec in your web app address. The right answer is ok true and request_id R101.</div>
-</div>
-
-<div class="plib-tiles" id="plib-tiles-23">
-  <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Two boxes joined by AND, your two agents. Seat Check, the customer agent, with new instructions and add_request, which does not hold the office key. Office agent, a new agent, Kestrel Bend Office, with read_trips, list_requests, decide_request and get_forecast, the two request tools holding the office key."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="200" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your two agents</text><rect x="21" y="46" width="455" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Seat Check</text><text x="37" y="122" font-size="14" fill="#6b6b6b">the customer agent, with new instructions and add_request, which</text><text x="37" y="141" font-size="14" fill="#6b6b6b">does not hold the office key</text><text x="500" y="117" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="524" y="46" width="455" height="132" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="548" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="548" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="569" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Office agent</text><text x="540" y="122" font-size="14" fill="#6b6b6b">a new agent, Kestrel Bend Office, with read_trips, list_requests,</text><text x="540" y="141" font-size="14" fill="#6b6b6b">decide_request and get_forecast, the two request tools holding the</text><text x="540" y="160" font-size="14" fill="#6b6b6b">office key</text></svg></div>
-    <figcaption class="plib-tile-caption">The office key is in the office tools only.</figcaption>
-  </figure>
+  <div class="plib-material-note">Add it right after /exec, with no space. The right answer is ok true and request_id R101. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
 <div class="plib-narration">
-  <p>Your two agents take two steps.</p>
-  <p>First, update Seat Check. Open Kestrel Bend Seat Check's edit page, replace its Specific instructions with the Seat Check instructions below, and add one API Call source, add_request. Save the agent, then open its edit page again and check that the first line of the instructions reads You are Kestrel Bend Seat Check.</p>
-  <p>THEN build the office agent. Create a new agent named Kestrel Bend Office, give it the office instructions and the class Platform text, and add four API Call sources: read_trips, list_requests, decide_request and get_forecast. Save the agent.</p>
-  <p>Only the office agent needs the office key. Seat Check only adds a new request, and any customer may add one, so add_request does not carry the key. Listing the requests shows every customer's booking, and a decision changes one, so list_requests and decide_request carry the office key, and a call to list or decide without it is refused.</p>
+  <p>If the test did not show R101, find what you see in the table below. Each message comes with its meaning and what to do.</p>
+</div>
+
+<div class="plib-material plib-info" id="plib-material-25">
+  <div class="plib-material-tag plib-info-tag">For reading</div>
+  <div class="plib-material-title">Error messages and what they mean</div>
+  <pre class="plib-material-box plib-info-box">What you see, what it means, and what to do
+
+1. A Google Drive page: Sorry, unable to open the file at this time.
+   The address was opened with another Google account. It has /u/1/ or a similar part in it.
+   Open the address in a private window signed in with your VT account only, or delete /u/1/ from it.
+
+2. ReferenceError: javascript is not defined (line 1)
+   The word javascript above Hokie AI's code block was copied into the script.
+   Delete line 1, save, and deploy a new version (steps below).
+
+3. no tab named Requests in this sheet
+   or: Cannot read properties of null (reading 'getLastColumn') or (reading 'getRange')
+   The tab is not named exactly Requests.
+   Rename the tab to Requests and run the test again. A new version is not needed.
+
+4. Script function not found: doGet
+   The script was deployed before it was saved.
+   Save the script, then deploy a new version (steps below).
+
+5. no action in the address
+   or: {&quot;ok&quot;: false, &quot;error&quot;: &quot;unknown action&quot;}
+   The script ran, and the address did not have ?action=add after /exec.
+   Copy the test ending with its Copy button and paste it right after /exec.
+
+6. A Google sign in page, or: You need access
+   Who has access is set to someone other than Anyone.
+   Deploy, Manage deployments, the pencil, set Who has access to Anyone, and deploy.
+
+7. Google has not verified this app
+   This is expected the first time, because the script is yours.
+   Click Advanced, then the link that starts with Go to, then Allow.</pre>
+  <div class="plib-material-note">For reading. Nothing in this box is pasted anywhere.</div>
 </div>
 
 <div class="plib-narration">
-  <p>Start with Seat Check. Open Kestrel Bend Seat Check's edit page, delete the old text in the Specific tab, and paste the Seat Check instructions.</p>
+  <p>After you change the script, deploy a new version. A new version keeps your /exec address, so every tool that uses the address keeps working. A New deployment would give you a new address, so use Manage deployments for every fix.</p>
+  <ol class="plib-narration-list">
+    <li>In Apps Script, make the change and press Ctrl+S (Command+S on a Mac). Wait until the save finishes.</li>
+    <li>Click Deploy, then Manage deployments.</li>
+    <li>Click the pencil next to your deployment.</li>
+    <li>Under Version, choose New version.</li>
+    <li>In Description, type the name from the box below, Kestrel Bend requests v2. Use v3 for the next version, and so on.</li>
+    <li>Leave Execute as and Who has access as they are, unless the table of error messages says to change one.</li>
+    <li>Click Deploy, and run the test again in the private window.</li>
+  </ol>
+  <p>If you only renamed the tab, you do not need a new version. Run the test again.</p>
 </div>
 
-<div class="plib-material" id="plib-material-26">
+<div class="plib-material" id="plib-material-27">
+  <div class="plib-material-tag">Class material</div>
+  <div class="plib-material-title">The Description of a new version</div>
+  <div class="plib-material-copies">
+    <div class="plib-copyrow">
+      <div class="plib-copyrow-label">Copy the Description</div>
+      <code class="plib-copyrow-code" id="plib-material-27-copy-0" data-copy="Kestrel Bend requests v2">Kestrel Bend requests v2</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-27-copy-0', this)" aria-label="Copy Copy the Description to clipboard">
+        <span aria-hidden="true">&#128203;</span> Copy
+      </button>
+    </div>
+  </div>
+  <div class="plib-material-note">For the next version, change v2 to v3.</div>
+</div>
+
+<div class="plib-narration">
+  <p>Step 6, Seat Check. Once your test shows R101, give Seat Check its new instructions and its new tool.</p>
+  <ol class="plib-narration-list">
+    <li>Open Kestrel Bend Seat Check's edit page in Hokie AI.</li>
+    <li>Delete the old text in the Specific tab and paste the Seat Check instructions from the box below.</li>
+    <li>Click Add Knowledge Source and choose API Call.</li>
+    <li>Copy the Name, the Description and the Parameter Schema from the add_request box with their Copy buttons.</li>
+    <li>For the Endpoint, paste your /exec address with nothing after it. Choose GET and click Add.</li>
+    <li>Save Seat Check. Open its edit page again and check that the first line of the Specific tab reads You are Kestrel Bend Seat Check, and that add_request is in the list of sources.</li>
+  </ol>
+</div>
+
+<div class="plib-material" id="plib-material-29">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">The Seat Check instructions</div>
-  <pre class="plib-material-box" tabindex="0" id="plib-material-26-prompt" data-copy="You are Kestrel Bend Seat Check, the customer agent for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech.&#10;&#10;When someone asks about trips, dates, start times, prices, minimum ages or seats left, call read_trips first and answer only from the rows you receive. A trip with 0 seats left is full.&#10;&#10;When a customer wants to book, call read_trips to check that the trip has enough seats left. Then collect the customer's name, the trip_id and the number of people, and repeat them back. When the customer says yes, call add_request in that same reply, once. Give the customer the request_id you receive and say that the office confirms every request by phone. Never say that a trip is booked.&#10;&#10;You cannot see other customers' requests. If someone asks about another person's booking, say that you can only help with their own new request. Keep replies short." aria-label="Specification text, scrollable">You are Kestrel Bend Seat Check, the customer agent for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech.
+  <pre class="plib-material-box" tabindex="0" id="plib-material-29-prompt" data-copy="You are Kestrel Bend Seat Check, the customer agent for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech.&#10;&#10;When someone asks about trips, dates, start times, prices, minimum ages or seats left, call read_trips first and answer only from the rows you receive. A trip with 0 seats left is full.&#10;&#10;When a customer wants to book, call read_trips to check that the trip has enough seats left. Then collect the customer's name, the trip_id and the number of people, and repeat them back. When the customer says yes, call add_request in that same reply, once. Give the customer the request_id you receive and say that the office confirms every request by phone. Never say that a trip is booked.&#10;&#10;You cannot see other customers' requests. If someone asks about another person's booking, say that you can only help with their own new request. Keep replies short." aria-label="Specification text, scrollable">You are Kestrel Bend Seat Check, the customer agent for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech.
 
 When someone asks about trips, dates, start times, prices, minimum ages or seats left, call read_trips first and answer only from the rows you receive. A trip with 0 seats left is full.
 
 When a customer wants to book, call read_trips to check that the trip has enough seats left. Then collect the customer's name, the trip_id and the number of people, and repeat them back. When the customer says yes, call add_request in that same reply, once. Give the customer the request_id you receive and say that the office confirms every request by phone. Never say that a trip is booked.
 
 You cannot see other customers' requests. If someone asks about another person's booking, say that you can only help with their own new request. Keep replies short.</pre>
-  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-26-prompt', this)" aria-label="Copy the text above to clipboard">
+  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-29-prompt', this)" aria-label="Copy the text above to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy the text above
   </button>
-  <div class="plib-material-note">Paste into the Specific tab of Kestrel Bend Seat Check, in place of the old instructions.</div>
+  <div class="plib-material-note">Paste into the Specific tab of Kestrel Bend Seat Check, in place of the old instructions. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
-<div class="plib-narration">
-  <p>Now give Seat Check its new tool. On the same edit page, click Add Knowledge Source and choose API Call. Copy the first three fields from the box below into the Name, Description and Parameter Schema fields. For the Endpoint, paste your web app address that ends in /exec, with nothing after it. Choose GET and click Add.</p>
-</div>
-
-<div class="plib-material" id="plib-material-28">
+<div class="plib-material" id="plib-material-30">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">Seat Check's tool, add_request</div>
   <div class="plib-material-copies">
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">1. Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-28-copy-0" data-copy="add_request">add_request</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-28-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-30-copy-0" data-copy="add_request">add_request</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-30-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">2. Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-28-copy-1" data-copy="Use once the customer has confirmed a name, a trip_id and the number of people. Records a booking request in the requests sheet and returns its request_id.">Use once the customer has confirmed a name, a trip_id and the number of people. Records a booking request in the requests sheet and returns its request_id.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-28-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-30-copy-1" data-copy="Use once the customer has confirmed a name, a trip_id and the number of people. Records a booking request in the requests sheet and returns its request_id.">Use once the customer has confirmed a name, a trip_id and the number of people. Records a booking request in the requests sheet and returns its request_id.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-30-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">3. Copy the Parameter Schema</div>
-      <code class="plib-copyrow-code" id="plib-material-28-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;add&quot;],&quot;description&quot;:&quot;Always add.&quot;},&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The customer's full name.&quot;},&quot;trip_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The trip_id from read_trips, such as KB101.&quot;},&quot;people&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many people.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;name&quot;,&quot;trip_id&quot;,&quot;people&quot;]}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;add&quot;],&quot;description&quot;:&quot;Always add.&quot;},&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The customer's full name.&quot;},&quot;trip_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The trip_id from read_trips, such as KB101.&quot;},&quot;people&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many people.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;name&quot;,&quot;trip_id&quot;,&quot;people&quot;]}</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-28-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-30-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;add&quot;],&quot;description&quot;:&quot;Always add.&quot;},&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The customer's full name.&quot;},&quot;trip_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The trip_id from read_trips, such as KB101.&quot;},&quot;people&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many people.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;name&quot;,&quot;trip_id&quot;,&quot;people&quot;]}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;add&quot;],&quot;description&quot;:&quot;Always add.&quot;},&quot;name&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The customer's full name.&quot;},&quot;trip_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The trip_id from read_trips, such as KB101.&quot;},&quot;people&quot;:{&quot;type&quot;:&quot;integer&quot;,&quot;description&quot;:&quot;How many people.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;name&quot;,&quot;trip_id&quot;,&quot;people&quot;]}</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-30-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
@@ -469,10 +581,14 @@ You cannot see other customers' requests. If someone asks about another person's
       <code class="plib-copyrow-code">Your web app address that ends in /exec, with nothing after it.</code>
     </div>
   </div>
-  <div class="plib-material-note">Then choose GET and click Add. The box below says what each field of the schema does.</div>
+  <div class="plib-material-note">Then choose GET and click Add. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
-<div class="plib-material plib-info" id="plib-material-29">
+<div class="plib-narration">
+  <p>The box below lists what each field of add_request sends to the script.</p>
+</div>
+
+<div class="plib-material plib-info" id="plib-material-32">
   <div class="plib-material-tag plib-info-tag">For reading</div>
   <div class="plib-material-title">What add_request sends</div>
   <pre class="plib-material-box plib-info-box">What add_request sends, field by field
@@ -488,380 +604,55 @@ add_request does not send the office key, so the customer agent can add a reques
 </div>
 
 <div class="plib-narration">
-  <p>Save Kestrel Bend Seat Check. Open its edit page again and check that the first line of the Specific tab reads You are Kestrel Bend Seat Check, and that add_request is in the list of sources. Seat Check is done.</p>
-</div>
-
-<div class="plib-narration">
-  <p>Now build the office agent. In Hokie AI, create a new agent. Copy its Name and Description from the box below. Paste the office instructions into the Specific tab, and delete the default text in the Platform tab and paste the class Platform text. Pick luna, switch every capability off, delete the welcome message, and click Create.</p>
-</div>
-
-<div class="plib-material" id="plib-material-32">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">The office agent's Name and Description</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-32-copy-0" data-copy="Kestrel Bend Office">Kestrel Bend Office</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-32-copy-0', this)" aria-label="Copy Copy the Name to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-32-copy-1" data-copy="Office assistant for the Kestrel Bend manager. Lists booking requests, checks seats and weather, and records decisions.">Office assistant for the Kestrel Bend manager. Lists booking requests, checks seats and weather, and records decisions.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-32-copy-1', this)" aria-label="Copy Copy the Description to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="plib-narration">
-  <p>Then paste the office instructions into the Specific tab of the new agent.</p>
+  <p>Step 7, a request from a customer.</p>
+  <ol class="plib-narration-list">
+    <li>Start a new thread with Kestrel Bend Seat Check and send the booking message below.</li>
+    <li>Answer its questions, and when it repeats the request, reply yes.</li>
+    <li>Seat Check gives you a request_id, and a pending row for Sam Patel appears in your Requests tab.</li>
+    <li>Open Execution Details under the reply and look at Tool Calls. The add_request call shows the values Seat Check sent.</li>
+  </ol>
+  <p>Seat Check does not need the office key. It only adds a new request, and any customer may add one. Listing the requests shows every customer's booking, and a decision changes one, so the office tools of the next class carry the office key, and a call to list or decide without it is refused.</p>
 </div>
 
 <div class="plib-material" id="plib-material-34">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">The office instructions</div>
-  <pre class="plib-material-box" tabindex="0" id="plib-material-34-prompt" data-copy="You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech. You work with the office manager, who decides every booking request.&#10;&#10;When the manager asks about requests, call list_requests, with status pending when the manager asks what is waiting. Report each request with its request_id, name, trip_id, people and time. When the manager asks whether a request fits, call read_trips and compare the people in the request with the seats left on that trip.&#10;&#10;When the manager asks about the weather for a trip, call get_forecast and report the forecast for the trip's date, with the chance of rain and the high temperature. The forecast covers the next 16 days only. For a later date, say that the forecast is not available yet.&#10;&#10;Record a decision only when the manager names a request_id and says approve or decline. Repeat the request_id, the decision and any note, and ask the manager to confirm. After the manager says yes, call decide_request once and report the result. After an approval, remind the manager to lower the seats left for that trip on the Trips tab.&#10;&#10;Keep replies short." aria-label="Specification text, scrollable">You are the office assistant for Kestrel Bend Outfitters, a made up river outfitter on the New River used for a class at Virginia Tech. You work with the office manager, who decides every booking request.
-
-When the manager asks about requests, call list_requests, with status pending when the manager asks what is waiting. Report each request with its request_id, name, trip_id, people and time. When the manager asks whether a request fits, call read_trips and compare the people in the request with the seats left on that trip.
-
-When the manager asks about the weather for a trip, call get_forecast and report the forecast for the trip's date, with the chance of rain and the high temperature. The forecast covers the next 16 days only. For a later date, say that the forecast is not available yet.
-
-Record a decision only when the manager names a request_id and says approve or decline. Repeat the request_id, the decision and any note, and ask the manager to confirm. After the manager says yes, call decide_request once and report the result. After an approval, remind the manager to lower the seats left for that trip on the Trips tab.
-
-Keep replies short.</pre>
-  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-34-prompt', this)" aria-label="Copy the text above to clipboard">
-    <span aria-hidden="true">&#128203;</span> Copy the text above
-  </button>
-  <div class="plib-material-note">Paste into the Specific tab of Kestrel Bend Office.</div>
-</div>
-
-<div class="plib-narration">
-  <p>Then delete the default text in the Platform tab and paste the class Platform text.</p>
-</div>
-
-<div class="plib-material" id="plib-material-36">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">The class Platform text</div>
-  <pre class="plib-material-box" tabindex="0" id="plib-material-36-prompt" data-copy="You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.&#10;&#10;Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.&#10;&#10;Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them." aria-label="Specification text, scrollable">You are playing a configured role for a classroom exercise at Virginia Tech. The Specific instructions define that role completely and take precedence over everything in these platform instructions.
-
-Hold the role for the entire conversation. Do not offer general help outside the role. Do not coach, tutor, or evaluate the person you are speaking with unless the Specific instructions tell you to.
-
-Reply in clear, complete sentences and keep replies short. Do not use headings, bullet lists, or bold text unless the Specific instructions call for them.</pre>
-  <button class="plib-copy-btn" onclick="copyPrompt('plib-material-36-prompt', this)" aria-label="Copy the text above to clipboard">
-    <span aria-hidden="true">&#128203;</span> Copy the text above
-  </button>
-  <div class="plib-material-note">Delete the default text in the Platform tab first, then paste this.</div>
-</div>
-
-<div class="plib-narration">
-  <p>The office agent needs four API Call sources. Add them one at a time on its edit page, each with Add Knowledge Source, then API Call, then the fields from its box, then GET and Add.</p>
-  <p>Tool 1 is read_trips, the same tool Seat Check has, so the office agent can check the seats. Its Endpoint is your published Trips link from the last class. If you do not have it, open your sheet, click File, then Share, then Publish to web, and copy the link the window shows.</p>
-</div>
-
-<div class="plib-material" id="plib-material-38">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Office tool 1, read_trips</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">1. Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-38-copy-0" data-copy="read_trips">read_trips</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-38-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">2. Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-38-copy-1" data-copy="Use when someone asks about Kestrel Bend trips, dates, start times, prices, minimum ages or seats left. Returns every trip in the trip sheet as comma separated text, one trip per row.">Use when someone asks about Kestrel Bend trips, dates, start times, prices, minimum ages or seats left. Returns every trip in the trip sheet as comma separated text, one trip per row.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-38-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">3. Copy the Parameter Schema</div>
-      <code class="plib-copyrow-code" id="plib-material-38-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{}}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{}}</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-38-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">4. The Endpoint</div>
-      <code class="plib-copyrow-code">Your published Trips link from the last class, with nothing added.</code>
-    </div>
-  </div>
-  <div class="plib-material-note">Then choose GET and click Add.</div>
-</div>
-
-<div class="plib-narration">
-  <p>Tool 2 is list_requests, which lists the requests in your Requests tab. Its schema holds the office key, so the Endpoint is your /exec address alone.</p>
-</div>
-
-<div class="plib-material" id="plib-material-40">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Office tool 2, list_requests</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">1. Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-40-copy-0" data-copy="list_requests">list_requests</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-40-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">2. Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-40-copy-1" data-copy="Use when the manager asks about booking requests. Returns requests from the Requests tab, all of them or only those with one status.">Use when the manager asks about booking requests. Returns requests from the Requests tab, all of them or only those with one status.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-40-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">3. Copy the Parameter Schema</div>
-      <code class="plib-copyrow-code" id="plib-material-40-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;list&quot;],&quot;description&quot;:&quot;Always list.&quot;},&quot;key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;otter-office-2741&quot;],&quot;description&quot;:&quot;The office key. Always otter-office-2741.&quot;},&quot;status&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;pending&quot;,&quot;approved&quot;,&quot;declined&quot;],&quot;description&quot;:&quot;Optional. Only requests with this status.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;key&quot;]}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;list&quot;],&quot;description&quot;:&quot;Always list.&quot;},&quot;key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;otter-office-2741&quot;],&quot;description&quot;:&quot;The office key. Always otter-office-2741.&quot;},&quot;status&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;pending&quot;,&quot;approved&quot;,&quot;declined&quot;],&quot;description&quot;:&quot;Optional. Only requests with this status.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;key&quot;]}</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-40-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">4. The Endpoint</div>
-      <code class="plib-copyrow-code">Your web app address that ends in /exec, with nothing after it.</code>
-    </div>
-  </div>
-  <div class="plib-material-note">Then choose GET and click Add.</div>
-</div>
-
-<div class="plib-narration">
-  <p>Tool 3 is decide_request, which records the manager's decision and note. Its schema holds the office key too, and its Endpoint is the same /exec address.</p>
-</div>
-
-<div class="plib-material" id="plib-material-42">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Office tool 3, decide_request</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">1. Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-42-copy-0" data-copy="decide_request">decide_request</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-42-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">2. Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-42-copy-1" data-copy="Use only after the manager has named a request, said approve or decline, and confirmed. Records the decision and the note in the Requests tab.">Use only after the manager has named a request, said approve or decline, and confirmed. Records the decision and the note in the Requests tab.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-42-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">3. Copy the Parameter Schema</div>
-      <code class="plib-copyrow-code" id="plib-material-42-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;decide&quot;],&quot;description&quot;:&quot;Always decide.&quot;},&quot;key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;otter-office-2741&quot;],&quot;description&quot;:&quot;The office key. Always otter-office-2741.&quot;},&quot;request_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The request_id the manager decided, such as R102.&quot;},&quot;status&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;approved&quot;,&quot;declined&quot;],&quot;description&quot;:&quot;The manager's decision.&quot;},&quot;manager_note&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The manager's note for this request. If the manager gave no note, send the word none.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;key&quot;,&quot;request_id&quot;,&quot;status&quot;,&quot;manager_note&quot;]}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;decide&quot;],&quot;description&quot;:&quot;Always decide.&quot;},&quot;key&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;otter-office-2741&quot;],&quot;description&quot;:&quot;The office key. Always otter-office-2741.&quot;},&quot;request_id&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The request_id the manager decided, such as R102.&quot;},&quot;status&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;enum&quot;:[&quot;approved&quot;,&quot;declined&quot;],&quot;description&quot;:&quot;The manager's decision.&quot;},&quot;manager_note&quot;:{&quot;type&quot;:&quot;string&quot;,&quot;description&quot;:&quot;The manager's note for this request. If the manager gave no note, send the word none.&quot;}},&quot;required&quot;:[&quot;action&quot;,&quot;key&quot;,&quot;request_id&quot;,&quot;status&quot;,&quot;manager_note&quot;]}</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-42-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">4. The Endpoint</div>
-      <code class="plib-copyrow-code">Your web app address that ends in /exec, with nothing after it.</code>
-    </div>
-  </div>
-  <div class="plib-material-note">Then choose GET and click Add.</div>
-</div>
-
-<div class="plib-narration">
-  <p>Tool 4 is get_forecast, the live weather near the river, from a free public weather service with no account or key. Every field of it is in the box.</p>
-</div>
-
-<div class="plib-material" id="plib-material-44">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Office tool 4, get_forecast</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">1. Copy the Name</div>
-      <code class="plib-copyrow-code" id="plib-material-44-copy-0" data-copy="get_forecast">get_forecast</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-44-copy-0', this)" aria-label="Copy 1. Copy the Name to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">2. Copy the Description</div>
-      <code class="plib-copyrow-code" id="plib-material-44-copy-1" data-copy="Use when the manager asks about the weather for a trip date. Returns the daily forecast near Pembroke, Virginia, for the next 16 days: weather code, chance of rain and high temperature.">Use when the manager asks about the weather for a trip date. Returns the daily forecast near Pembroke, Virginia, for the next 16 days: weather code, chance of rain and high temperature.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-44-copy-1', this)" aria-label="Copy 2. Copy the Description to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">3. Copy the Parameter Schema</div>
-      <code class="plib-copyrow-code" id="plib-material-44-copy-2" data-copy="{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{}}">{&quot;type&quot;:&quot;object&quot;,&quot;properties&quot;:{}}</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-44-copy-2', this)" aria-label="Copy 3. Copy the Parameter Schema to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">4. Copy the Endpoint</div>
-      <code class="plib-copyrow-code" id="plib-material-44-copy-3" data-copy="https://api.open-meteo.com/v1/forecast?latitude=37.32&amp;longitude=-80.64&amp;daily=weather_code,precipitation_probability_max,temperature_2m_max&amp;temperature_unit=fahrenheit&amp;timezone=America%2FNew_York&amp;forecast_days=16">https://api.open-meteo.com/v1/forecast?latitude=37.32&amp;longitude=-80.64&amp;daily=weather_code,precipitation_probability_max,temperature_2m_max&amp;temperature_unit=fahrenheit&amp;timezone=America%2FNew_York&amp;forecast_days=16</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-44-copy-3', this)" aria-label="Copy 4. Copy the Endpoint to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-  <div class="plib-material-note">Then choose GET and click Add.</div>
-</div>
-
-<div class="plib-material plib-info" id="plib-material-45">
-  <div class="plib-material-tag plib-info-tag">For reading</div>
-  <div class="plib-material-title">What the office tools send</div>
-  <pre class="plib-material-box plib-info-box">What the office tools send, field by field
-
-list_requests
-action      Always list. The script sends back requests and changes nothing.
-key         The office key, fixed to one value with enum. The script lists requests only when it receives this word.
-status      Optional: pending, approved or declined, when the manager asks for one kind, such as what is waiting.
-required    The agent must send action and key every time.
-
-decide_request
-action        Always decide. The script changes one row.
-key           The office key, as in list_requests.
-request_id    Which request the manager decided, such as R102.
-status        approved or declined.
-manager_note  The manager's note. When the manager gives no note, the agent sends the word none.
-required      The agent must send all five values, so every decision has a note.</pre>
-  <div class="plib-material-note">For reading. Nothing in this box is pasted anywhere.</div>
-</div>
-
-<div class="plib-narration">
-  <p>Save Kestrel Bend Office. Open its edit page again and check that the first line of the Specific tab reads You are the office assistant, and that the four tools are in the list of sources. The office agent is done.</p>
-</div>
-
-<div class="plib-tiles" id="plib-tiles-47">
-  <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Five boxes joined by THEN, the loop. Request, as a customer, ask Seat Check for the sunset paddle for Sam Patel and say yes. List, ask the office agent what is waiting and whether it fits. Weather, ask the office agent about the next three days. Decide, approve the Sam Patel request by its request_id, with a note, and confirm. Seats, lower KB104 to 2 seats on the Trips tab and ask Seat Check again."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 238" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="238" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">The loop</text><rect x="21" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Request</text><text x="37" y="122" font-size="14" fill="#6b6b6b">as a customer, ask</text><text x="37" y="141" font-size="14" fill="#6b6b6b">Seat Check for the</text><text x="37" y="160" font-size="14" fill="#6b6b6b">sunset paddle for</text><text x="37" y="179" font-size="14" fill="#6b6b6b">Sam Patel and say</text><text x="37" y="198" font-size="14" fill="#6b6b6b">yes</text><text x="198" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="222" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="246" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="246" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="267" y="82" font-size="17" font-weight="600" fill="#2b2b2b">List</text><text x="238" y="122" font-size="14" fill="#6b6b6b">ask the office agent</text><text x="238" y="141" font-size="14" fill="#6b6b6b">what is waiting and</text><text x="238" y="160" font-size="14" fill="#6b6b6b">whether it fits</text><text x="399" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="423" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="447" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="447" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="468" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Weather</text><text x="439" y="122" font-size="14" fill="#6b6b6b">ask the office agent</text><text x="439" y="141" font-size="14" fill="#6b6b6b">about the next</text><text x="439" y="160" font-size="14" fill="#6b6b6b">three days</text><text x="601" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="625" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="649" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="649" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">4</text><text x="670" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Decide</text><text x="641" y="122" font-size="14" fill="#6b6b6b">approve the Sam</text><text x="641" y="141" font-size="14" fill="#6b6b6b">Patel request by its</text><text x="641" y="160" font-size="14" fill="#6b6b6b">request_id, with a</text><text x="641" y="179" font-size="14" fill="#6b6b6b">note, and confirm</text><text x="802" y="136" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">THEN</text><rect x="826" y="46" width="153" height="170" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="850" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="850" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">5</text><text x="871" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Seats</text><text x="842" y="122" font-size="14" fill="#6b6b6b">lower KB104 to 2</text><text x="842" y="141" font-size="14" fill="#6b6b6b">seats on the Trips</text><text x="842" y="160" font-size="14" fill="#6b6b6b">tab and ask Seat</text><text x="842" y="179" font-size="14" fill="#6b6b6b">Check again</text></svg></div>
-    <figcaption class="plib-tile-caption">About twelve minutes. Look at the Requests tab after each step.</figcaption>
-  </figure>
-</div>
-
-<div class="plib-narration">
-  <p>Now run the whole loop, in five steps. After each step, look at your Requests tab.</p>
-  <p>First, make a request as a customer. Start a new thread with Kestrel Bend Seat Check and send the booking message below. Answer its questions, and when it repeats the request, reply yes. Seat Check gives you a request_id, and a pending row for Sam Patel appears in your Requests tab.</p>
-  <p>THEN act as the manager. Start a new thread with Kestrel Bend Office and send manager message 1, then manager message 2. The office agent lists the pending requests and compares Sam Patel's 4 people with the seats left on the trip.</p>
-  <p>THEN ask about the weather with manager message 3. The office agent calls get_forecast and reports the chance of rain and the high temperature for each day.</p>
-  <p>THEN decide. Send manager message 4, with the request_id Seat Check gave Sam Patel. The office agent repeats the decision and asks you to confirm. Reply yes. The Sam Patel row changes to approved with your note, and the agent reminds you to lower the seats.</p>
-  <p>THEN update the seats. On the Trips tab, click cell H5, the seats left for KB104, and change 6 to 2. Start a new thread with Kestrel Bend Seat Check and send the last message below. Seat Check now says 2 seats, so a group of 4 does not fit. The agent may take a minute to see the change.</p>
-</div>
-
-<div class="plib-narration">
-  <p>In this loop the office agent gathers the facts, and the manager makes the decision. The manager answers to the customer and to the business for every booking. The manager can also weigh what the sheet does not show, such as a phone call with the customer or a guide who is out sick.</p>
-</div>
-
-<div class="plib-material" id="plib-material-50">
   <div class="plib-material-tag">Class material</div>
   <div class="plib-material-title">The booking message, to Seat Check</div>
   <div class="plib-material-copies">
     <div class="plib-copyrow">
       <div class="plib-copyrow-label">Copy the message</div>
-      <code class="plib-copyrow-code" id="plib-material-50-copy-0" data-copy="Hi, I would like to book the sunset paddle at 6:00 pm on Saturday, May 1 for 4 people. My name is Sam Patel.">Hi, I would like to book the sunset paddle at 6:00 pm on Saturday, May 1 for 4 people. My name is Sam Patel.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-50-copy-0', this)" aria-label="Copy Copy the message to clipboard">
+      <code class="plib-copyrow-code" id="plib-material-34-copy-0" data-copy="Hi, I would like to book the sunset paddle at 6:00 pm on Saturday, May 1 for 4 people. My name is Sam Patel.">Hi, I would like to book the sunset paddle at 6:00 pm on Saturday, May 1 for 4 people. My name is Sam Patel.</code>
+      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-34-copy-0', this)" aria-label="Copy Copy the message to clipboard">
         <span aria-hidden="true">&#128203;</span> Copy
       </button>
     </div>
   </div>
+  <div class="plib-material-note">Answer its questions and reply yes when it repeats the request. Use the Copy button. Do NOT copy by highlighting the text.</div>
 </div>
 
-<div class="plib-material" id="plib-material-51">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Manager message 1, to the office agent</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy message 1</div>
-      <code class="plib-copyrow-code" id="plib-material-51-copy-0" data-copy="What requests are waiting for me?">What requests are waiting for me?</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-51-copy-0', this)" aria-label="Copy Copy message 1 to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="plib-material" id="plib-material-52">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Manager message 2</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy message 2</div>
-      <code class="plib-copyrow-code" id="plib-material-52-copy-0" data-copy="Does the Sam Patel request fit on that trip?">Does the Sam Patel request fit on that trip?</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-52-copy-0', this)" aria-label="Copy Copy message 2 to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="plib-material" id="plib-material-53">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Manager message 3</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy message 3</div>
-      <code class="plib-copyrow-code" id="plib-material-53-copy-0" data-copy="What is the weather looking like for the next three days at the river?">What is the weather looking like for the next three days at the river?</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-53-copy-0', this)" aria-label="Copy Copy message 3 to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="plib-material" id="plib-material-54">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">Manager message 4</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy message 4</div>
-      <code class="plib-copyrow-code" id="plib-material-54-copy-0" data-copy="Approve request R102. Note: confirmed by phone.">Approve request R102. Note: confirmed by phone.</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-54-copy-0', this)" aria-label="Copy Copy message 4 to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-  <div class="plib-material-note">If Seat Check gave Sam Patel another request_id, change R102 to it. When the office agent asks you to confirm, reply yes.</div>
-</div>
-
-<div class="plib-material" id="plib-material-55">
-  <div class="plib-material-tag">Class material</div>
-  <div class="plib-material-title">The last message, to Seat Check</div>
-  <div class="plib-material-copies">
-    <div class="plib-copyrow">
-      <div class="plib-copyrow-label">Copy the message</div>
-      <code class="plib-copyrow-code" id="plib-material-55-copy-0" data-copy="Is there room for 4 people on the sunset paddle on Saturday, May 1?">Is there room for 4 people on the sunset paddle on Saturday, May 1?</code>
-      <button class="plib-copy-btn plib-copy-btn-row" onclick="copyPrompt('plib-material-55-copy-0', this)" aria-label="Copy Copy the message to clipboard">
-        <span aria-hidden="true">&#128203;</span> Copy
-      </button>
-    </div>
-  </div>
-  <div class="plib-material-note">After you lower KB104 to 2 seats, the right answer is no, 2 seats are left.</div>
-</div>
-
-<div class="plib-tiles" id="plib-tiles-56">
+<div class="plib-tiles" id="plib-tiles-35">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If Google says it has not verified the app. Click Advanced. Then click the link that starts with Go to, then Allow. The script is yours, and it runs on your sheet only."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF GOOGLE SAYS IT HAS NOT VERIFIED THE APP</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Click Advanced</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Then click the link that starts with Go to, then</text><text x="34" y="199" font-size="15" fill="#6b6b6b">Allow. The script is yours, and it runs on your</text><text x="34" y="220" font-size="15" fill="#6b6b6b">sheet only.</text></svg></div>
-  </figure>
-  <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the office agent says the office key is missing. Check the schema. Paste the list_requests and decide_request schemas again, and keep the Endpoint as your /exec address alone."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE OFFICE AGENT SAYS THE OFFICE KEY IS MISSING</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the schema</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Paste the list_requests and decide_request</text><text x="34" y="199" font-size="15" fill="#6b6b6b">schemas again, and keep the Endpoint as your</text><text x="34" y="220" font-size="15" fill="#6b6b6b">/exec address alone.</text></svg></div>
   </figure>
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If no row appears after you say yes. Check the instructions. Open Seat Check and check that the first line reads You are Kestrel Bend Seat Check, and that add_request is listed."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF NO ROW APPEARS AFTER YOU SAY YES</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Check the instructions</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Open Seat Check and check that the first line</text><text x="34" y="199" font-size="15" fill="#6b6b6b">reads You are Kestrel Bend Seat Check, and that</text><text x="34" y="220" font-size="15" fill="#6b6b6b">add_request is listed.</text></svg></div>
   </figure>
   <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the test address shows an error page. Deploy again. Check that Who has access is Anyone, and copy the Web app URL that ends in /exec."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE TEST ADDRESS SHOWS AN ERROR PAGE</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Deploy again</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Check that Who has access is Anyone, and copy</text><text x="34" y="199" font-size="15" fill="#6b6b6b">the Web app URL that ends in /exec.</text></svg></div>
+    <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If the test address shows an error. Find it in the table. Find the message in the table above, with its meaning and what to do."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF THE TEST ADDRESS SHOWS AN ERROR</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Find it in the table</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">Each error message in the table above says what</text><text x="34" y="199" font-size="15" fill="#6b6b6b">it means and what to do.</text></svg></div>
   </figure>
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:400px" role="img" aria-label="If you lost your /exec address. Find it again. In your sheet, Extensions, Apps Script, Deploy, Manage deployments. Copy the Web app URL."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 268" font-family="Segoe UI,-apple-system,sans-serif"><rect width="400" height="268" rx="10" fill="#faf7f8"/><text x="34" y="52" font-size="13" fill="#6b6b6b" letter-spacing="1.2">IF YOU LOST YOUR /EXEC ADDRESS</text><text x="34" y="104" font-size="25" font-weight="600" fill="#630031">Find it again</text><rect x="34" y="144" width="332" height="2" fill="#630031" opacity="0.25"/><text x="34" y="178" font-size="15" fill="#6b6b6b">In your sheet, Extensions, Apps Script, Deploy,</text><text x="34" y="199" font-size="15" fill="#6b6b6b">Manage deployments. Copy the Web app URL.</text></svg></div>
   </figure>
 </div>
-<script>(function(){var g=document.getElementById("plib-tiles-56");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
+<script>(function(){var g=document.getElementById("plib-tiles-35");if(!g)return;var k=[].slice.call(g.children);for(var i=k.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=k[i];k[i]=k[j];k[j]=t;}k.forEach(function(el){g.appendChild(el);});})();</script>
 
 <div class="plib-section"><div class="plib-section-n">Section 3 of 4</div><div class="plib-section-t">PROJECT WORK</div></div>
 
 <div class="plib-narration">
-  <p>Now turn to your team's business. Sit with your team and look at your team's fact sheet together, from the page of Deliverable 1, Progress Report, Team Submission. Name three things: what your customers ask about that changes from day to day, what they request, and what your manager decides about each request, such as approve, decline, refund or replace.</p>
+  <p>Now turn to your team's business. Sit with your team and look at your team's fact sheet together, from the page of Deliverable 1, Progress Report, Team Submission.</p>
+  <ol class="plib-narration-list">
+    <li>Name what your customers request.</li>
+    <li>Name what your manager decides about each request, such as approve, decline, refund or replace.</li>
+  </ol>
 </div>
 
 <div class="plib-section"><div class="plib-section-n">Section 4 of 4</div><div class="plib-section-t">REFLECTION</div></div>
@@ -877,7 +668,7 @@ required      The agent must send all five values, so every decision has a note.
     <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
   </div>
   <p class="plib-marker-instruction">Copy this block and paste it into Hokie AI to begin your session.</p>
-  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Week 13 Lecture 1. You are an AI assistant for this session. The student built a customer agent and an office agent that share a Google Sheet for a made up business, and is about to paste a reflection on it for the record. Acknowledge the reflection in one sentence, and do not analyze or comment on its content unless the student asks a question.
+  <div class="plib-prompt-display plib-marker-display">BUS 1204 AI Literacy for Business, Week 13 Lecture 1. You are an AI assistant for this session. The student built a script for a Google Sheet and a customer agent that writes requests to it, for a made up business, and is about to paste a reflection on it for the record. Acknowledge the reflection in one sentence, and do not analyze or comment on its content unless the student asks a question.
 
 ---
 **AI Interaction Protocol**
@@ -938,30 +729,34 @@ the block-type default per the list above.
 
 This protocol applies for the remainder of this session.
 ---</div>
-  <div class="plib-prompt-text" id="text_prompt_61" data-copy="### T&#10;----------&#10;BUS 1204 AI Literacy for Business, Week 13 Lecture 1. You are an AI assistant for this session. The student built a customer agent and an office agent that share a Google Sheet for a made up business, and is about to paste a reflection on it for the record. Acknowledge the reflection in one sentence, and do not analyze or comment on its content unless the student asks a question.&#10;&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
-  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_61', this)"
+  <div class="plib-prompt-text" id="text_prompt_40" data-copy="### T&#10;----------&#10;BUS 1204 AI Literacy for Business, Week 13 Lecture 1. You are an AI assistant for this session. The student built a script for a Google Sheet and a customer agent that writes requests to it, for a made up business, and is about to paste a reflection on it for the record. Acknowledge the reflection in one sentence, and do not analyze or comment on its content unless the student asks a question.&#10;&#10;---&#10;**AI Interaction Protocol**&#10;&#10;In this session, you will receive blocks of content with the&#10;following structural pattern:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Some blocks include an interaction-mode directive on a separate&#10;line inside the dashed envelope:&#10;&#10;```&#10;### &lt;BlockID&gt;&#10;----------&#10;[ai_interaction=&lt;mode&gt;]&#10;&lt;content&gt;&#10;----------&#10;###&#10;```&#10;&#10;Three modes determine your response:&#10;&#10;  - **respond**: Engage substantively with the block content.&#10;    Treat it as a prompt, question, or task that wants your&#10;    analytical response. Default for S blocks (prompts) and X&#10;    blocks (free exploration).&#10;&#10;  - **acknowledge**: Confirm receipt with one brief sentence&#10;    naming the block ID. Do not analyze, comment on, or expand on&#10;    the content. The student is filing the block for the record,&#10;    not asking for engagement. Default for T blocks (this opener),&#10;    R blocks (reflections), M CLOSE blocks (closing markers), Q&#10;    blocks (structured selections), and O blocks (ordering&#10;    selections).&#10;&#10;  - **archive**: Respond with only the block ID and nothing else.&#10;    Used for batched archival pastes where even brief&#10;    acknowledgment would clutter the thread.&#10;&#10;An M OPEN marker opens a multi-turn exploration, and how you&#10;handle it depends on what the student sends with it. If the&#10;student pastes the M OPEN marker by itself, with nothing written&#10;after it, acknowledge in one brief sentence that the block is open&#10;and wait for the student's next message. If the student writes a&#10;prompt or question after the marker in the same message, treat&#10;that text as the prompt and respond to it. Always acknowledge an&#10;M CLOSE marker.&#10;&#10;If a block has no explicit `[ai_interaction=...]` directive, apply&#10;the block-type default per the list above.&#10;&#10;This protocol applies for the remainder of this session.&#10;---&#10;----------&#10;###"></div>
+  <button class="plib-copy-btn plib-copy-btn-marker" onclick="copyPrompt('text_prompt_40', this)"
           aria-label="Copy session opener to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy session opener
   </button>
 </div>
 
-<div class="plib-tiles" id="plib-tiles-62">
+<div class="plib-tiles" id="plib-tiles-41">
   <figure class="plib-tile">
     <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="A warning card headed DO NOT START YOUR REFLECTION. Do not start your reflection until your instructor asks you to."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 124" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="124" rx="10" fill="#faf7f8"/><rect x="21" y="20" width="958" height="84" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><text x="46" y="58" font-size="18" font-weight="600" fill="#630031">DO NOT START YOUR REFLECTION</text><text x="46" y="86" font-size="16" fill="#2b2b2b">Do not start your reflection until your instructor asks you to.</text></svg></div>
     <figcaption class="plib-tile-caption">Keep working with your team until your instructor asks.</figcaption>
   </figure>
 </div>
 
-<div class="plib-tiles" id="plib-tiles-63">
+<div class="plib-tiles" id="plib-tiles-42">
   <figure class="plib-tile">
-    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, your reflection, all three parts. The office key, why Seat Check does not need the office key. The Requests tab, how it changed after Sam Patel's booking request. The manager, why the manager, and not the office agent, approves or declines a booking."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your reflection, all three parts</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The office key</text><text x="37" y="122" font-size="14" fill="#6b6b6b">why Seat Check does not need the office</text><text x="37" y="141" font-size="14" fill="#6b6b6b">key</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The Requests tab</text><text x="372" y="122" font-size="14" fill="#6b6b6b">how it changed after Sam Patel's booking</text><text x="372" y="141" font-size="14" fill="#6b6b6b">request</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The manager</text><text x="708" y="122" font-size="14" fill="#6b6b6b">why the manager, and not the office</text><text x="708" y="141" font-size="14" fill="#6b6b6b">agent, approves or declines a booking</text></svg></div>
+    <div class="plib-tile-svg" style="max-width:1000px" role="img" aria-label="Three boxes joined by AND, your reflection, all three parts. The office key, why Seat Check does not need the office key. The Requests tab, how it changed after Sam Patel's booking request. Your build, the step you would check first if you built the script again, and why."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 190" font-family="Segoe UI,-apple-system,sans-serif"><rect width="1000" height="190" rx="10" fill="#faf7f8"/><text x="500" y="28" font-size="16" font-weight="600" text-anchor="middle" fill="#2b2b2b">Your reflection, all three parts</text><rect x="21" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="45" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="45" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">1</text><text x="66" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The office key</text><text x="37" y="122" font-size="14" fill="#6b6b6b">why Seat Check does not need the office</text><text x="37" y="141" font-size="14" fill="#6b6b6b">key</text><text x="332" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="356" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.45" stroke-width="2"/><circle cx="380" cy="76" r="13" fill="#630031" opacity="0.15"/><text x="380" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">2</text><text x="401" y="82" font-size="17" font-weight="600" fill="#2b2b2b">The Requests tab</text><text x="372" y="122" font-size="14" fill="#6b6b6b">how it changed after Sam Patel's booking</text><text x="372" y="141" font-size="14" fill="#6b6b6b">request</text><text x="668" y="112" font-size="15" font-weight="700" text-anchor="middle" fill="#630031" opacity="0.75">AND</text><rect x="692" y="46" width="287" height="122" rx="10" fill="#fff" stroke="#630031" stroke-opacity="0.9" stroke-width="3"/><circle cx="716" cy="76" r="13" fill="#630031" opacity="0.3"/><text x="716" y="82" font-size="15" font-weight="700" text-anchor="middle" fill="#630031">3</text><text x="737" y="82" font-size="17" font-weight="600" fill="#2b2b2b">Your build</text><text x="708" y="122" font-size="14" fill="#6b6b6b">the step you would check first if you built</text><text x="708" y="141" font-size="14" fill="#6b6b6b">the script again, and why</text></svg></div>
     <figcaption class="plib-tile-caption">Answer all three parts. The third part counts most.</figcaption>
   </figure>
 </div>
 
 <div class="plib-narration">
   <p>When your instructor asks, write your reflection in that thread, in your own words and without help from the AI. Hokie AI acknowledges it in one sentence.</p>
-  <p>Write all three of these in your reflection. First, say why Seat Check does not need the office key AND second, say how the Requests tab changed after Sam Patel's booking request AND third, say why the manager, and not the office agent, approves or declines a booking. Three parts.</p>
+  <ol class="plib-narration-list">
+    <li>Say why Seat Check does not need the office key.</li>
+    <li>Say how the Requests tab changed after Sam Patel's booking request.</li>
+    <li>Say which step you would check first if you built the script again, and why.</li>
+  </ol>
   <p>Your instructor gives the third part the most weight. Write 100 to 200 words. Then export your reflection thread as a .zip and upload it to Canvas.</p>
 </div>
 
@@ -972,25 +767,25 @@ This protocol applies for the remainder of this session.
     <span class="plib-ai-badge plib-ai-acknowledge">AI: acknowledge</span>
   </div>
   <p class="plib-reflect-instruction">Write your response in the box below (target: 100 to 200 words), then click Copy and paste into Hokie AI.</p>
-  <textarea id="textarea_65" class="plib-textarea"
+  <textarea id="textarea_44" class="plib-textarea"
             placeholder="Write your response here..."
             aria-label="Write your contribution for R13.1.1"
             data-maxwords="200" data-maxchars="2000"
-            oninput="updateCounter('prompt_65', 'textarea_65')"></textarea>
-  <div class="plib-counter" id="counter_prompt_65" aria-live="polite" aria-atomic="true">
-    <span id="wc_prompt_65">0</span> / 200 words&nbsp;·&nbsp;
-    <span id="cc_prompt_65">0</span> / 2000 characters
+            oninput="updateCounter('prompt_44', 'textarea_44')"></textarea>
+  <div class="plib-counter" id="counter_prompt_44" aria-live="polite" aria-atomic="true">
+    <span id="wc_prompt_44">0</span> / 200 words&nbsp;·&nbsp;
+    <span id="cc_prompt_44">0</span> / 2000 characters
     <span class="plib-counter-min">minimum: 100 words</span>
   </div>
-  <div class="plib-warn" id="warn_prompt_65" role="alert" aria-live="polite"></div>
-  <div class="plib-prompt-text" id="text_prompt_65"
+  <div class="plib-warn" id="warn_prompt_44" role="alert" aria-live="polite"></div>
+  <div class="plib-prompt-text" id="text_prompt_44"
        data-prefix="### R13.1.1&#10;----------&#10;"
        data-suffix="&#10;----------&#10;###"
-       data-tid="textarea_65"
+       data-tid="textarea_44"
        data-maxwords="200"
        data-maxchars="2000"
        data-minwords="100"></div>
-  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_65', this)"
+  <button class="plib-copy-btn plib-copy-btn-reflect" onclick="copyWithInput('prompt_44', this)"
           aria-label="Copy contribution R13.1.1 to clipboard">
     <span aria-hidden="true">&#128203;</span> Copy contribution
   </button>
