@@ -9,7 +9,7 @@ Ivyhaven Property Management runs apartment buildings in Blacksburg. Tenants rep
 The system has five parts:
 Visits tab: the technicians' visit times of the week and whether each is open. Both agents read it.
 Requests tab: one row per request, with its status and the maintenance manager's note. Only the staff agent reads it.
-Customer agent: reads the Visits tab and adds a request to the Requests tab. It holds no office key.
+Customer agent: reads the Visits tab and adds a request to the Requests tab. It does not hold the office key.
 Staff agent: lists the requests, checks the Visits tab and the freeze and storm forecast, and records the maintenance manager's decision after the manager confirms.
 Calvin Mercer: decides every request and updates the Visits tab by hand.
 
@@ -68,6 +68,8 @@ request_id	time	request_type	name	apartment	category	problem	enter_empty	visit_i
 
 Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
 
+Before you deploy, read the box Preventing errors on the lec13_1 page. Copy the script with the copy button at the top of Hokie AI's code block, and do NOT copy by highlighting the text. If the test shows an error, find it in the table of error messages on the lec13_1 page. After a change to the script, deploy a new version through Manage deployments, with v2, v3 in the Description, so your /exec address stays the same.
+
 Test it in a private window with your /exec address and this ending:
 ?action=add&request_type=repair&name=Test&apartment=Test%201&category=routine&problem=test&enter_empty=no&visit_id=IV-02&phone=540-555-0100
 The right answer is ok true and request_id I101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is I101 again.
@@ -81,7 +83,7 @@ The sheet has a tab named Requests. Row 1 holds the column names. Read the colum
 
 At the top, put the office key in a constant named OFFICE_KEY with the value ivy-wrench-4720.
 
-Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+Write one function named doGet(e). First, open the Requests tab. If the sheet has no tab named Requests, reply with ok false and the error no tab named Requests in this sheet, and stop. If no action was sent, reply with ok false and the error no action in the address, add ?action=add after /exec, and change nothing. Otherwise the function reads the values in e.parameter and does one of three things, depending on the value of action.
 
 1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter I in front of that number. A tab with three rows gives I103, never I3100, I1003 or I3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
 
@@ -101,13 +103,13 @@ At the end of every line of code, write a short comment in plain English that sa
 Add two API Call sources to your customer agent, both with the Method GET.
 
 read_visits
-Name: read_visits
+Name, COPY: read_visits
 Description, COPY: Use when a tenant asks when a technician can come. Returns every visit time in the Visits tab as comma separated text, one time per row, with whether it is open.
 Parameter Schema, COPY: {"type":"object","properties":{}}
 Endpoint: your published Visits link.
 
 add_request
-Name: add_request
+Name, COPY: add_request
 Description, COPY: Use once the tenant has confirmed the details of a repair or a reschedule, and never for an emergency. Records the request in the Requests tab and returns its request_id.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["repair","reschedule"],"description":"repair for a new problem, reschedule to move the visit of a repair."},"name":{"type":"string","description":"The tenant's full name."},"apartment":{"type":"string","description":"The building and the apartment number."},"category":{"type":"string","enum":["urgent","routine"],"description":"For a repair only. urgent or routine, from the fact sheet."},"problem":{"type":"string","description":"For a repair only. What is wrong and where."},"enter_empty":{"type":"string","enum":["yes","no"],"description":"For a repair only. yes if a technician may enter while the apartment is empty."},"visit_id":{"type":"string","description":"The visit_id from read_visits, such as IV-03."},"repair_ref":{"type":"string","description":"For a reschedule only. The request_id of the repair, such as I104, or its current visit_id."},"phone":{"type":"string","description":"The tenant's phone number."}},"required":["action","request_type","name","apartment","visit_id","phone"]}
@@ -152,7 +154,7 @@ visit_id       The visit time, from read_visits.
 repair_ref     For a reschedule, the request_id of the repair, or its current visit_id.
 phone          The tenant's phone number.
 required       The agent must send action, request_type, name, apartment, visit_id and phone. The other fields are sent only for the kind of request they belong to.
-There is no key here. The customer agent can add a request and do nothing else.
+add_request does not send the office key, so the customer agent can add a request and cannot list or decide requests.
 
 
 6. THE STAFF AGENT'S TOOLS
@@ -163,21 +165,21 @@ read_visits
 The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Visits link.
 
 list_requests
-Name: list_requests
+Name, COPY: list_requests
 Description, COPY: Use when the maintenance manager asks about repair or reschedule requests. Returns requests from the Requests tab, all of them or only those with one status.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["ivy-wrench-4720"],"description":"The office key. Always ivy-wrench-4720."},"status":{"type":"string","enum":["pending","scheduled","moved","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
 Endpoint: your /exec address, with nothing after it.
 
 decide_request
-Name: decide_request
+Name, COPY: decide_request
 Description, COPY: Use only after the maintenance manager has named a request_id, said schedule, move or decline, and confirmed. Records the decision and the note in the Requests tab.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["ivy-wrench-4720"],"description":"The office key. Always ivy-wrench-4720."},"request_id":{"type":"string","description":"The request_id the maintenance manager decided, such as I103."},"status":{"type":"string","enum":["scheduled","moved","declined"],"description":"The maintenance manager's decision: scheduled for a repair, moved for a reschedule, declined for either."},"manager_note":{"type":"string","description":"The maintenance manager's note for this request. If the maintenance manager gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
 Endpoint: your /exec address, with nothing after it.
 
 get_forecast
-Name: get_forecast
+Name, COPY: get_forecast
 Description, COPY: Use when the maintenance manager asks about freezes, storms or the weather ahead. Returns the daily forecast for Blacksburg, Virginia, for the next 16 days: weather code, low and high temperature in Fahrenheit, strongest wind gust in miles per hour, rain in inches and snowfall in inches.
 Parameter Schema, COPY: {"type":"object","properties":{}}
 Endpoint, COPY:

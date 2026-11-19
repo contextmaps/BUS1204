@@ -9,7 +9,7 @@ Larkspur Study Abroad is a travel agency in Blacksburg that runs four programs f
 The system has five parts:
 Programs tab: the programs, their dollar prices, the places left and the application deadlines. Both agents read it.
 Requests tab: one row per request, with its status and the director's note. Only the staff agent reads it.
-Customer agent: reads the Programs tab and adds a request to the Requests tab. It holds no office key.
+Customer agent: reads the Programs tab and adds a request to the Requests tab. It does not hold the office key.
 Staff agent: lists the requests, checks the Programs tab and the exchange rates, and records the director's decision after the director confirms.
 Dr. Naomi Adeyemi: decides every request and updates the Programs tab by hand.
 
@@ -66,6 +66,8 @@ request_id	time	request_type	name	email	program_id	gpa	language	question	departu
 
 Open a new regular Hokie AI thread, not an agent, paste the prompt below and send it. Put the script into your sheet and deploy it as in lec13_1: Extensions, Apps Script, paste over everything, Ctrl+S, Deploy, New deployment, Web app, Execute as Me, Who has access Anyone, Deploy, authorize. Copy the Web app URL that ends in /exec. This is the Endpoint of add_request, list_requests and decide_request.
 
+Before you deploy, read the box Preventing errors on the lec13_1 page. Copy the script with the copy button at the top of Hokie AI's code block, and do NOT copy by highlighting the text. If the test shows an error, find it in the table of error messages on the lec13_1 page. After a change to the script, deploy a new version through Manage deployments, with v2, v3 in the Description, so your /exec address stays the same.
+
 Test it in a private window with your /exec address and this ending:
 ?action=add&request_type=inquiry&name=Test&email=test%40example.com&program_id=LS-02&gpa=3.1&language=none&question=test
 The right answer is ok true and request_id L101, and a row appears in your Requests tab. Then right-click the number 2 at the left of the test row and choose Delete row, so that your first real request is L101 again.
@@ -79,7 +81,7 @@ The sheet has a tab named Requests. Row 1 holds the column names. Read the colum
 
 At the top, put the office key in a constant named OFFICE_KEY with the value lark-trip-6031.
 
-Write one function named doGet(e). It reads the values in e.parameter and does one of three things, depending on the value of action.
+Write one function named doGet(e). First, open the Requests tab. If the sheet has no tab named Requests, reply with ok false and the error no tab named Requests in this sheet, and stop. If no action was sent, reply with ok false and the error no action in the address, add ?action=add after /exec, and change nothing. Otherwise the function reads the values in e.parameter and does one of three things, depending on the value of action.
 
 1. action is add. Add a new row at the bottom of the Requests tab. Fill every column whose name matches the name of a value that was sent, and leave the other columns empty. Set request_id in two lines of code. In the first line, add 100 to the number of rows in the tab before the new row is added, and keep the result as a number. In the second line, put the letter L in front of that number. A tab with three rows gives L103, never L3100, L1003 or L3. Set time to the current date and time, and status to pending, whatever was sent. Reply with ok true, the request_id and the status.
 
@@ -99,13 +101,13 @@ At the end of every line of code, write a short comment in plain English that sa
 Add two API Call sources to your customer agent, both with the Method GET.
 
 read_programs
-Name: read_programs
+Name, COPY: read_programs
 Description, COPY: Use when someone asks about programs, dates, prices, places left or deadlines. Returns every program in the Programs tab as comma separated text, one program per row.
 Parameter Schema, COPY: {"type":"object","properties":{}}
 Endpoint: your published Programs link.
 
 add_request
-Name: add_request
+Name, COPY: add_request
 Description, COPY: Use once the student has confirmed the details of an inquiry or a cancellation. Records the request in the Requests tab and returns its request_id.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["add"],"description":"Always add."},"request_type":{"type":"string","enum":["inquiry","cancellation"],"description":"inquiry for a question about a program, cancellation for a student who wants to cancel."},"name":{"type":"string","description":"The student's full name."},"email":{"type":"string","description":"The student's email."},"program_id":{"type":"string","description":"The program_id from read_programs, such as LS-03."},"gpa":{"type":"number","description":"For an inquiry only. The student's grade point average, such as 3.2."},"language":{"type":"string","description":"For an inquiry only. The language course the student has taken, or none."},"question":{"type":"string","description":"For an inquiry only. What the student wants to ask an adviser."},"departure_days":{"type":"integer","description":"For a cancellation only. How many days before departure the student cancels."},"reason":{"type":"string","description":"For a cancellation only. The reason for cancelling."}},"required":["action","request_type","name","email","program_id"]}
@@ -150,7 +152,7 @@ question         For an inquiry, the question in words.
 departure_days   For a cancellation, a whole number of days.
 reason           For a cancellation, the reason in words.
 required         The agent must send action, request_type, name, email and program_id. The other fields are sent only for the kind of request they belong to.
-There is no key here. The customer agent can add a request and do nothing else.
+add_request does not send the office key, so the customer agent can add a request and cannot list or decide requests.
 
 
 6. THE STAFF AGENT'S TOOLS
@@ -161,21 +163,21 @@ read_programs
 The same as in the customer agent, with the same Name, Description, empty Parameter Schema and published Programs link.
 
 list_requests
-Name: list_requests
+Name, COPY: list_requests
 Description, COPY: Use when the director asks about inquiries or cancellations. Returns requests from the Requests tab, all of them or only those with one status.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["list"],"description":"Always list."},"key":{"type":"string","enum":["lark-trip-6031"],"description":"The office key. Always lark-trip-6031."},"status":{"type":"string","enum":["pending","meeting","refunded","declined"],"description":"Optional. Only requests with this status."}},"required":["action","key"]}
 Endpoint: your /exec address, with nothing after it.
 
 decide_request
-Name: decide_request
+Name, COPY: decide_request
 Description, COPY: Use only after the director has named a request_id, said meet, refund or decline, and confirmed. Records the decision and the note in the Requests tab.
 Parameter Schema, COPY:
 {"type":"object","properties":{"action":{"type":"string","enum":["decide"],"description":"Always decide."},"key":{"type":"string","enum":["lark-trip-6031"],"description":"The office key. Always lark-trip-6031."},"request_id":{"type":"string","description":"The request_id the director decided, such as L103."},"status":{"type":"string","enum":["meeting","refunded","declined"],"description":"The director's decision: meeting for an inquiry, with the adviser and time in the note, refunded for a cancellation, with the amount in the note, declined for either."},"manager_note":{"type":"string","description":"The director's note for this request. If the director gave no note, send the word none."}},"required":["action","key","request_id","status","manager_note"]}
 Endpoint: your /exec address, with nothing after it.
 
 get_rates
-Name: get_rates
+Name, COPY: get_rates
 Description, COPY: Use when the director asks about exchange rates or what a program costs in dollars. Returns today's exchange rates from one US dollar to the euro, the Japanese yen and the Czech koruna, published on working days.
 Parameter Schema, COPY: {"type":"object","properties":{}}
 Endpoint, COPY:
