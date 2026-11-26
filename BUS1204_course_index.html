@@ -652,10 +652,10 @@ const LECTURES = [
   { id: "lec13_2", week: 13, phase: 3, mode: "consolidation", title: "The Office Agent, the Manager and Two Stress Tests",
     business: "The office agent and its four tools help the manager decide each request, the loop runs from a booking to the decision, and two stress tests try to break the system." },
   // Week 14
-  { id: "lec14_1",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Demonstrations: Session 1",
-    business: "Teams demonstrate their business's agents, site and sheet, and every student evaluates the other teams' demonstrations." },
-  { id: "lec14_2",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Team Demonstrations: Session 2",
-    business: "Teams demonstrate their business's agents, site and sheet, and every student evaluates the other teams' demonstrations." },
+  { id: "lec14_1",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Presentations, Session 1",
+    business: "Each of TEAM01 to TEAM07 presents its two agent system: a short introduction of the business and a live demonstration of the customer site, the sheet and the staff site. Every student evaluates each presenting team on the five criteria of progress report 3 and ranks the teams at the end of the session." },
+  { id: "lec14_2",  week: 14, phase: 3, mode: "capstone_demonstration", title: "Presentations, Session 2",
+    business: "Each of TEAM08 to TEAM14 presents its two agent system: a short introduction of the business and a live demonstration of the customer site, the sheet and the staff site. Every student evaluates each presenting team on the five criteria of progress report 3 and ranks the teams at the end of the session." },
   // Week 15
   { id: "lec15_1",  week: 15, phase: 3, mode: "consolidation",      title: "Course Wrap-Up and Closing Reflections",
     business: "What the semester established, and where the habit goes after this course." },
@@ -683,7 +683,7 @@ const WEEKS = {
   11: { title: "How Models and Agents Work, and Team Design", dates: "11/03, 11/05", due: "Project choices" },
   12: { title: "The Team Site and Sheet",                dates: "11/10, 11/12", due: "Deliverable 1, Fri 11/13" },
   13: { title: "Hand Offs and Testing",                  dates: "11/17, 11/19", due: "Deliverable 2, Fri 11/20" },
-  14: { title: "Team Demonstrations",                    dates: "12/01, 12/03", due: "Deliverable 3, Mon 11/30, and presentations" },
+  14: { title: "Team Presentations",                     dates: "12/01, 12/03", due: "Deliverable 3, Mon 11/30, and presentations" },
   15: { title: "Course Wrap-Up",                          dates: "12/08",        due: "Not graded" },
 };
 
@@ -751,16 +751,16 @@ const HOMEWORK = [
     business: "Every student submits individually: three stress tests of the team's system, each of a different kind, with what the team expected and what happened." },
   { id: "pr2_3", week: 12, part: 3, tag: "peer evaluation", title: "Deliverable 2, Progress Report, Peer Evaluation",
     business: "Every student submits individually, due with the team's submission: how the team worked, your own contribution, and any teammate who contributed beyond or below the others." },
-  { id: "pr3_1", week: 13, part: 1, title: "Deliverable 3, the Agent System, Team Submission",
-    business: "One submission per team, due Monday 11/30: both agents, the site and the sheet as the team will demonstrate them, with the results of the other team's tests." },
-  { id: "pr3_2", week: 13, part: 2, title: "Deliverable 3, the Agent System, Peer Evaluation",
-    business: "Every student submits individually, due with the team's submission: how the team worked, your own contribution, anyone who went above and beyond the others, and anyone who contributed less." },
+  { id: "pr3_1", week: 13, part: 1, title: "Deliverable 3, Presentation, Team Submission",
+    business: "One PowerPoint file per team, compressed as a .zip file, due Monday 11/30: at most four slides that introduce the business, with links to the customer site, the staff site and the sheet for a live demonstration of at most 8 minutes in which every member takes part." },
+  { id: "pr3_2", week: 13, part: 2, title: "Deliverable 3, Presentation, Peer Evaluation",
+    business: "Every student submits individually, due with the team's slides: how the team worked, what you prepared and did in the presentation, and any teammate who contributed more or less than the other members." },
 ];
 
 /* Weeks with no homework show what the outline says is due instead. */
 const NO_HOMEWORK_NOTE = {
   1:  "No homework this week. Week 1 is not graded.",
-  14: "No homework. Team demonstrations run in both sessions, and every student evaluates the other teams' demonstrations.",
+  14: "No homework. Teams present in both sessions. Every student evaluates each presenting team and ranks the teams at the end of each session.",
   15: "No homework. The last meeting is not graded.",
 };
 
@@ -844,6 +844,8 @@ const HOMEWORK_LINKS = {
   "pr2_1":     "https://canvas.vt.edu/courses/233694/assignments/2891299",
   "pr2_2":     "https://canvas.vt.edu/courses/233694/assignments/2892928",
   "pr2_3":     "https://canvas.vt.edu/courses/233694/assignments/2891301",
+  "pr3_1":     "https://canvas.vt.edu/courses/233694/assignments/2895011",
+  "pr3_2":     "https://canvas.vt.edu/courses/233694/assignments/2895012",
 };
 
 /* ============ Render ============ */
